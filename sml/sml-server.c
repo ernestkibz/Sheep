@@ -32,6 +32,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <time.h>
+#include <sys/stat.h>
 
 #if defined(_WIN32)
 #include <winsock2.h>
@@ -1061,6 +1062,52 @@ static int prompt_path_sound(const int * want, const int * got, int n) {
     return distinct >= 5;
 }
 
+// The prompt check's verdict is the same on every start of the same file, engine build and layer
+// split, and it cost ~1.5 s of every GPU start (3.9 s against llama.cpp's 2.4, 2026-10-27). So it is
+// kept beside the model, keyed by all three; anything different checks again.
+static void prompt_key(char * key, int n, const char * path, int layers, int of) {
+    long long size = 0, mtime = 0;
+    FILE * f = fopen(path, "rb");
+    if (f) {
+#ifdef _WIN32
+        _fseeki64(f, 0, SEEK_END); size = _ftelli64(f);
+        struct __stat64 st; if (_stat64(path, &st) == 0) mtime = (long long) st.st_mtime;
+#else
+        fseeko(f, 0, SEEK_END); size = (long long) ftello(f);
+#endif
+        fclose(f);
+    }
+    // the kernel settings an engine tune may set change which prompt path is sound, so they are in the key
+    extern char ** environ;
+    unsigned h = 2166136261u;
+    for (char ** e = environ; e && *e; e++)
+        if (!strncmp(*e, "SML_", 4) && strncmp(*e, "SML_PROMPT_RECHECK", 18))
+            for (const char * c = *e; *c; c++) h = (h ^ (unsigned char) *c) * 16777619u;
+    snprintf(key, n, "%s %s|%lld|%lld|%d/%d|%08x", __DATE__, __TIME__, size, mtime, layers, of, h);
+}
+
+static int prompt_cached(const char * path, const char * key) {
+    char p[1100], line[300];
+    snprintf(p, sizeof p, "%s.prompt", path);
+    FILE * f = fopen(p, "r");
+    if (!f) return -1;
+    int lvl = -1;
+    if (fgets(line, sizeof line, f)) {
+        char * bar = strrchr(line, ' ');
+        if (bar && !strncmp(line, key, (size_t) (bar - line)) && strlen(key) == (size_t) (bar - line))
+            lvl = atoi(bar + 1);
+    }
+    fclose(f);
+    return lvl >= 0 && lvl <= 2 ? lvl : -1;
+}
+
+static void prompt_remember(const char * path, const char * key, int lvl) {
+    char p[1100];
+    snprintf(p, sizeof p, "%s.prompt", path);
+    FILE * f = fopen(p, "w");
+    if (f) { fprintf(f, "%s %d\n", key, lvl); fclose(f); }
+}
+
 static void pace_rest(int ms) {
 #if defined(_WIN32)
     Sleep((DWORD) ms);
@@ -1600,8 +1647,12 @@ int main(int argc, char ** argv) {
             snprintf(probe, sizeof probe, "%s\n", q);
         int pid[256];
         const int np = sml_encode(&v, probe, pid, 256);
-        int want[12], got[12], lvl = 2;
-        if (np > 4) {
+        int want[12], got[12], lvl = 2, np_fail = 0;
+        char pkey[300];
+        prompt_key(pkey, sizeof pkey, path, g_gpu_layers, g_gpu_of);
+        const int known = getenv("SML_PROMPT_RECHECK") ? -1 : prompt_cached(path, pkey);
+        if (known >= 0) lvl = known;
+        else if (np > 4) {
             for (int mode = 0; mode <= 2; mode++) {
                 const int want_lvl = mode == 0 ? 0 : (mode == 1 ? 2 : 1);
                 sml_gpu_prompt_mode(want_lvl);
@@ -1613,7 +1664,7 @@ int main(int argc, char ** argv) {
                     out[k] = sml_sample_greedy(lg, (int) m.hdr->n_vocab);
                     lg = sml_gpu_step(out[k], np + k);
                 }
-                if (!lg) { lvl = 0; break; }
+                if (!lg) { lvl = 0; np_fail = 1; break; }
                 if (mode == 0) continue;
                 // Word for word over 12 tokens was too strict: rounding in the batched sums can flip
                 // one late greedy choice, and the 3B then read every prompt a token at a time on the
@@ -1623,6 +1674,7 @@ int main(int argc, char ** argv) {
                 if (!memcmp(want, got, sizeof want) || prompt_path_sound(want, got, 12)) { lvl = want_lvl; break; }
                 lvl = 0;
             }
+            if (!np_fail) prompt_remember(path, pkey, lvl);
         }
         sml_gpu_prompt_mode(lvl);
         if (lvl < 2)

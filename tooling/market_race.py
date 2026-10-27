@@ -60,40 +60,61 @@ def prompt(i):
 
 # ------------------------------------------------------------------ measuring from outside
 class Watch:
-    """Peak RSS of a process tree and peak VRAM in use, sampled while a run goes."""
+    """Peak RSS of a process tree and peak VRAM in use, sampled while a run goes; and how hard the
+    hardware worked for it: the tree's CPU use (% of the whole CPU), the card's use and its power.
+    vram0 is the card's use before the engine started (taken by race()), so the model's weights count."""
 
-    def __init__(self, pid=None):
+    def __init__(self, pid=None, vram0=None):
         self.pid, self.rss, self.vram, self.temp, self.go = pid, 0, 0, 0, True
-        self.vram0 = gpu()[0]
+        self.vram0 = gpu()[0] if vram0 is None else vram0
+        self.cpu, self.util, self.watts = [], [], []
         self.t = threading.Thread(target=self.loop, daemon=True)
         self.t.start()
 
     def loop(self):
         import psutil
+        procs = {}
+        ncpu = psutil.cpu_count() or 1
         while self.go:
             try:
                 p = psutil.Process(self.pid or os.getpid())
-                self.rss = max(self.rss, sum(x.memory_info().rss for x in [p, *p.children(recursive=True)]))
+                tree = [p, *p.children(recursive=True)]
+                self.rss = max(self.rss, sum(x.memory_info().rss for x in tree))
+                busy = 0.0
+                for x in tree:          # the first reading of a process is 0 by psutil's design
+                    procs.setdefault(x.pid, x)
+                    busy += procs[x.pid].cpu_percent(None)
+                self.cpu.append(busy / ncpu)
             except Exception:
                 pass
-            used, temp = gpu()
+            used, temp, util, watts = gpu_full()
             self.vram, self.temp = max(self.vram, used - self.vram0), max(self.temp, temp)
+            self.util.append(util)
+            self.watts.append(watts)
             time.sleep(0.25)
 
     def stop(self):
         self.go = False
         self.t.join(2)
-        return {"peak_ram_mb": round(self.rss / 2**20), "peak_vram_mb": max(0, round(self.vram)), "peak_gpu_c": self.temp}
+        avg = lambda xs: round(sum(xs[1:]) / max(1, len(xs) - 1), 1)
+        return {"peak_ram_mb": round(self.rss / 2**20), "peak_vram_mb": max(0, round(self.vram)), "peak_gpu_c": self.temp,
+                "avg_cpu_pct": avg(self.cpu), "avg_gpu_util": avg(self.util), "avg_gpu_w": avg(self.watts)}
+
+
+def gpu_full():
+    try:
+        r = subprocess.run(["nvidia-smi", "--query-gpu=memory.used,temperature.gpu,utilization.gpu,power.draw",
+                            "--format=csv,noheader,nounits"], capture_output=True, text=True, timeout=10)
+        used, temp, util, watts = [x.strip() for x in r.stdout.strip().splitlines()[0].split(",")]
+        num = lambda v: float(v) if v.replace(".", "", 1).isdigit() else 0.0
+        return num(used), int(num(temp)), num(util), num(watts)
+    except Exception:
+        return 0.0, 0, 0.0, 0.0
 
 
 def gpu():
-    try:
-        r = subprocess.run(["nvidia-smi", "--query-gpu=memory.used,temperature.gpu", "--format=csv,noheader,nounits"],
-                           capture_output=True, text=True, timeout=10)
-        used, temp = r.stdout.strip().splitlines()[0].split(",")
-        return float(used), int(temp)
-    except Exception:
-        return 0.0, 0
+    used, temp, _, _ = gpu_full()
+    return used, temp
 
 
 def post(url, body, timeout=1800):
@@ -160,7 +181,8 @@ class Sheep(Http):
         exe = ROOT / "sml" / "sml-server.exe"
         dev = {"cpu": "cpu", "gpu": "gpu"}[self.device]
         self.proc = subprocess.Popen([str(exe), SSF, "--port", str(self.port), "--ctx", str(CTX), "--slots", "1",
-                                      "--threads", str(THREADS), "--device", dev, "--orchestrator", "off"],
+                                      "--threads", os.environ.get("SHEEP_THREADS", str(THREADS)), "--device", dev,
+                                      "--orchestrator", os.environ.get("SHEEP_ORCH", "off")],
                                      cwd=str(exe.parent), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         wait_http(self.url + "/health", self.proc)
 
@@ -369,6 +391,7 @@ def race(spec, runs, port, quality):
     kind, device = (spec.split(":") + ["cpu"])[:2]
     eng = ENGINES[kind](device, port)
     row = {"engine": eng.name, "kind": kind, "device": device, "time": time.strftime("%Y-%m-%d %H:%M:%S")}
+    vram0 = gpu()[0]
     t0 = time.perf_counter()
     try:
         eng.start()
@@ -379,7 +402,7 @@ def race(spec, runs, port, quality):
     row["format"] = eng.fmt
     f = Path(eng.file)
     row["size_mb"] = round((sum(x.stat().st_size for x in f.rglob("*") if x.is_file()) if f.is_dir() else f.stat().st_size) / 2**20)
-    w = Watch(eng.pid())
+    w = Watch(eng.pid(), vram0)
     try:
         r, _, _ = eng.chat([{"role": "user", "content": "What is the capital of France? Answer in one word."}], 16)
         row["sanity"] = (r["choices"][0]["message"].get("content") or "")[:60]

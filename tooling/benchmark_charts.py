@@ -27,9 +27,11 @@ MACHINE = "Qwen2.5-3B, 4-bit · Ryzen 5 5600H, RTX 3050 Laptop 4 GB, on AC · GP
 # tooling/market_race.py (each engine as a server, ~710-token prompt, 128 new tokens, median of 5 runs;
 # 40 hard questions at temperature 0). Sheep's GPU row is the run after the 2026-10-27 prompt-path fix.
 MARKET = {  # engine: {device: (read tok/s, write tok/s, right of 40, start-up s)}
-    "Sheep": {"gpu": (361.0, 11.44, 33, 3.89), "cpu": (72.35, 15.09, 32, 1.03)},
-    "llama.cpp": {"gpu": (380.1, 11.70, 31, 2.41), "cpu": (62.69, 15.24, 32, 2.43)},
-    "Ollama": {"gpu": (383.7, 11.99, 32, 72.0), "cpu": (81.03, 15.70, 33, 6.14)},
+    # speeds and start-up: the 2026-10-27 night re-race, two rows each in mirrored order (A B C C B A),
+    # averaged; Sheep's GPU start-up is the cached prompt check (2.03 s); answers right: the earlier 40-question run
+    "Sheep": {"gpu": (365.5, 11.57, 33, 2.03), "cpu": (83.6, 15.36, 32, 0.78)},
+    "llama.cpp": {"gpu": (380.8, 11.70, 31, 2.25), "cpu": (71.7, 15.39, 32, 2.73)},
+    "Ollama": {"gpu": (383.6, 11.99, 32, 6.36), "cpu": (80.7, 15.21, 33, 6.25)},
 }
 BY_CLASS = {  # right of 10 per class, GPU then CPU
     "Sheep": {"gpu": (10, 8, 9, 6), "cpu": (10, 8, 9, 5)},
@@ -299,8 +301,72 @@ def features(out):
     save(fig, out, "features.png")
 
 
+HW_LOG = Path(__file__).resolve().parent / "hw_race.jsonl"   # tooling/market_race.py rows, copied here
+
+
+def hardware(out):
+    """How much of the machine each engine takes to do the same work: less memory, CPU and power
+    leaves room for a bigger model, other apps, and battery."""
+    import json
+    rows = {}
+    for line in HW_LOG.read_text(encoding="utf-8").splitlines():
+        r = json.loads(line)
+        name = {"sheep": "Sheep", "llamacpp": "llama.cpp", "ollama": "Ollama"}[r["kind"]]
+        rows[(name, r["device"])] = r
+    panels = [
+        ("Memory (RAM) at its peak\n(MB, lower is better)", "peak_ram_mb", "MB", "{:.0f}"),
+        ("Graphics memory at its peak\n(MB, lower is better)", "peak_vram_mb", "MB", "{:.0f}"),
+        ("CPU busy while answering\n(% of the whole CPU, lower is better)", "avg_cpu_pct", "%", "{:.0f}"),
+        ("Graphics card power\n(watts, lower is better)", "avg_gpu_w", "W", "{:.1f}"),
+    ]
+    engines = [("Sheep", SHEEP), ("llama.cpp", LLAMA), ("Ollama", OLLAMA)]
+    fig, axes = plt.subplots(1, len(panels), figsize=(17, 6.0), facecolor=BG)
+    head(fig, "Hardware used for the same work",
+         f"{MACHINE}. Same prompt and answer length for each. Less used = more room for a bigger model or other apps.")
+    wins = []
+    for ax, (t, k, unit, fmt) in zip(axes, panels):
+        top = max(rows[(e, d)].get(k) or 0 for e, _ in engines for d in ("gpu", "cpu")) or 1
+        for i, dev in enumerate(("gpu", "cpu")):
+            vals = [(e, c, rows[(e, dev)].get(k) or 0) for e, c in engines]
+            for j, (e, c, v) in enumerate(vals):
+                y = i * 4.2 + j
+                ax.barh(y, v, height=0.8, color=c)
+                ax.text(v + top * 0.02, y, f"{fmt.format(v)} {unit}", va="center", fontsize=10, color=INK)
+            best = min(v for _, _, v in vals)
+            slack = {"%": 0.5, "MB": 50, "W": 0.3}[unit]     # a few MB or a tenth of a watt is noise
+            lead = [e for e, _, v in vals if v <= best * 1.02 + slack]
+            if len(lead) == len(vals):
+                who, word, c = "tie", "Tie", TIE
+            elif "Sheep" in lead:
+                who, word, c = "Sheep", "✓ Sheep uses least" + (" (tie)" if len(lead) > 1 else ""), WIN
+            else:
+                who, word, c = lead[0], f"{' and '.join(lead)} use{'s' if len(lead) == 1 else ''} least", LOSS
+            wins.append(who)
+            ax.text(0, i * 4.2 + 2.85, word, va="center", fontsize=10.5, color=c, fontweight="bold")
+            ax.text(-top * 0.03, i * 4.2 + 1, dev.upper(), va="center", ha="right", fontsize=11, color=INK,
+                    fontweight="bold")
+        ax.set_xlim(0, top * 1.5)
+        ax.set_ylim(7.6, -0.8)
+        ax.set_yticks([])
+        ax.set_xticks([])
+        clean(ax)
+        ax.set_title(t, loc="left", fontsize=12, color=INK, fontweight="bold")
+    score(fig, [("Sheep uses least", wins.count("Sheep"), WIN),
+                ("another uses less", sum(w not in ("Sheep", "tie") for w in wins), LOSS),
+                ("tie", wins.count("tie"), TIE)], len(wins))
+    fig.legend(handles=[plt.Rectangle((0, 0), 1, 1, color=c) for _, c in engines], labels=[e for e, _ in engines],
+               loc="lower left", ncol=3, frameon=False, bbox_to_anchor=(0.015, 0.0))
+    fig.text(0.985, 0.02, "tooling/market_race.py: memory of the engine's whole process tree; card memory counted "
+             "from before the engine started; CPU and power averaged over the runs", ha="right", fontsize=9,
+             color=MUTED)
+    fig.subplots_adjust(left=0.05, right=0.985, top=0.7, bottom=0.1, wspace=0.3)
+    save(fig, out, "hardware.png")
+
+
 def main(out):
     style()
+    if HW_LOG.exists():
+        hardware(out)
     versus(out, "llama.cpp", LLAMA, "sheep_vs_llamacpp.png")
     versus(out, "Ollama", OLLAMA, "sheep_vs_ollama.png")
     engines(out)
