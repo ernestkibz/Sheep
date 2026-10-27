@@ -645,6 +645,46 @@ const MLMI = (() => {
     }
     return text;
   }
+  // What is missing, each with its fix, the same rows as Settings › Advanced › This computer.
+  // Speed-ups (GPU support) are shown as optional; they never block the request.
+  const setupTag = (ok) => `<span class="stag ${ok ? "ok" : "bad"}">${ok ? "Ready" : "Missing"}</span>`;
+  function setupButton(a, label, main) {
+    if (!a) return "";
+    const data = esc(JSON.stringify({ ...a, what: label, main }));
+    return a.do === "link" ? `<a class="btn" href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.label)}</a>`
+      : `<button class="${main ? "primary" : ""}" data-setup='${data}'>${esc(a.label)}</button>`;
+  }
+  function setupRows(items) {
+    return items.map((i) => `<li class="setup-row ${i.ok ? "ready" : ""}">${setupTag(i.ok)}
+      <div class="setup-what"><div><b>${esc(i.label)}</b>${!i.ok && (i.optional || i.speedup) ? ` <span class="setup-opt">${i.speedup ? "speeds it up" : "optional"}</span>` : ""}</div>
+        ${i.ok ? "" : `<div class="dim">${esc(i.need || i.fix || "")}</div>`}</div>
+      <div class="setup-act">${i.ok ? "" : setupButton(i.action, i.label, i.main !== undefined ? i.main : !i.speedup)}</div></li>`).join("");
+  }
+  function setupHtml(items) {
+    return `<div class="chat-setup"><ul class="setup-list">${setupRows(items)}</ul>
+      <div class="row"><button data-retry>Try again</button><span class="dim">after adding what is missing</span></div></div>`;
+  }
+  // One place that starts a fix, for the chat and for Settings: add a model, download a
+  // feature model or GPU support (after a yes), or open a page outside Sheep.
+  async function setupAction(a, btn) {
+    if (a.do === "slot") { modelSlotChoice(a.slot); return true; }
+    if (a.do === "link") return true;
+    const size = (String(a.label).match(/\(([^)]*)\)/) || [])[1];
+    if (!await ask(`Download ${a.what || "it"}${size ? ` (${size})` : ""}? It installs once, beside Sheep, and does not change your other programs.`, { ok: "Download" })) return false;
+    if (btn) { btn.disabled = true; btn.textContent = "Downloading…"; }
+    try {
+      if (a.do === "media") await api("/api/media_model", { id: a.id, action: "use" });
+      if (a.do === "runtime") await api("/api/gpu_runtime", { action: "install", kind: a.kind });
+      toast(a.do === "runtime" ? "Downloading GPU support: the progress shows in Settings" : "Ready to use");
+      if (btn) { btn.textContent = a.do === "runtime" ? "Downloading" : "Done"; }
+      return true;
+    } catch (err) {
+      toast(err.message, "bad");
+      if (btn) { btn.disabled = false; btn.textContent = a.label; }
+      return false;
+    }
+  }
+
   function botHtml(e) {
     const cloud = e.route === "cloud";
     const timerStart = (e.thinking && e.thinking.t0) || e.t0 || Date.now();
@@ -665,6 +705,7 @@ const MLMI = (() => {
         : e.text ? `<div class="text">${MLMI.md ? MLMI.md(e.text) : esc(e.text)}</div>` : e.draft && !e.done ? `<div class="text live">${MLMI.md ? MLMI.md(e.draft) : esc(e.draft)}<span class="caret"></span></div>`
         : e.done ? "" : `<div class="think-line"><span class="thinking"><i></i><i></i><i></i></span>
         <span class="shimmer">${esc(e.thinking ? e.thinking.what : "Thinking")}</span><span class="tsec" data-t0="${timerStart}" data-estimate="${timerEstimate}">${elapsedText(timerStart, timerEstimate)}</span></div>`}
+      ${e.setup && e.setup.length ? setupHtml(e.setup) : ""}
       ${e.files && e.files.length ? e.files.map(fileCard).join("") : ""}
       ${e.done && e.text ? `<div class="msg-tools"><button class="copy-message" data-copymsg title="Copy the answer">${icon("copy")}Copy</button>
         <button class="copy-message" data-speak title="Read it aloud">${icon("audio")}Read aloud</button>${e.text.length > 400 && !(MLMI.isDocument && MLMI.isDocument(e.text))
@@ -951,6 +992,7 @@ const MLMI = (() => {
       case "text": if (ev.text && !ev.partial) { bot.text = ev.text; bot.draft = ""; } if (ev.route === "cloud") bot.route = "cloud"; break;
       case "error": bot.text = `Something went wrong: ${ev.text}`; bot.workState = "failed"; bot.workStage = "Failed"; break;
       case "sources": bot.sources = ev.items || []; break;
+      case "setup_needed": bot.setup = ev.items || []; break;
       case "review": bot.review = { by: ev.by, ok: !!ev.ok, fixes: ev.fixes || [], fixed: !!ev.fixed }; break;
       case "done":
         if (ev.stopped) {
@@ -1594,6 +1636,13 @@ const MLMI = (() => {
       if (e.target.closest("[data-vtip]")) { e.preventDefault(); return MLMI.videoTip && MLMI.videoTip(); }
       const f = e.target.closest("[data-open]");
       if (f) { e.preventDefault(); return openFile(f.dataset.open); }
+      const fix = e.target.closest("[data-setup]");
+      if (fix) return setupAction(JSON.parse(fix.dataset.setup), fix);
+      if (e.target.closest("[data-retry]")) {
+        const last = [...S.log].reverse().find((m) => m.role === "you");
+        if (last && !S.busy) send(last.text);
+        return;
+      }
       const a = e.target.closest("[data-allow]");
       if (a) {
         const bot = S.log[S.log.length - 1];
@@ -1716,5 +1765,5 @@ const MLMI = (() => {
     ta.focus();
   }
 
-  return { $, $$, esc, api, op, toast, ask, S, go, themeOf, modelName: prettyModel, openFile, openApp, closeCanvas, openSettings, loadTree, refresh, start, NATIVE, send, icon, saveChat, attachFiles, modelSlotChoice, hfSignIn, hfSignInHtml };
+  return { $, $$, esc, api, op, toast, ask, S, go, themeOf, setupAction, setupRows, modelName: prettyModel, openFile, openApp, closeCanvas, openSettings, loadTree, refresh, start, NATIVE, send, icon, saveChat, attachFiles, modelSlotChoice, hfSignIn, hfSignInHtml };
 })();

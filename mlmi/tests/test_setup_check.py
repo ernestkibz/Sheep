@@ -28,6 +28,18 @@ class ChecklistTests(unittest.TestCase):
                 patch("shutil.which", return_value="ffmpeg" if ffmpeg else None):
             return server.setup_checklist(state(), kind)
 
+    def test_each_missing_row_says_what_it_is_for_and_how_to_fix_it(self):
+        got = self.items("video", nvidia=True, cuda=False)
+        video = next(i for i in got if i["label"].startswith("Video model"))
+        self.assertTrue(video["need"] and video["optional"])
+        self.assertEqual(video["action"]["do"], "media")
+        self.assertFalse(video["speedup"])
+        gpu = next(i for i in got if "graphics card support" in i["label"])
+        self.assertTrue(gpu["speedup"])                  # makes it faster; never blocks a request
+        self.assertEqual(gpu["action"]["do"], "runtime")
+        ready = next(i for i in got if i["ok"])
+        self.assertIsNone(ready["action"])
+
     def test_one_kind_with_the_text_model(self):
         got = self.items("video")
         self.assertEqual({i["kind"] for i in got}, {"text", "video"})

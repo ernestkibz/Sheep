@@ -565,7 +565,9 @@ def setup_checklist(st, kind=""):
             continue
         seen.add(label)
         out.append({"kind": k, "label": label, "ok": bool(ok), "fix": "" if ok else fix, "need": need,
-                    "optional": optional, "action": None if ok else action})
+                    "optional": optional, "action": None if ok else action,
+                    # GPU support makes the work faster; without it the work still runs (slowly)
+                    "speedup": bool(action and action.get("do") == "runtime")})
     return out
 
 

@@ -195,13 +195,17 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
             items = setup_checklist(state, MEDIA_KIND[tool])
         except Exception:
             items = []
-        missing = [i for i in items if not i["ok"]]
+        # GPU support only makes the work faster: it never blocks a request (2026-10-27: an
+        # unready AMD runtime stopped picture requests whose model was ready)
+        missing = [i for i in items if not i["ok"] and not i.get("speedup")]
         if (tool not in names and not able(state, [tool])[0]) or missing:
-            lines = "\n".join(f"- {'✓' if i['ok'] else '✗'} {i['label']}" + ("" if i["ok"] else f" — {i['fix']}")
-                              for i in items) or f"- ✗ a {kind} model — Settings › Models"
+            show = [i for i in items if not i["ok"]] or [{"label": f"a {kind} model", "ok": False, "need":
+                    f"Sheep needs a {kind} model for this.", "action": {"do": "slot", "slot": "chat", "label": "Add a model"}}]
+            names_ = ", ".join(i["label"] for i in show if not i.get("speedup"))
             emit({"type": "text", "route": "local", "text":
-                  f"Sheep is not set up for this yet. For {kind} work it needs:\n\n{lines}\n\n"
-                  "Add what is missing, then ask again; the text model uses it from then on."})
+                  f"Sheep is not set up for this yet: for {kind} work it needs {names_ or 'one more piece'}. "
+                  "Add it with the button below, then press Try again."})
+            emit({"type": "setup_needed", "kind": kind, "items": show})
             emit({"type": "done", "stopped": False, "changed": []})
             return
     selected_video_images = _selected_video_images(ws, attached, path, asked)

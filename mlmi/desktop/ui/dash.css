@@ -288,3 +288,11 @@ a.btn { display:inline-flex; align-items:center; padding:6px 12px; border-radius
   background:var(--panel2); color:var(--ink); text-decoration:none; font-size:13.5px; white-space:nowrap; }
 a.btn:hover { background:var(--hover); }
 @media (max-width: 760px) { #hSetupList li.setup-row { grid-template-columns:1fr; } .setup-act { justify-content:flex-start; } }
+/* the same rows inside a chat reply */
+.chat-setup { display:grid; gap:10px; margin-top:8px; }
+.setup-list { list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+.setup-list li.setup-row { display:grid; grid-template-columns:86px minmax(0,1fr) auto; align-items:center; gap:12px;
+  padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--panel); }
+.setup-list .stag { justify-content:center; }
+.chat-setup .row { display:flex; align-items:center; gap:10px; }
+@media (max-width: 760px) { .setup-list li.setup-row { grid-template-columns:1fr; } }

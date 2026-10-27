@@ -628,28 +628,14 @@
           // what is missing first (what is needed before what is optional), then what is ready
           const order = (i) => (i.ok ? 2 : i.optional ? 1 : 0);
           const items = r.items.slice().sort((a, b) => order(a) - order(b));
-          const button = (a) => !a ? "" : a.do === "link"
-            ? `<a class="btn" href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.label)}</a>`
-            : `<button class="${a.main ? "primary" : ""}" data-setup='${esc(JSON.stringify(a))}'>${esc(a.label)}</button>`;
-          $("#hSetupList", el).innerHTML = items.map((i) => `<li class="setup-row ${i.ok ? "ready" : ""}">
-              ${stag(i.ok)}<div class="setup-what"><div><b>${esc(i.label)}</b>${!i.ok && i.optional ? ` <span class="setup-opt">optional</span>` : ""}</div>
-                ${i.ok ? "" : `<div class="dim">${esc(i.need || "")}</div>`}</div>
-              <div class="setup-act">${i.ok ? "" : button(i.action && { ...i.action, what: i.label, main: !i.optional })}</div></li>`).join("");
+          $("#hSetupList", el).innerHTML = MLMI.setupRows(items.map((i) => ({ ...i, main: !i.optional })));
         };
         this.drawSetup = drawSetup;
         $("#hSetupList", el).onclick = async (e) => {
           const b = e.target.closest("[data-setup]");
           if (!b) return;
           const a = JSON.parse(b.dataset.setup);
-          if (a.do === "slot") return MLMI.modelSlotChoice(a.slot);
-          const size = (a.label.match(/\(([^)]*)\)/) || [])[1];
-          if (!await MLMI.ask(`Download ${a.what}${size ? ` (${size})` : ""}? It installs once, beside Sheep, and does not change your other programs.`, { ok: "Download" })) return;
-          b.disabled = true; b.textContent = "Downloading…";
-          try {
-            if (a.do === "media") await api("/api/media_model", { id: a.id, action: "use" });
-            if (a.do === "runtime") { await api("/api/gpu_runtime", { action: "install", kind: a.kind }); drawCuda(); }
-            toast("Done: ready to use");
-          } catch (err) { toast(err.message, "bad"); }
+          if (await MLMI.setupAction(a, b) && a.do === "runtime") drawCuda();
           drawSetup();
         };
         drawCuda();
