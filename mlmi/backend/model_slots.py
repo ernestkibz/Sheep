@@ -211,6 +211,23 @@ def _check_media(slot, repo_id, result, info, files, device, directml, cuda_read
     from huggingface_hub import HfApi
 
     expected_repo, media_id, install_kind = MEDIA_REPOS[slot]
+    if repo_id.casefold() != expected_repo.casefold() and slot in ("image", "speech_input"):
+        from . import media_styles as MS
+        if slot == "image":
+            ok, why, arch = MS.check_style(repo_id, files)
+            result["architecture"] = arch
+            if ok and not __import__("mlmi.backend.adapters", fromlist=["image_installable"]).image_installable():
+                ok, why = False, "the local picture packages are not installed"
+            size, rec = (MS.style_bytes(info) if ok else 0), {"style": repo_id, "label": "SD 1.5 style for pictures and video"}
+        else:
+            ok, why = MS.check_whisper(files)
+            result["architecture"] = "CTranslate2 Whisper" if ok else ""
+            size, rec = _selected_size(info, MS.WHISPER_FILES), {"speech_repo": repo_id, "label": "faster-whisper speech model"}
+        result["reason"] = why
+        if ok:
+            result.update(compatible=True, download_bytes=size, recommendation=rec,
+                          fit={"level": "green", "label": "Fits", "reason": why})
+        return result
     if repo_id.casefold() != expected_repo.casefold():
         result["reason"] = f"this runtime supports {expected_repo} for the {SLOT_BY_ID[slot]['task']} slot; " \
                             "other architectures are rejected until Sheep has a compatible loader"

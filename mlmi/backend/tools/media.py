@@ -136,7 +136,7 @@ class _Worker:
                     break
                 continue
             cmd = [py, str(HERE / "adapters" / "image_worker.py"), "--device", dev,
-                   "--base", str(MEDIA_DIR / "sd15")] + self.args(MEDIA_DIR)
+                   "--base", str(__import__("mlmi.backend.media_styles", fromlist=["chosen_base"]).chosen_base(CONFIG))] + self.args(MEDIA_DIR)
             try:
                 self.proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                                              text=True, encoding="utf-8", errors="replace", creationflags=NOWIN)
@@ -633,7 +633,7 @@ def _whisper():
         from faster_whisper import WhisperModel
         try:
             from ..adapters import whisper_snapshot
-            snapshot = whisper_snapshot()
+            snapshot = whisper_snapshot(CONFIG)
             if not snapshot:
                 raise RuntimeError("Whisper small weights are not installed for Sheep")
             _WHISPER["m"] = WhisperModel(str(snapshot), device="cpu", compute_type="int8")
@@ -862,7 +862,7 @@ def transcribe_audio(ctx, path, out=""):
     if "whisper-small" in set(CONFIG.get("disabled_media_models") or []):
         raise ToolError("Whisper small is disabled. Choose it in the model menu to enable it again.")
     from ..adapters import whisper_snapshot
-    _require_selected_model("speech_input", whisper_snapshot() is not None,
+    _require_selected_model("speech_input", whisper_snapshot(CONFIG) is not None,
                             "Whisper small is missing. Check and use a compatible speech-input model to continue.")
     t0 = time.time()
     segs, info = _whisper().transcribe(for_whisper(src), vad_filter=True)

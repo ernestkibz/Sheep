@@ -44,8 +44,12 @@ def load(name, base=BASE, lora=LCM):
     import torch
     from diffusers import LCMScheduler, StableDiffusionPipeline
     dev, dtype = device_of(name)
-    pipe = StableDiffusionPipeline.from_pretrained(base, torch_dtype=dtype, variant="fp16", safety_checker=None,
-                                                   requires_safety_checker=False, local_files_only=True)
+    try:
+        pipe = StableDiffusionPipeline.from_pretrained(base, torch_dtype=dtype, variant="fp16", safety_checker=None,
+                                                       requires_safety_checker=False, local_files_only=True)
+    except (OSError, ValueError):            # a style model that ships full-size weights only
+        pipe = StableDiffusionPipeline.from_pretrained(base, torch_dtype=dtype, safety_checker=None,
+                                                       requires_safety_checker=False, local_files_only=True)
     pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
     pipe.load_lora_weights(lora, weight_name="pytorch_lora_weights.safetensors", local_files_only=True)
     pipe.fuse_lora()
@@ -67,8 +71,11 @@ def load_motion(name, base, motion, ip_adapter=""):
     adapter = MotionAdapter()
     adapter.load_state_dict(load_file(motion, device="cpu"))
     adapter = adapter.to(dtype)
-    pipe = AnimateDiffPipeline.from_pretrained(base, motion_adapter=adapter, torch_dtype=dtype, variant="fp16",
-                                               local_files_only=True)
+    try:
+        pipe = AnimateDiffPipeline.from_pretrained(base, motion_adapter=adapter, torch_dtype=dtype, variant="fp16",
+                                                   local_files_only=True)
+    except (OSError, ValueError):
+        pipe = AnimateDiffPipeline.from_pretrained(base, motion_adapter=adapter, torch_dtype=dtype, local_files_only=True)
     pipe.scheduler = EulerDiscreteScheduler.from_config(pipe.scheduler.config, timestep_spacing="trailing",
                                                         beta_schedule="linear")
     # attention a few heads at a time: unsliced, 8 frames at 512 px asked a 2 GB

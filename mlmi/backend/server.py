@@ -1033,6 +1033,29 @@ def make_handler(st):
                             return self._send(409, {"error": str(exc)})
                         return self._send(202, {"accepted": True, "slot": slot, "quantize": st.quant.status(),
                                                 "message": "Downloading the model, then building it for this computer."})
+                    rec = checked.get("recommendation") or {}
+                    if rec.get("style") or rec.get("speech_repo"):
+                        from . import media_styles as _ms
+                        from .tools import media as _tm
+                        try:
+                            if rec.get("style"):
+                                _ms.install_style(rec["style"])
+                                from .adapters import MEDIA_DIR as _md
+                                if not any((_md / "lcm").glob("*.safetensors")):
+                                    from .adapters.fetch import fetch as _fetch
+                                    _fetch("lcm")                 # the 4-step add-on the style runs with
+                                st.cfg.setdefault("media_models", {})["image_style"] = rec["style"]
+                                for w in list(getattr(_tm, "_Worker").ALL):
+                                    w.stop()                      # the next picture loads the new base
+                            else:
+                                _ms.install_whisper(rec["speech_repo"])
+                                st.cfg.setdefault("media_models", {})["speech_repo"] = rec["speech_repo"]
+                                _tm._WHISPER.clear()
+                        except Exception as exc:
+                            return self._send(409, {"error": f"could not install it: {str(exc)[:200]}"})
+                        st.save()
+                        return self._send(200, {"accepted": True, "slots": _slots.current(st),
+                                                "message": f"{repo_id} is installed and chosen."})
                     from .model_slots import MEDIA_REPOS
                     media_id = MEDIA_REPOS[slot][1]
                     try:

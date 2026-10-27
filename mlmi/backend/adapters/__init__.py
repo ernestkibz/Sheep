@@ -14,12 +14,20 @@ from ..paths import HOME
 MEDIA_DIR = HOME / "media"
 
 
-def image_ready():
-    return ((MEDIA_DIR / "sd15" / "model_index.json").exists()
+def _style(cfg):
+    from ..media_styles import style_ready
+    repo = ((cfg or {}).get("media_models") or {}).get("image_style") or ""
+    return bool(repo) and style_ready(repo)
+
+
+def image_ready(cfg=None):
+    return (((MEDIA_DIR / "sd15" / "model_index.json").exists() or _style(cfg))
             and any((MEDIA_DIR / "lcm").glob("*.safetensors")))
 
 
-def video_ready():
+def video_ready(cfg=None):
+    if _style(cfg) and (MEDIA_DIR / "animatediff" / "animatediff_lightning_4step_diffusers.safetensors").is_file():
+        return True
     base = MEDIA_DIR / "sd15"
     required = (
         "model_index.json", "scheduler/scheduler_config.json",
@@ -58,7 +66,13 @@ def whisper_cache():
     return MEDIA_DIR / "hf-cache"
 
 
-def whisper_snapshot():
+def whisper_snapshot(cfg=None):
+    repo = ((cfg or {}).get("media_models") or {}).get("speech_repo") or ""
+    if repo:
+        from ..media_styles import whisper_snapshot_of
+        chosen = whisper_snapshot_of(repo)
+        if chosen:
+            return chosen
     snapshots = whisper_cache() / "models--Systran--faster-whisper-small" / "snapshots"
     # CTranslate2's faster-whisper loader reads these five files. The official
     # Systran snapshot does not ship a Transformers preprocessor_config.json.
@@ -93,16 +107,16 @@ def legacy_whisper_snapshot():
     return None
 
 
-def _whisper_ready():
-    return bool(importlib.util.find_spec("faster_whisper")) and whisper_snapshot() is not None
+def _whisper_ready(cfg=None):
+    return bool(importlib.util.find_spec("faster_whisper")) and whisper_snapshot(cfg) is not None
 
 
 def catalogue(cfg=None):
     """Media model choices with install/remove metadata and availability details."""
-    image = image_ready()
-    video = video_ready()
+    image = image_ready(cfg)
+    video = video_ready(cfg)
     sapi = os.name == "nt" and bool(importlib.util.find_spec("pyttsx3"))
-    whisper = _whisper_ready()
+    whisper = _whisper_ready(cfg)
     whisper_shared = not whisper and legacy_whisper_snapshot() is not None
     disabled = set((cfg or {}).get("disabled_media_models") or [])
     return [

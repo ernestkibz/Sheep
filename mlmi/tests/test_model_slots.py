@@ -59,7 +59,7 @@ class ModelSlotTests(unittest.TestCase):
             result = model_slots.check("speech_input", "ByteDance/AnimateDiff-Lightning")
         self.assertTrue(result["available"])
         self.assertFalse(result["compatible"])
-        self.assertIn("runtime supports Systran/faster-whisper-small", result["reason"])
+        self.assertIn("not a faster-whisper model", result["reason"])   # any faster-whisper model is accepted since 2026-10-27
 
     def test_supported_image_repo_must_have_expected_pipeline_files_and_task(self):
         hub = self.fake_api("stable-diffusion-v1-5/stable-diffusion-v1-5", "text-generation",
