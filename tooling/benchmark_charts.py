@@ -72,6 +72,17 @@ def head(fig, title, sub):
     fig.text(0.02, 0.905, sub, fontsize=10.5, color=MUTED)
 
 
+def score(fig, parts, n):
+    """The verdict in one line under the title: how many of the n tests each side won."""
+    x = 0.02
+    fig.text(x, 0.845, f"Of {n} tests:", fontsize=13, color=INK, fontweight="bold")
+    x += 0.075
+    for word, k, col in parts:
+        t = f"{k} {word}{'s' if word == 'tie' and k != 1 else ''}"
+        fig.text(x, 0.845, t, fontsize=13, color=col, fontweight="bold")
+        x += 0.0085 * len(t) + 0.025
+
+
 def save(fig, out, name):
     p = Path(out) / name
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -81,41 +92,51 @@ def save(fig, out, name):
 
 
 def pair_bars(ax, title, rival, rival_col, metric, unit, higher_better=True, fmt="{:.0f}"):
-    """Two devices, two bars each: Sheep and the rival. The winner's number is bold."""
+    """Two devices, two bars each: Sheep and the rival, with who is better written under them.
+    Speeds within 2% are a tie (the runs vary that much); answers right tie only when equal."""
+    wins = []
     for i, dev in enumerate(("gpu", "cpu")):
         s, r = MARKET["Sheep"][dev][metric], MARKET[rival][dev][metric]
         top = max(s, r)
-        for j, (v, col, who) in enumerate(((s, SHEEP, "Sheep"), (r, rival_col, rival))):
+        edge = (s / r - 1) if higher_better else (r / s - 1)
+        close = s == r if metric == 2 else abs(edge) < 0.02
+        who = "tie" if close else "Sheep" if edge > 0 else rival
+        wins.append(who)
+        for j, (v, col) in enumerate(((s, SHEEP), (r, rival_col))):
             y = i * 2.6 + j
             ax.barh(y, v, height=0.8, color=col)
-            better = (v >= (r if who == "Sheep" else s)) if higher_better else (v <= (r if who == "Sheep" else s))
-            ax.text(v + top * 0.02, y, f"{fmt.format(v)} {unit}", va="center", fontsize=10.5, color=INK,
-                    fontweight="bold" if better else "normal")
+            ax.text(v + top * 0.02, y, f"{fmt.format(v)} {unit}", va="center", fontsize=10.5, color=INK)
+        word, c = (("Tie", TIE) if who == "tie" else (f"✓ Sheep better", WIN) if who == "Sheep"
+                   else (f"{rival} better", LOSS))
+        ax.text(0, i * 2.6 + 1.75, word, va="center", fontsize=11, color=c, fontweight="bold")
         ax.text(-top * 0.02, i * 2.6 + 0.5, dev.upper(), va="center", ha="right", fontsize=11, color=INK,
                 fontweight="bold")
     ax.set_xlim(0, max(max(MARKET[e][d][metric] for d in ("gpu", "cpu")) for e in ("Sheep", rival)) * 1.45)
-    ax.set_ylim(4.2, -0.8)
+    ax.set_ylim(4.9, -0.8)
     ax.set_yticks([])
     ax.set_xticks([])
     clean(ax)
     ax.set_title(title, loc="left", fontsize=12, color=INK, fontweight="bold")
+    return wins
 
 
 def versus(out, rival, col, name):
     fig, axes = plt.subplots(1, 4, figsize=(17, 5.6), facecolor=BG)
     head(fig, f"Sheep vs {rival}",
-         f"{MACHINE}. Bold = better. {rival} runs the GGUF Q4_K_M file; Sheep runs its own SSF file.")
-    pair_bars(axes[0], "Reading the prompt\n(tokens a second, higher is better)", rival, col, 0, "tok/s")
-    pair_bars(axes[1], "Writing the answer\n(tokens a second, higher is better)", rival, col, 1, "tok/s",
-              fmt="{:.1f}")
-    pair_bars(axes[2], "Hard questions right\n(of 40: maths, code, facts, format)", rival, col, 2, "/ 40")
-    pair_bars(axes[3], "Start-up, ready to answer\n(seconds, lower is better)", rival, col, 3, "s",
-              higher_better=False, fmt="{:.1f}")
+         f"{MACHINE}. {rival} runs the GGUF Q4_K_M file; Sheep runs its own SSF file.")
+    wins = pair_bars(axes[0], "Reading the prompt\n(tokens a second, higher is better)", rival, col, 0, "tok/s")
+    wins += pair_bars(axes[1], "Writing the answer\n(tokens a second, higher is better)", rival, col, 1, "tok/s",
+                      fmt="{:.1f}")
+    wins += pair_bars(axes[2], "Hard questions right\n(of 40: maths, code, facts, format)", rival, col, 2, "/ 40")
+    wins += pair_bars(axes[3], "Start-up, ready to answer\n(seconds, lower is better)", rival, col, 3, "s",
+                      higher_better=False, fmt="{:.1f}")
+    score(fig, [("Sheep better", wins.count("Sheep"), WIN), (f"{rival} better", wins.count(rival), LOSS),
+                ("tie", wins.count("tie"), TIE)], len(wins))
     fig.legend(handles=[plt.Rectangle((0, 0), 1, 1, color=SHEEP), plt.Rectangle((0, 0), 1, 1, color=col)],
                labels=["Sheep", rival], loc="lower left", ncol=2, frameon=False, bbox_to_anchor=(0.015, 0.0))
     fig.text(0.985, 0.02, "tooling/market_race.py · median of 5 runs · 40 questions at temperature 0",
              ha="right", fontsize=9, color=MUTED)
-    fig.subplots_adjust(left=0.05, right=0.985, top=0.74, bottom=0.1, wspace=0.28)
+    fig.subplots_adjust(left=0.05, right=0.985, top=0.72, bottom=0.1, wspace=0.28)
     save(fig, out, name)
 
 
@@ -125,12 +146,14 @@ def engines(out):
          "GGML is the engine inside llama.cpp and Ollama. Same machine, same model, same 4-bit budget. "
          "Right of the line = SML faster.")
     ys = list(range(len(ENGINE_RACES)))[::-1]
+    tally = []
     for y, (n, r, lo, hi) in zip(ys, ENGINE_RACES):
         c = WIN if lo > 1 else LOSS if hi < 1 else TIE
         a.plot([lo, hi], [y, y], color=c, lw=8, alpha=0.35, solid_capstyle="round")
         a.plot([r], [y], "o", color=c, ms=10, mec=BG, mew=1.5)
-        word = "SML faster" if c == WIN else "GGML faster" if c == LOSS else "tie"
+        word = "✓ SML better" if c == WIN else "GGML better" if c == LOSS else "tie"
         a.text(1.49, y, f"{r:.2f}×  {word}", va="center", fontsize=10.5, color=c, fontweight="bold")
+        tally.append(c)
     a.axvline(1.0, color=MUTED, lw=1, ls=(0, (4, 3)))
     a.set_yticks(ys, [n for n, *_ in ENGINE_RACES])
     a.set_xlim(0.9, 1.75)
@@ -150,19 +173,23 @@ def engines(out):
             y = i * 2.8 + j
             c = WIN if r > 1.02 else LOSS if r < 0.98 else TIE
             b.barh(y, r - 1, left=1, height=0.8, color=col, alpha=0.85)
-            b.text(max(r, 1) + 0.012, y, f"{r:.2f}× vs GGML in {eng}", va="center", fontsize=10, color=c,
+            word = "✓ SML better" if c == WIN else "GGML better" if c == LOSS else "tie"
+            b.text(max(r, 1) + 0.012, y, f"{r:.2f}× vs {eng}: {word}", va="center", fontsize=10, color=c,
                    fontweight="bold")
+            tally.append(c)
         b.text(0.795, i * 2.8 + 0.5, n, va="center", ha="right", fontsize=11, color=INK)
     b.axvline(1.0, color=MUTED, lw=1, ls=(0, (4, 3)))
-    b.set_xlim(0.8, 1.45)
+    b.set_xlim(0.8, 1.62)
     b.set_ylim(11, -0.8)
     b.set_yticks([])
     b.set_xticks([0.8, 0.9, 1.0, 1.1, 1.2], ["0.8×", "0.9×", "1.0×", "1.1×", "1.2×"])
     clean(b, keep_bottom=True)
     b.set_title("As whole servers\n(SML speed ÷ GGML's; 710-token prompt)", loc="left", fontsize=12, color=INK, fontweight="bold")
+    score(fig, [("SML better", tally.count(WIN), WIN), ("GGML better", tally.count(LOSS), LOSS),
+                ("tie", tally.count(TIE), TIE)], len(tally))
     fig.text(0.02, 0.02, "Left: tooling/sml_cpu_race_ci.py, sml_gpu_race_ci.py. Right: tooling/market_race.py. "
              "Grey = within 2%, a tie.", fontsize=9, color=MUTED)
-    fig.subplots_adjust(left=0.17, right=0.985, top=0.76, bottom=0.1, wspace=0.42)
+    fig.subplots_adjust(left=0.17, right=0.985, top=0.71, bottom=0.1, wspace=0.42)
     save(fig, out, "sml_vs_ggml.png")
 
 
@@ -186,8 +213,9 @@ def formats(out):
                 ax.barh(y, v, height=0.8, color=col)
                 ax.text(v + top * 0.02, y, f"{lab} {fmt.format(v)}", va="center", fontsize=10, color=INK)
             ax.text(-top * 0.02, i * 2.8 + 0.5, f[0], va="center", ha="right", fontsize=11, color=INK)
+            ax.text(0, i * 2.8 + 1.75, "✓ SSF better", va="center", fontsize=10.5, color=WIN, fontweight="bold")
         ax.set_xlim(0, top * 1.45)
-        ax.set_ylim(8.2, -0.8)
+        ax.set_ylim(8.9, -0.8)
         ax.set_yticks([])
         ax.set_xticks([])
         clean(ax)
@@ -199,6 +227,8 @@ def formats(out):
         c.barh(i, (r - 1) * 100, height=0.6, color=col)
         c.text((r - 1) * 100 + (0.08 if r >= 1 else -0.08), i, f"{(r - 1) * 100:+.2f}%", va="center",
                ha="left" if r >= 1 else "right", fontsize=10.5, color=col, fontweight="bold")
+        c.text(0.05, i + (0.42 if col == LOSS else 0), "GGUF smaller" if col == LOSS else "tie", va="center", ha="left", fontsize=10.5,
+               color=col, fontweight="bold")
     c.axvline(0, color=MUTED, lw=1)
     c.set_yticks(range(len(FORMAT)), names)
     c.invert_yaxis()
@@ -210,9 +240,12 @@ def formats(out):
     fig.legend(handles=[plt.Rectangle((0, 0), 1, 1, color=SHEEP), plt.Rectangle((0, 0), 1, 1, color=LLAMA)],
                labels=["SSF (Sheep)", "GGUF Q4_K_M (llama.cpp and Ollama)"], loc="lower left", ncol=2,
                frameon=False, bbox_to_anchor=(0.015, 0.0))
+    size_l = sum(f[3] > 1.002 for f in FORMAT)
+    score(fig, [("SSF better", 2 * len(FORMAT), WIN), ("GGUF better", size_l, LOSS),
+                ("tie", len(FORMAT) - size_l, TIE)], 3 * len(FORMAT))
     fig.text(0.985, 0.02, "RESULTS.md, \"Three specs raced\": every position of 256-512 held-out tokens scored",
              ha="right", fontsize=9, color=MUTED)
-    fig.subplots_adjust(left=0.09, right=0.985, top=0.74, bottom=0.12, wspace=0.42)
+    fig.subplots_adjust(left=0.09, right=0.985, top=0.7, bottom=0.12, wspace=0.42)
     save(fig, out, "ssf_vs_gguf.png")
 
 
@@ -252,6 +285,10 @@ def features(out):
             ax.text(6.4 + j * 1.6, y, sym, va="center", ha="center", fontsize=17, color=col, fontweight="bold")
     for j, (name, col) in enumerate(cols):
         ax.text(6.4 + j * 1.6, n - 0.1, name, ha="center", va="bottom", fontsize=12.5, color=col, fontweight="bold")
+    lead = sum(m[0] == "yes" and "yes" not in m[1:] for _, *m in FEATURES)
+    behind = sum(m[0] != "yes" and "yes" in m[1:] for _, *m in FEATURES)
+    fig.text(0.02, 0.86, f"Sheep alone has {lead} of these {len(FEATURES)}. The others are ahead on {behind}.",
+             fontsize=13, color=WIN, fontweight="bold")
     ax.set_xlim(0, 10.6)
     ax.set_ylim(-0.7, n + 0.6)
     ax.axis("off")
