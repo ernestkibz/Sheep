@@ -327,9 +327,11 @@
   V.models = {
     async mount(el) {
       this.el = el;
-      el.innerHTML = `<div class="page"><div class="phead rise"><h1>Models</h1><span class="sub">What runs on this computer, and adding new ones</span></div>
-        <div id="mBody" class="stack"></div><div id="mQuant" class="add-any"></div>
-        <div id="mSlots" class="model-slots"></div></div>`;
+      // the one place models are chosen (2026-10-27): every job's model here, then the chat models
+      // already built, then adding a new one; chat and Advanced point here instead of repeating it
+      el.innerHTML = `<div class="page"><div class="phead rise"><h1>Models</h1><span class="sub">One model for each job. Pick the one you prefer; Sheep uses it everywhere.</span></div>
+        <div id="mSlots" class="model-slots"></div>
+        <div id="mBody" class="stack"></div><div id="mQuant" class="add-any"></div></div>`;
       wireSects($("#mBody", el));
       quantizer.mount($("#mQuant", el));
       el.addEventListener("click", async (e) => {
@@ -404,12 +406,14 @@
         const control = role ? `<div class="model-slot-actions"><select data-slot-model="${esc(slot.id)}" aria-label="${esc(slot.label)} model">
             ${choices.map((x) => `<option value="${esc(x.id)}" ${x.id === slot.active ? "selected" : ""}>${esc(x.name)}${x.disabled ? " · disabled" : ""}</option>`).join("")}</select>
             <button data-slot-use="${esc(slot.active || (choices[0] || {}).id || "")}" ${choices.length ? "" : "disabled"}>Use</button>
-            <button data-slot-check="${esc(slot.id)}">Check Hugging Face ID…</button></div>`
-          : `<button data-slot-check="${esc(slot.id)}">Add from Hugging Face…</button>`;
-        return `<div class="card model-slot-row"><div><div class="caps">${esc(slot.label)}</div><b>${esc(slot.active_name ? (slot.id === "chat" || slot.id === "checker" ? MLMI.modelName(slot.active_name) : slot.active_name) : "Not selected")}</b>
+            <button data-slot-check="${esc(slot.id)}" title="Any Hugging Face model for this job; Sheep checks it fits first">Choose another…</button></div>`
+          : `<div class="model-slot-actions"><button data-slot-check="${esc(slot.id)}" title="Any Hugging Face model for this job; Sheep checks it fits first">Choose another…</button></div>`;
+        const ready = slot.active && slot.ready !== false;
+        return `<div class="card model-slot-row"><span class="stag ${ready ? "ok" : "bad"}">${ready ? "Ready" : "Missing"}</span>
+          <div><div class="caps">${esc(slot.label)}</div><b>${esc(slot.active_name && slot.active ? (slot.id === "chat" || slot.id === "checker" ? MLMI.modelName(slot.active_name) : slot.active_name) : "Not selected")}</b>
           <div class="dim">${esc(slot.description || "")}</div></div>${control}</div>`;
       }).join("");
-      $("#mSlots", this.el).innerHTML = `<div class="caps">A model for each job: chat, checking, pictures, video, speech</div>${slotRows}`;
+      $("#mSlots", this.el).innerHTML = `<div class="caps">Your models: one for each job</div>${slotRows}`;
       const cur = st.model, reg = m.grades || {};
       const e = reg[cur.path] || {};
       const g = e.grade || {};
@@ -628,7 +632,9 @@
           // what is missing first (what is needed before what is optional), then what is ready
           const order = (i) => (i.ok ? 2 : i.optional ? 1 : 0);
           const items = r.items.slice().sort((a, b) => order(a) - order(b));
-          $("#hSetupList", el).innerHTML = MLMI.setupRows(items.map((i) => ({ ...i, main: !i.optional })));
+          // models are chosen in one place, Settings › Models; here they only point there
+          const toHub = (a) => a && (a.do === "media" || a.do === "slot") ? { do: "open", tab: "models", label: "Choose in Models" } : a;
+          $("#hSetupList", el).innerHTML = MLMI.setupRows(items.map((i) => ({ ...i, action: toHub(i.action), main: !i.optional })));
         };
         this.drawSetup = drawSetup;
         $("#hSetupList", el).onclick = async (e) => {

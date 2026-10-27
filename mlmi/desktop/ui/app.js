@@ -672,6 +672,7 @@ const MLMI = (() => {
   // feature model or GPU support (after a yes), or open a page outside Sheep.
   async function setupAction(a, btn) {
     if (a.do === "slot") { modelSlotChoice(a.slot); return true; }
+    if (a.do === "open") { openSettings(a.tab || "models"); return true; }
     if (a.do === "link") return true;
     const size = (String(a.label).match(/\(([^)]*)\)/) || [])[1];
     if (!await ask(`Download ${a.what || "it"}${size ? ` (${size})` : ""}? It installs once, beside Sheep, and does not change your other programs.`, { ok: "Download" })) return false;
