@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from .. import tools as T
 from ..workspace import ModelSelectionRequired, ToolError
-from .routing import AI_VIDEO, PHOTO_ANIMATION, PHOTO_MONTAGE, STUDIO_EDIT, VIDEO_TEXT_ONLY, explicit_media_request
+from .routing import AI_VIDEO, PHOTO_AD, PHOTO_ANIMATION, PHOTO_MONTAGE, STUDIO_EDIT, VIDEO_TEXT_ONLY, explicit_media_request
 
 
 def explicit_speech_output(text):
@@ -130,7 +130,25 @@ def clean_visual(written, fallback):
     return v
 
 
-def explicit_media_plan(ws, text, selected_images, narration="", visual=""):
+AD_INSTRUCTION = (
+    "Write the words for a short photo advert from the request. Return exactly two lines: line 1 a headline "
+    "of 2 to 6 words, line 2 a tagline of 3 to 10 words (the business, place or offer when the request names "
+    "one). No quotes, no labels, nothing else. Do not invent prices, phone numbers or claims the request does "
+    "not make.")
+
+
+def ad_words(written, text):
+    """(headline, tagline) from the chat model's two lines; from the request when that fails."""
+    lines = [re.sub(r"^\s*(?:headline|tagline|line \d)\s*:\s*|[\"'`*]", "", ln).strip(" .")
+             for ln in str(written or "").splitlines() if ln.strip()]
+    ok = len(lines) >= 1 and 2 <= len(lines[0].split()) <= 8 and "```" not in written
+    if ok:
+        return lines[0], (lines[1] if len(lines) > 1 and len(lines[1].split()) <= 14 else "")
+    m = re.search(r"\bfor (?:my |our |the )?([\w' &-]{3,40}?)(?:[.,;]|\s+(?:with|using|from)\b|$)", str(text or ""), re.I)
+    return ((m.group(1).strip().title() if m else "Made for you"), "")
+
+
+def explicit_media_plan(ws, text, selected_images, narration="", visual="", ad=None):
     """Build a bounded tool sequence for an explicit video/montage request.
 
     The LLM still writes requested narration. Sheep owns the mechanical routing:
@@ -141,6 +159,19 @@ def explicit_media_plan(ws, text, selected_images, narration="", visual=""):
     if not explicit_media_request(t):
         return None
     text_only = bool(re.search(VIDEO_TEXT_ONLY, t, re.I))
+    if re.search(PHOTO_AD, t, re.I) and not text_only:
+        selected = list(dict.fromkeys(str(x) for x in (selected_images or [])))
+        if not selected:
+            raise ToolError("attach or select the photos for the ad first; no photo was used")
+        headline, tagline = ad or ad_words("", t)
+        fmt = "9:16" if re.search(r"\b(vertical|portrait|tiktok|reels?|stories|status|9:16)\b", t, re.I) else (
+            "1:1" if re.search(r"\b(square|instagram post|1:1)\b", t, re.I) else "16:9")
+        project = _unique_workspace_path(ws, "media/photo-ad.sstudio")
+        rendered = _unique_workspace_path(ws, "media/photo-ad.mp4")
+        music = next((str(x) for x in re.findall(r"[\w./-]+\.(?:mp3|wav|m4a|aac|ogg|flac)\b", t, re.I)), "")
+        return [("studio_ad", {"path": project, "images": selected[:12], "headline": headline, "tagline": tagline,
+                               "music": music, "voice": narration, "format": fmt}),
+                ("studio_render", {"path": project, "out": rendered})]
     montage = bool(re.search(PHOTO_MONTAGE, t, re.I)) and not text_only
     photo_animation = bool(re.search(PHOTO_ANIMATION, t, re.I)) and not text_only
     text_video = bool(re.search(AI_VIDEO, t, re.I) and not montage and not photo_animation

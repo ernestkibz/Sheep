@@ -17,6 +17,21 @@
   const easeOut = (u) => 1 - (1 - u) ** 3;
   const easeBack = (u) => { const c1 = 1.70158; return 1 + (c1 + 1) * (u - 1) ** 3 + c1 * (u - 1) ** 2; };
   const easeInOut = (u) => (u < 0.5 ? 4 * u ** 3 : 1 - (-2 * u + 2) ** 3 / 2);
+  // the part of the source shown: [x, y, w, h] in % (studio.py crop_box mirrors this)
+  function cropBox(L, sw, sh) {
+    const c = Array.isArray(L.crop) ? L.crop.map(Number) : null;
+    if (!c || c.length !== 4 || c.some((v) => !isFinite(v))) return [0, 0, sw, sh];
+    const x = Math.max(0, Math.min(95, c[0])), y = Math.max(0, Math.min(95, c[1]));
+    const w = Math.max(5, Math.min(100 - x, c[2])), h = Math.max(5, Math.min(100 - y, c[3]));
+    return [sw * x / 100, sh * y / 100, sw * w / 100, sh * h / 100];
+  }
+  // draw a source part into a box: cover fills and is clipped, contain shows all of it
+  function fitDraw(g, src, sx, sy, sw, sh, bw, bh, cover) {
+    const r = cover ? Math.max(bw / sw, bh / sh) : Math.min(bw / sw, bh / sh), w = sw * r, h = sh * r;
+    if (cover) { g.beginPath(); g.rect(-bw / 2, -bh / 2, bw, bh); g.clip(); }
+    g.drawImage(src, sx, sy, sw, sh, -w / 2, -h / 2, w, h);
+  }
+
   function state(L, t) {
     const start = +L.start || 0, dur = +L.dur || 3, local = t - start;
     if (local < 0 || local >= dur) return null;
@@ -170,15 +185,14 @@
         } else if (L.kind === "image") {
           const im = this.imgs[L.src];
           if (im && im.complete && im.naturalWidth) {
-            const r = Math.min(bw / im.naturalWidth, bh / im.naturalHeight), w = im.naturalWidth * r, h = im.naturalHeight * r;
-            g.drawImage(im, -w / 2, -h / 2, w, h);
+            const [sx, sy, sw, sh] = cropBox(L, im.naturalWidth, im.naturalHeight);
+            fitDraw(g, im, sx, sy, sw, sh, bw, bh, L.fit === "cover");
           }
         } else if (L.kind === "clip") {
           const v = this.vids[L.src];
           if (v && v.readyState >= 2) {
-            const r = Math.max(bw / v.videoWidth, bh / v.videoHeight), w = v.videoWidth * r, h = v.videoHeight * r;
-            g.beginPath(); g.rect(-bw / 2, -bh / 2, bw, bh); g.clip();
-            g.drawImage(v, -w / 2, -h / 2, w, h);
+            const [sx, sy, sw, sh] = cropBox(L, v.videoWidth, v.videoHeight);
+            fitDraw(g, v, sx, sy, sw, sh, bw, bh, true);
           } else { g.fillStyle = "#292929"; g.fillRect(-bw / 2, -bh / 2, bw, bh); }
         }
         g.restore();
@@ -280,6 +294,14 @@
         ${L.kind !== "audio" ? `<div class="grid2">${mv("in", "Comes in")}${mv("out", "Goes out")}</div>${num("opacity", "Opacity (0-1)", 0.1, L.opacity ?? 1)}` : ""}
         ${L.kind === "clip" || L.kind === "audio" ? `<div class="grid2">${num("volume", "Volume (0-1)", 0.1, L.volume ?? 1)}${num("trim", "Skip start (s)", 0.1, L.trim || 0)}</div>
           <div class="grid2">${num("speed", "Speed (0.5 slow, 2 fast)", 0.25, L.speed ?? 1)}</div>` : ""}
+        ${L.kind === "image" || L.kind === "clip" ? `<details class="st-more"${L.crop ? " open" : ""}><summary>Crop the ${L.kind === "clip" ? "clip" : "picture"}</summary>
+          <div class="grid2">${["Left %", "Top %", "Width %", "Height %"].map((lab, j) =>
+            `<label>${lab}<input type="number" step="1" min="0" max="100" data-crop="${j}" value="${(Array.isArray(L.crop) ? L.crop : [0, 0, 100, 100])[j]}"></label>`).join("")}</div>
+          ${L.kind === "image" ? `<label>Fill<select data-k="fit"><option value="contain" ${L.fit !== "cover" ? "selected" : ""}>Show all of it</option>
+            <option value="cover" ${L.fit === "cover" ? "selected" : ""}>Fill the box</option></select></label>` : ""}</details>` : ""}
+        <div class="grid2"><label>Fade in (s)<input type="number" step="0.1" min="0" data-fade="in" value="${(L.in || {}).move === "fade" ? (+(L.in.dur || 0.6)).toFixed(1) : "0.0"}"></label>
+          <label>Fade out (s)<input type="number" step="0.1" min="0" data-fade="out" value="${(L.out || {}).move === "fade" ? (+(L.out.dur || 0.5)).toFixed(1) : "0.0"}"></label></div>
+        ${L.kind === "text" || L.kind === "shape" ? "" : `<button data-act="split" title="Cut this layer in two where the playhead is">Split at playhead</button>`}
         <div class="grid2"><button data-act="up">Bring forward</button><button data-act="down">Send back</button></div>
         <button class="danger" data-act="del">Remove layer</button>`;
     },
@@ -420,6 +442,14 @@
         }
         const L = this.d.layers[this.sel]; if (!L) return;
         if (f.dataset.move) L[f.dataset.move] = { ...(L[f.dataset.move] || { dur: 0.6 }), move: f.value };
+        else if (f.dataset.crop) {
+          const c = Array.isArray(L.crop) ? L.crop.slice() : [0, 0, 100, 100];
+          c[+f.dataset.crop] = Math.max(0, Math.min(100, +f.value || 0));
+          L.crop = c.join() === "0,0,100,100" ? undefined : c;
+        } else if (f.dataset.fade) {
+          const v = Math.max(0, +f.value || 0);
+          L[f.dataset.fade] = { ...(L[f.dataset.fade] || {}), move: v > 0 ? "fade" : "none", dur: v || 0.5 };
+        }
         else if (f.dataset.k) {
           const k = f.dataset.k;
           L[k] = f.type === "color" ? f.value.slice(1).toUpperCase() : f.type === "number" ? +f.value : f.value;
@@ -438,6 +468,17 @@
         const b = e.target.closest("[data-act]"); if (!b || this.sel < 0) return;
         const a = b.dataset.act, L = this.d.layers;
         if (a === "del") { L.splice(this.sel, 1); this.sel = -1; }
+        else if (a === "split") {
+          // the same cut as studio_split: the second part plays on from where the first stopped
+          const one = L[this.sel], at = this.t, st = +one.start || 0, du = +one.dur || 3;
+          if (!(at > st + 0.1 && at < st + du - 0.1)) { MLMI.toast("Move the playhead inside this layer to split it", "bad"); return; }
+          const two = JSON.parse(JSON.stringify(one));
+          one.dur = +(at - st).toFixed(3);
+          two.start = +at.toFixed(3); two.dur = +(st + du - at).toFixed(3);
+          if (one.kind === "clip" || one.kind === "audio") two.trim = +((+one.trim || 0) + (at - st) * (+one.speed || 1)).toFixed(3);
+          one.out = { move: "none", dur: 0.5 }; two.in = { move: "none", dur: 0.6 };
+          L.splice(this.sel + 1, 0, two);
+        }
         else if (a === "up" && this.sel < L.length - 1) { [L[this.sel], L[this.sel + 1]] = [L[this.sel + 1], L[this.sel]]; this.sel++; }
         else if (a === "down" && this.sel > 0) { [L[this.sel], L[this.sel - 1]] = [L[this.sel - 1], L[this.sel]]; this.sel--; }
         this.drawAll(); this.save();

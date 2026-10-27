@@ -360,6 +360,27 @@ EDITABLE = {"start": float, "dur": float, "text": str, "x": float, "y": float, "
 SPEED = (0.25, 4.0)                 # a clip or sound plays at 1/4 to 4 times its own pace
 
 
+def crop_box(layer):
+    """The part of the source shown, as (x, y, w, h) in % of the source, or None for all of it."""
+    c = layer.get("crop")
+    if not c:
+        return None
+    try:
+        x, y, w, h = (float(v) for v in (c if isinstance(c, (list, tuple)) else str(c).replace("%", "").split(",")))
+    except (TypeError, ValueError):
+        return None
+    x, y = max(0.0, min(95.0, x)), max(0.0, min(95.0, y))
+    w, h = max(5.0, min(100.0 - x, w)), max(5.0, min(100.0 - y, h))
+    return None if (x, y, w, h) == (0.0, 0.0, 100.0, 100.0) else (x, y, w, h)
+
+
+def _fades(layer):
+    """Seconds the sound of a layer fades in and out: its own fade moves when set, else 0.3 / 0.6."""
+    fi = (layer.get("in") or {}) if (layer.get("in") or {}).get("move") == "fade" else {}
+    fo = (layer.get("out") or {}) if (layer.get("out") or {}).get("move") == "fade" else {}
+    return float(fi.get("dur", 0.3)), float(fo.get("dur", 0.6))
+
+
 def _speed(layer):
     return min(SPEED[1], max(SPEED[0], float(layer.get("speed", 1.0) or 1.0)))
 
@@ -383,7 +404,11 @@ def _atempo(speed):
        "size": ("number", "text size"), "color": ("string", "hex colour (text or shape)"), "opacity": ("number", "0-1"),
        "enter": ("string", "entrance move", MOVES), "exit": ("string", "exit move", MOVES),
        "volume": ("number", "0-1"), "trim": ("number", "clip: seconds skipped at its start"),
-       "speed": ("number", "clip or sound: 0.5 = slow motion, 2 = twice as fast (0.25 to 4)")},
+       "speed": ("number", "clip or sound: 0.5 = slow motion, 2 = twice as fast (0.25 to 4)"),
+       "crop": ("string", "picture or clip: the part shown, 'x,y,w,h' in % of the source (0,0,100,100 = all)"),
+       "fit": ("string", "picture: fill the box (cover) or show all of it (contain)", ["cover", "contain"]),
+       "fade_in": ("number", "seconds to fade in (picture, clip, text or sound)"),
+       "fade_out": ("number", "seconds to fade out")},
       ("path", "layer"))
 def studio_set(ctx, path, layer, **kw):
     p, d = open_doc(ctx, path, "studio")
@@ -402,11 +427,127 @@ def studio_set(ctx, path, layer, **kw):
             l["text"] = F.clean(v)
         elif k2 == "speed":
             l["speed"] = min(SPEED[1], max(SPEED[0], float(v)))
+        elif k2 == "crop":
+            l["crop"] = v
+            l["crop"] = list(crop_box(l) or (0, 0, 100, 100))
+        elif k2 == "fit":
+            l["fit"] = "cover" if str(v).lower() == "cover" else "contain"
+        elif k2 in ("fade_in", "fade_out"):
+            side = "in" if k2 == "fade_in" else "out"
+            l[side] = {"move": "fade" if float(v) > 0 else "none", "dur": max(0.0, min(10.0, float(v)))}
         elif k2 in EDITABLE:
             l[k2] = EDITABLE[k2](v)
         changed.append(k)
     save_doc(ctx, p, d, f"edit layer {i + 1} of {path}")
     return f"layer {i + 1}: changed {', '.join(changed) or 'nothing'}"
+
+
+@tool("studio_split", "studio", 2, "Cut a clip, sound or picture layer in two at a moment of the video; "
+      "the second part keeps playing from where the first stopped.",
+      {"path": ("string", "the .sstudio file"), "layer": ("integer", "layer number"),
+       "at": ("number", "seconds into the video where the cut goes")}, ("path", "layer", "at"))
+def studio_split(ctx, path, layer, at):
+    p, d = open_doc(ctx, path, "studio")
+    i, l = _layer(d, layer)
+    start, dur, at = float(l.get("start", 0)), float(l.get("dur", 3)), float(at)
+    if not start + 0.1 <= at <= start + dur - 0.1:
+        raise ToolError(f"layer {i + 1} runs {start:g}-{start + dur:g} s: the cut must fall inside it")
+    second = json.loads(json.dumps(l))
+    l["dur"] = round(at - start, 3)
+    second["start"], second["dur"] = round(at, 3), round(start + dur - at, 3)
+    if l["kind"] in ("clip", "audio"):
+        second["trim"] = round(float(l.get("trim", 0)) + (at - start) * _speed(l), 3)
+    l["out"] = {"move": "none", "dur": 0.5}
+    second["in"] = {"move": "none", "dur": 0.6}
+    d["layers"].insert(i + 1, second)
+    save_doc(ctx, p, d, f"split layer {i + 1} of {path} at {at:g} s")
+    return f"layer {i + 1} split at {at:g} s: layers {i + 1} and {i + 2}"
+
+
+# An ad from photos (2026-10-27): each photo fills the frame with a slow pan and zoom (Ken Burns),
+# photos cross-fade, the headline comes in on the first, the tagline on the last, an end card closes,
+# and music sits under an optional voice-over.
+# a photo moves off centre only as far as its zoom covers: at scale s, |x - 50| <= (s - 1) * 50
+AD_PAN = (({"x": 50, "y": 50, "scale": 1.0}, {"x": 47, "y": 49, "scale": 1.12}),
+          ({"x": 53, "y": 51, "scale": 1.12}, {"x": 50, "y": 50, "scale": 1.0}),
+          ({"x": 50, "y": 50, "scale": 1.04}, {"x": 51, "y": 52, "scale": 1.12}))
+
+
+def ad_layers(images, headline, tagline, fmt="16:9", per=3.5, card=3.0, music="", voice="", fade=0.6):
+    """The layers of a photo ad, and its length in seconds."""
+    layers, t = [], 0.0
+    for k, img in enumerate(images):
+        a, b = AD_PAN[k % len(AD_PAN)]
+        dur = per + (fade if k < len(images) - 1 else 0)
+        layers.append({"kind": "image", "src": img, "start": round(t, 3), "dur": round(dur, 3), "x": a["x"], "y": a["y"],
+                       "w": 100, "h": 100, "fit": "cover", "rotate": 0, "opacity": 1,
+                       "keys": [{"t": 0, **a}, {"t": round(dur, 3), **b}],
+                       "in": {"move": "fade" if k else "none", "dur": fade}, "out": {"move": "none", "dur": 0.5}})
+        t += per
+    body = t
+    if headline:
+        layers.append({"kind": "text", "text": headline, "start": 0.4, "dur": round(min(per * 1.6, body) - 0.4, 3),
+                       "x": 50, "y": 78, "w": 86, "h": 18, "size": 96, "weight": 900, "color": "FFFFFF", "align": "center",
+                       "in": {"move": "slide-up", "dur": 0.6}, "out": {"move": "fade", "dur": 0.4}})
+    if tagline and len(images) > 1:
+        layers.append({"kind": "text", "text": tagline, "start": round(body - per + 0.3, 3), "dur": round(per - 0.3, 3),
+                       "x": 50, "y": 80, "w": 86, "h": 14, "size": 64, "weight": 700, "color": "FFFFFF", "align": "center",
+                       "in": {"move": "fade", "dur": 0.5}, "out": {"move": "none", "dur": 0.4}})
+    layers.append({"kind": "shape", "shape": "rect", "fill": "0B0B0B", "start": round(body, 3), "dur": card,
+                   "x": 50, "y": 50, "w": 100, "h": 100, "in": {"move": "fade", "dur": 0.5}, "out": {"move": "none", "dur": 0.5}})
+    layers.append({"kind": "text", "text": headline or tagline or "", "start": round(body + 0.2, 3), "dur": round(card - 0.2, 3),
+                   "x": 50, "y": 46, "w": 86, "h": 20, "size": 104, "weight": 900, "color": "FFFFFF", "align": "center",
+                   "in": {"move": "pop", "dur": 0.6}, "out": {"move": "none", "dur": 0.4}})
+    if tagline:
+        layers.append({"kind": "text", "text": tagline, "start": round(body + 0.6, 3), "dur": round(card - 0.6, 3),
+                       "x": 50, "y": 62, "w": 80, "h": 12, "size": 56, "weight": 600, "color": "CFCFCF", "align": "center",
+                       "in": {"move": "fade", "dur": 0.5}, "out": {"move": "none", "dur": 0.4}})
+    total = round(body + card, 3)
+    if music:
+        layers.append({"kind": "audio", "src": music, "start": 0, "dur": total, "volume": 0.35 if voice else 0.8,
+                       "duck": True, "in": {"move": "fade", "dur": 1.0}, "out": {"move": "fade", "dur": 1.5}})
+    if voice:
+        layers.append({"kind": "audio", "src": voice, "start": 0.3, "dur": round(total - 0.3, 3), "volume": 1.0, "duck": False})
+    return layers, total
+
+
+@tool("studio_ad", "studio", 2, "Make an ad from photos: each photo fills the frame with a slow pan and zoom, "
+      "photos cross-fade, the headline and tagline come in over them, an end card closes, with optional "
+      "music (a sound file) and an optional voice-over line.",
+      {"path": ("string", "the new .sstudio file"), "images": ("array", "the photos, in order"),
+       "headline": ("string", "the main line, a few words"), "tagline": ("string", "the second line, optional"),
+       "music": ("string", "a sound file for music, optional"), "voice": ("string", "words to speak over it, optional"),
+       "format": ("string", "16:9, 9:16 or 1:1", list(FORMATS)), "seconds_per_photo": ("number", "2 to 6, default 3.5")},
+      ("path", "images"))
+def studio_ad(ctx, path, images, headline="", tagline="", music="", voice="", format="16:9", seconds_per_photo=3.5):
+    pics = [str(x) for x in (images or []) if str(x).strip()]
+    if not pics:
+        raise ToolError("choose or attach the photos for the ad first")
+    if len(pics) > 12:
+        raise ToolError("an ad takes up to 12 photos; choose fewer")
+    for img in pics:
+        if Path(img).suffix.lower() not in IMAGE_EXT:
+            raise ToolError(f"{img} is not a picture")
+        ctx.ws.path(img, must_exist=True)
+    if music:
+        if Path(music).suffix.lower() not in AUDIO_EXT:
+            raise ToolError(f"{music} is not a sound file")
+        ctx.ws.path(music, must_exist=True)
+    per = max(2.0, min(6.0, float(seconds_per_photo or 3.5)))
+    voice_file = ""
+    if str(voice or "").strip():
+        from .media import speak_text
+        said = speak_text(ctx, str(voice).strip(), Path(path).with_suffix("").as_posix() + "-voice.wav")
+        voice_file = said.rsplit(" as ", 1)[-1].strip()
+    layers, total = ad_layers(pics, F.clean(headline or ""), F.clean(tagline or ""), format, per, music=music, voice=voice_file)
+    d = new_project(format, total)
+    d["layers"] = layers
+    p, msg = start_new(ctx, path, "studio", False)
+    if msg:
+        raise ToolError(msg)
+    save_doc(ctx, p, d, f"make the ad {path}")
+    return (f"made the ad {path}: {len(pics)} photos, {total:g} s, {format}"
+            + (", music" if music else "") + (", voice-over" if voice_file else "") + ". Render it to make the video.")
 
 
 @tool("studio_delete", "studio", 2, "Remove a layer.",
@@ -614,12 +755,14 @@ def studio_render(ctx, path, out="", preview=False):
 class _Clip:
     """Frames of one clip layer, read in order through ffmpeg at the project's fps and box size."""
 
-    def __init__(self, src, trim, dur, w, h, fps, speed=1.0):
+    def __init__(self, src, trim, dur, w, h, fps, speed=1.0, crop=None):
         self.w, self.h, self.size = w, h, w * h * 3
+        cut = (f"crop=iw*{crop[2] / 100:.4f}:ih*{crop[3] / 100:.4f}:iw*{crop[0] / 100:.4f}:ih*{crop[1] / 100:.4f},"
+               if crop else "")
         # at speed s the layer's dur seconds show dur * s seconds of the source
         self.proc = subprocess.Popen(
             ["ffmpeg", "-v", "error", "-ss", f"{trim:.3f}", "-t", f"{dur * speed:.3f}", "-i", str(src),
-             "-vf", f"setpts=(PTS-STARTPTS)/{speed:.4f},scale={w}:{h}:force_original_aspect_ratio=increase,"
+             "-vf", f"{cut}setpts=(PTS-STARTPTS)/{speed:.4f},scale={w}:{h}:force_original_aspect_ratio=increase,"
                     f"crop={w}:{h},fps={fps}",
              "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
@@ -710,9 +853,18 @@ def draw_layer(img, layer, s, scale, images, clips, t, fps):
         src = images.get(layer["src"])
         if src is None:
             return
-        fit = src.copy()
-        fit.thumbnail((bw, bh))
-        piece = fit
+        box = crop_box(layer)
+        if box:
+            x, y, w, h = box
+            src = src.crop((int(src.width * x / 100), int(src.height * y / 100),
+                            int(src.width * (x + w) / 100), int(src.height * (y + h) / 100)))
+        if layer.get("fit") == "cover":
+            from PIL import ImageOps
+            piece = ImageOps.fit(src, (bw, bh), method=Image.LANCZOS)
+        else:
+            fit = src.copy()
+            fit.thumbnail((bw, bh))
+            piece = fit
     elif kind == "clip":
         c = clips.get(id(layer))
         fr = c.frame(int((t - float(layer.get("start", 0))) * fps)) if c else None
@@ -789,7 +941,7 @@ def render(ws, d, dst, half=False, cancel_event=None):
         elif layer["kind"] == "clip":
             bw, bh = max(2, int(W * float(layer.get("w", 100)) / 100) // 2 * 2), max(2, int(H * float(layer.get("h", 100)) / 100) // 2 * 2)
             clips[id(layer)] = _Clip(ws.path(src, must_exist=True), float(layer.get("trim", 0)), float(layer.get("dur", 5)),
-                                     bw, bh, fps, _speed(layer))
+                                     bw, bh, fps, _speed(layer), crop_box(layer))
             if _probe(ws.path(src))[1]:
                 sounds.append(layer)
         elif layer["kind"] == "audio":
@@ -806,8 +958,9 @@ def render(ws, d, dst, half=False, cancel_event=None):
         for k, sd in enumerate(sounds, 1):
             st, du = float(sd.get("start", 0)), float(sd.get("dur", 5))
             vol = float(sd.get("volume", 1.0))
-            f = _atempo(_speed(sd)) + [f"volume={vol:.3f}", "afade=t=in:st=0:d=0.3",
-                                       f"afade=t=out:st={max(0.0, du - 0.6):.3f}:d=0.6"]
+            fin, fout = _fades(sd)
+            f = _atempo(_speed(sd)) + [f"volume={vol:.3f}", f"afade=t=in:st=0:d={fin:.3f}",
+                                       f"afade=t=out:st={max(0.0, du - fout):.3f}:d={fout:.3f}"]
             if sd["kind"] == "audio" and sd.get("duck", True):
                 for a, b in clip_spans:          # music dips under clip sound
                     f.append(f"volume=enable='between(t,{max(0.0, a - st):.3f},{max(0.0, b - st):.3f})':volume=0.3")

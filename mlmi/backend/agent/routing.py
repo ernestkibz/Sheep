@@ -47,6 +47,13 @@ PHOTO_MONTAGE = (r"\b(montage|slideshow|photo reel|photo compilation|photo seque
                  r"exact photos|original photos|preserve the photos)\b")
 
 
+# An ad made from the person's photos (studio_ad): photos in sequence with pan and zoom, words over them,
+# an end card, music and a voice-over -- not an AI clip guided by the photos (2026-10-27)
+PHOTO_AD = (r"\b(?:ads?|adverts?|advertisements?|commercials?|promos?|promotional video|marketing video)\b.{0,80}"
+            r"\b(?:photos?|pictures?|images?|shots?)\b|"
+            r"\b(?:photos?|pictures?|images?)\b.{0,80}\b(?:into|as|for) (?:an? )?(?:video )?(?:ad|advert|commercial|promo)\b")
+
+
 VIDEO_TEXT_ONLY = (r"\b(text[- ]only|without(?:\s+\w+){0,5}\s+(photo|picture|image)|"
                    r"(?:do not|don't|never) use(?:\s+\w+){0,5}\s+(photo|picture|image)|"
                    r"ignore (the )?(attached|selected) (photo|picture|image)|no (photo|picture|image) reference)\b")
@@ -168,6 +175,7 @@ EXTRAS = [
     (r"\b(voice ?over|narrat\w*)\b.{0,60}\b(video|studio|project|clip|\.sstudio)\b|"
      r"\b(video|studio|project|clip|\.sstudio)\b.{0,60}\b(voice ?over|narrat\w*)\b", ["studio_voice"]),
     (r"\b(captions?|subtitles?)\b", ["studio_transcribe"]),
+    (PHOTO_AD, ["studio_ad", "studio_render"]),
     # Studio: transitions, clip speed, and listening to a sound to place things on its moments
     (r"\b(transitions?|cross-?fade|fade (between|into)|wipe (between|into)|slide (between|into))\b", ["studio_transition"]),
     (r"\b(slow[- ]?mo(tion)?|slow (it |this )?down|speed (it |this )?up|faster|slower|speed|"
@@ -397,7 +405,7 @@ def explicit_media_request(text):
     part of the request. It does not classify ordinary Studio edits as AI video.
     """
     t = str(text or "")
-    montage = bool(re.search(PHOTO_MONTAGE, t, re.I))
+    montage = bool(re.search(PHOTO_MONTAGE, t, re.I)) or bool(re.search(PHOTO_AD, t, re.I))
     photo_animation = bool(re.search(PHOTO_ANIMATION, t, re.I))
     text_video = bool(re.search(AI_VIDEO, t, re.I) and not re.search(STUDIO_EDIT, t, re.I))
     return montage or photo_animation or text_video

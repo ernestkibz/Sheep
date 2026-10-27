@@ -53,7 +53,7 @@ except Exception as e:
 print("  " + out.replace("\n", " | ")[:220])
 check("it wrote down what was said", "sheep" in out.lower() or "machine" in out.lower(), out[:200])
 d = T.run(ws, "studio_read", {"path": "talk.sstudio"}, by="test")
-check("the words are on screen as captions", "caption blocks placed" in out and "text" in d.lower(), d[:200])
+check("the words are on screen as captions", "caption blocks" in out and "text" in d.lower(), d[:200])
 
 print(f"\n{'all ' + str(ran[0]) + ' checks passed' if not fails else str(len(fails)) + ' failed: ' + ', '.join(fails)}")
 sys.exit(1 if fails else 0)

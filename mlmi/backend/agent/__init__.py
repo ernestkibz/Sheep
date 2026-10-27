@@ -54,6 +54,7 @@ from .routing import (  # noqa: F401
     WEB_CUES,
     AI_VIDEO,
     PHOTO_MONTAGE,
+    PHOTO_AD,
     VIDEO_TEXT_ONLY,
     PHOTO_ANIMATION,
     STUDIO_WORK,
@@ -95,6 +96,8 @@ from .media import (  # noqa: F401
     transcription_paths,
     _unique_workspace_path,
     explicit_media_plan,
+    AD_INSTRUCTION,
+    ad_words,
     VISUAL_INSTRUCTION,
     scene_from_request,
     clean_visual,
@@ -984,7 +987,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                 raise ToolError("the requested narration is too long for one voice clip; shorten the spoken line and retry")
             # the scene for the video model, written by the chat model; the trimmed request if it cannot
             visual = ""
-            if re.search(AI_VIDEO, cue, re.I) or re.search(PHOTO_ANIMATION, cue, re.I):
+            if (re.search(AI_VIDEO, cue, re.I) or re.search(PHOTO_ANIMATION, cue, re.I)) and not re.search(PHOTO_AD, cue, re.I):
                 emit({"type": "thinking", "route": "local", "what": "Writing the scene for the video model"})
                 fallback = scene_from_request(asked)
                 try:
@@ -994,7 +997,16 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                     visual = clean_visual(msg.get("content"), fallback)
                 except LLMError:
                     visual = fallback
-            media_calls = explicit_media_plan(ws, asked, selected_video_images, narration, visual)
+            ad = None
+            if re.search(PHOTO_AD, cue, re.I):
+                emit({"type": "thinking", "route": "local", "what": "Writing the headline and tagline"})
+                try:
+                    msg, _ = local.chat([{"role": "system", "content": AD_INSTRUCTION},
+                                         {"role": "user", "content": asked}], None, max_tokens=60, **base_kw(cache=False))
+                    ad = ad_words(msg.get("content"), asked)
+                except LLMError:
+                    ad = ad_words("", asked)
+            media_calls = explicit_media_plan(ws, asked, selected_video_images, narration, visual, ad)
             if not media_calls:
                 raise ToolError("this media request could not be routed safely")
         except (ToolError, LLMError) as e:
