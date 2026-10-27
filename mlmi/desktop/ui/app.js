@@ -122,10 +122,10 @@ const MLMI = (() => {
     details.hidden = !expanded;
     toggle.setAttribute("aria-expanded", String(expanded));
     toggle.textContent = expanded ? "Hide details" : "Details";
-    try { localStorage.setItem(READY_PREF, expanded ? "1" : "0"); } catch (_) { /* storage can be disabled */ }
+    S.rbOpen = expanded;
   }
   const readinessNames = { startup: "Model ready", canaries: "Answers checked", orientation: "Apps checked" };
-  const readinessStates = { "not started": "Not started", queued: "Waiting", running: "In progress", passed: "Done", failed: "Needs a retry", blocked: "Unavailable", deferred: "Waiting for a quiet moment", "waiting for chat": "Waiting for chat", "waiting for quick exam": "Waiting for the first check", "blocked by canary failures": "Waiting for an earlier check", "waiting for GPU": "Waiting for the GPU", "waiting for temperature": "Paused: this computer is hot; it continues when it cools", "waiting for model load": "Waiting for model load" };
+  const readinessStates = { "not started": "Not started", queued: "Starts in a moment", running: "In progress", passed: "Done", failed: "Needs a retry", blocked: "Unavailable", deferred: "Waiting for a quiet moment", "waiting for chat": "Paused while you chat", "waiting for quick exam": "Starts in a moment", "blocked by canary failures": "Waiting for an earlier check", "waiting for GPU": "Waiting for the GPU", "waiting for temperature": "Paused: the graphics card is at 99 °C; it carries on when it cools", "waiting for model load": "Waiting for model load" };
   const readinessStages = { "probing this machine": "Checking this computer", planning: "Choosing a device", "starting the engine": "Starting the model", "retrying one app task": "Retrying one app task" };
   async function refresh() {
     try { S.state = await api("/api/state"); } catch (e) {
@@ -177,9 +177,7 @@ const MLMI = (() => {
     // open while the person waits for chat, or when a check needs them; once chat is
     // ready the background checks fold to one line (open only if the person opened it)
     const needsThem = checks.some((c) => c.state === "failed");
-    let openSaved = false;
-    try { openSaved = localStorage.getItem(READY_PREF) === "1"; } catch (_) { /* storage can be disabled */ }
-    const expanded = waiting || needsThem ? readinessExpanded(hasModel) : openSaved;
+    const expanded = waiting || needsThem ? (S.rbOpen !== false) : !!S.rbOpen;
     $("#rbDetails").hidden = !expanded;
     $("#rbToggle").setAttribute("aria-expanded", String(expanded));
     $("#rbToggle").textContent = expanded ? "Hide details" : "Details";
@@ -216,12 +214,15 @@ const MLMI = (() => {
     } else if (showChecks) {
       const active = checks.find((c) => ["running", "waiting for chat", "waiting for quick exam"].includes(c.state))
         || checks.find((c) => c.state === "queued");
-      $("#rbText").textContent = active ? (readinessNames[active.id] || active.label) : "Model checks";
+      $("#rbText").textContent = startupCheck?.state === "passed" ? "Ready to chat"
+        : active ? (readinessNames[active.id] || active.label) : "Model checks";
       const background = backgroundChecks;
       const completed = background.filter((c) => ["passed", "failed", "blocked by canary failures"].includes(c.state)).length;
       const activeProgress = active && active.state === "running" && active.progress !== null && active.progress !== undefined && Number.isFinite(Number(active.progress))
         ? Math.max(0, Math.min(100, Math.round(Number(active.progress) * 100))) : null;
-      $("#rbPct").textContent = !backgroundStarted ? "" : background.length ? `${activeProgress === null ? "" : `${activeProgress}% · `}${completed}/${background.length} done` : "Done";
+      const why = active ? (readinessStates[active.state] || "") : "";
+      $("#rbPct").textContent = !backgroundStarted ? "" : background.length
+        ? `Background quality checks · ${completed} of ${background.length} done${why && active.state !== "running" ? ` · ${why.toLowerCase()}` : ""}` : "Done";
       const overall = background.length ? (completed + (activeProgress === null ? 0 : activeProgress / 100)) / background.length : 1;
       $("#rbFill").style.width = backgroundStarted ? `${Math.round(100 * overall)}%` : "0%";
       $("#rbProgress").classList.remove("indeterminate");
@@ -230,7 +231,7 @@ const MLMI = (() => {
     if (appCheckIssue && startupCheck?.state === "passed" && !checks.some((c) => ["queued", "running", "waiting for chat"].includes(c.state))) {
       const passed = Number(appCheckIssue.passed ?? appCheckIssue.done);
       const total = Number(appCheckIssue.of || appCheckIssue.total);
-      $("#rbText").textContent = "Chat is ready";
+      $("#rbText").textContent = "Ready to chat";
       $("#rbPct").textContent = Number.isFinite(passed) && Number.isFinite(total) && total > 0
         ? `${passed} of ${total} app tasks work` : "One app task needs a retry";
       // The audit has finished. Its result is advisory and does not make Chat unavailable.
@@ -244,8 +245,8 @@ const MLMI = (() => {
       const ran = Number(appCheckActive.done);
       const ratio = Number.isFinite(ran) && Number.isFinite(total) && total > 0 ? `Checking app tasks · ${ran} of ${total}` : "Checking app tasks";
       $("#rbText").textContent = appCheckActive.state === "waiting for chat"
-        ? "Chat is ready · app check waits while you chat"
-        : /^retrying/.test(appCheckActive.stage || "") ? `Chat is ready · ${appCheckActive.stage}` : "Chat is ready";
+        ? "Ready to chat · app check paused while you chat"
+        : /^retrying/.test(appCheckActive.stage || "") ? `Ready to chat · ${appCheckActive.stage}` : "Ready to chat";
       $("#rbPct").textContent = ratio;
     }
     if (showChecks) {

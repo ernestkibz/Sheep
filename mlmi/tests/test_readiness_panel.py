@@ -42,13 +42,13 @@ class ReadinessPanelTests(unittest.TestCase):
         self.assertIn('action: "recheck"', views)
 
     def test_card_closes_and_stays_closed_until_a_check_changes(self):
-        self.assertIn('id="rbClose" aria-label="Close"', self.html)
+        self.assertIn('id="rbClose" aria-label="Hide this card; the checks keep running"', self.html)
         self.assertIn('localStorage.setItem("sheep.readiness.closed", S.readinessFp', self.app)
         self.assertIn("const fp = `${st.model.path}|${checks.map((c) => `${c.id}:${c.state}`).join(\",\")}`;", self.app)
         self.assertIn('(!waiting && (allPassed || closedFp === fp))', self.app)
 
     def test_app_check_failure_keeps_chat_ready_and_shows_task_result(self):
-        self.assertIn('$("#rbText").textContent = "Chat is ready";', self.app)
+        self.assertIn('$("#rbText").textContent = "Ready to chat";', self.app)
         self.assertIn('`${passed} of ${total} app tasks work`', self.app)
         self.assertIn('`Checking app tasks · ${ran} of ${total}`', self.app)
         self.assertNotIn("/${c.of || c.total} passed", self.app)          # never "0/14 passed" while checking
@@ -76,7 +76,7 @@ class ReadinessPanelTests(unittest.TestCase):
         self.assertIn("const hasCompletedWork = validNumber(c.done) && Number(c.done) > 0;", self.app)
         self.assertIn('const moving = c.state === "running" || String(c.state || "").startsWith("waiting for ");', self.app)
         # the heat guard reads CPU and GPU, so the label names neither (2026-10-12)
-        self.assertIn('"waiting for temperature": "Paused: this computer is hot; it continues when it cools"', self.app)
+        self.assertIn('"waiting for temperature": "Paused: the graphics card is at 99 °C; it carries on when it cools"', self.app)
 
     def test_no_model_status_is_neutral_and_steady(self):
         self.assertIn("--status-neutral:#f4f4f4", self.css)
@@ -89,7 +89,7 @@ class ReadinessPanelTests(unittest.TestCase):
         self.assertIn('aria-controls="rbDetails"', self.html)
         self.assertIn('aria-expanded="false"', self.html)
         self.assertIn('const READY_PREF = "sheep.readiness.expanded"', self.app)
-        self.assertIn("localStorage.setItem(READY_PREF", self.app)
+        self.assertIn("S.rbOpen = expanded", self.app)          # 2026-10-27: open for this session only
         self.assertIn('id="rbCancel"', self.html)
         self.assertIn('aria-label="Stop loading this model"', self.html)
 
