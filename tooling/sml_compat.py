@@ -496,7 +496,6 @@ def run_probes(srcs, jobs=8, fresh=False):
 
 # ------------------------------------------------------------------ the guide, from the evidence
 ROOT = os.path.dirname(HERE)
-GUIDE_JS = os.path.join(ROOT, "mlmi", "desktop", "ui", "guide.js")
 USER_GUIDE = os.path.join(ROOT, "docs", "USER_GUIDE.md")
 README = os.path.join(ROOT, "docs", "MODELS.md")      # the support table moved here from README.md (2026-10-21)
 
@@ -524,17 +523,6 @@ def _between(text, start, end, body):
 
 def emit_guide():
     f = facts()
-
-    def js_list(xs):
-        out, line = [], "    "
-        for x in xs:
-            piece = json.dumps(x) + ", "
-            if len(line) + len(piece) > 118:
-                out.append(line.rstrip())
-                line = "    "
-            line += piece
-        out.append(line.rstrip())
-        return "\n".join(out)
     md = (f"\nThe architecture roster has {f['roster']} entries: {f['ok']} accepted by the build gate, "
           f"{f['gap']} with known engine gaps, {f['scope']} out of scope, and {f['unknown']} unknown.\n\n"
           f"**Checked end to end: {f['checked']} of {f['ok']} accepted families** "
