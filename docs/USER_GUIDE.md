@@ -37,14 +37,25 @@ Rent 800, Food 250 and a Total row"*. Sheep uses its own apps:
 
 Every change can be undone (the arrows at the top right). A file made in chat shows as a card with **Open**, its Office copy (**.docx**, **.xlsx**, **.pptx**) and **Canvas**; typing just `pptx`, `docx` or `xlsx` after a job saves the Office copy too.
 
-## Videos from photos
+## Videos
 
-Attach a picture in chat or import it into a Studio project. Ask Sheep to **animate
-this photo** for AI motion guided by the selected image, or ask for a **photo
-montage/slideshow** to place the original images on the Studio timeline and preserve
-them as source layers. Photo guidance is installed the first time it is needed; your
-pictures and generation stay on this computer. Say **text only** to make a video
-without using the selected pictures.
+- **A video from words**: *"make a 2-second video of waves at sunset"*. The chat model first writes the
+  scene for the video model (subject, setting, light, camera), and the reply shows the scene it used.
+  Local video models make short clips (1 to 6 seconds, 512 pixels high) on a 4 GB graphics card.
+- **Animate a photo**: attach or select a picture and ask Sheep to *animate this photo*.
+- **A photo montage**: ask for a *slideshow* or *montage* of the selected photos.
+- **An ad from photos**: select up to 12 photos and ask for *an ad for my bakery from these photos*.
+  Each photo fills the frame with a slow pan and zoom, the photos cross-fade, a headline and tagline come
+  in over them (written by the chat model from your request), and an end card closes. Name a sound file
+  (*with music.mp3*) for music and ask for a voice-over to have it spoken. Say *vertical* for 9:16 or
+  *square* for 1:1.
+- **Watch a video**: attach a video, or ask *what happens in clip.mp4*. Sheep takes the key frames where
+  the picture changes, describes each one (with a picture-reading model), and listens to the sound:
+  what is said and when, the silences, the loud moments and the beat. The summary is saved beside the
+  video and Studio can use it ("cut the silent parts").
+
+In **Sheep Studio** every picture or clip can be cropped (*Crop the picture*), set to fill its box or show
+all of it, faded in and out by the seconds you choose, and split in two at the playhead.
 
 ## The Work Canvas
 
@@ -70,8 +81,20 @@ cards under the answer. Every search and page read is listed in
 
 ## Models
 
-**Settings › Models** shows your models as cards: the name, the size, where it runs, and **Use**, **Publish**
-and **Remove**. To add one, use **Add any model**:
+**Settings › Models** is the one place to choose models. It lists one row for each job (chat, checker,
+pictures, video, photo guidance, speech to text, speech out) with its status, **Ready** or **Missing**, and
+**Choose another…** to pick any Hugging Face model for that job. Sheep checks a model fits this computer
+before anything downloads, and gives a new picture or speech model a test run before it is used.
+
+- Pictures and video: any Stable Diffusion 1.5 model (the many community styles) becomes the base for both.
+  Bigger families such as SDXL are refused with the reason (they need about 8 GB of graphics memory).
+- Speech to text: any faster-whisper model, from *tiny* (fast) to *large-v3* (most accurate).
+
+When a request needs a model you do not have, the reply says what is missing and shows a button to
+download the suggested one or **Choose another…**, then **Try again**.
+
+Below the jobs are your chat models as cards: the name, the size, where it runs, and **Use**, **Publish**
+and **Remove**. To add a chat model, use **Add any model**:
 
 1. Give a Hugging Face ID (such as `Qwen/Qwen2.5-1.5B-Instruct`), a folder of model files, or a `.gguf` file,
    and press **Check**. Nothing downloads yet.
@@ -88,8 +111,6 @@ wrong (no internet, a misspelt name, a full disk), Sheep says what to do.
 **Settings › Activity › What Sheep did for you** shows every step for the model in use: added, read,
 converted, built, placed, answers checked, app tasks checked, and any repair.
 
-**Extras** on the same page add pictures, video, photo guidance, speech to text and reading pictures.
-
 To share a model you built, sign in to Hugging Face with a token of type **Write** and press **Publish** on its
 card. It is published privately first, with the original's licence.
 
@@ -98,7 +119,7 @@ card. It is published privately first, with the original's licence.
 A new model first answers a short exam; Sheep is usable as soon as it passes (**Model ready**). Then check
 questions with known answers (**Answers checked**) and real jobs in Sheep's apps, each checked by opening what
 the model made (**Apps checked**). These run in the background, step aside whenever you ask something, and
-wait while the computer is hot or on battery. A model that already passed on this computer, unchanged, skips
+wait only when the graphics card reaches 99 °C or the computer runs on battery. A model that already passed on this computer, unchanged, skips
 the checks it passed. **Settings › Activity** shows every check, row by row.
 
 Every reply is watched for faults: empty replies, loops, leaked markers, broken JSON or code. If a model
@@ -112,11 +133,11 @@ what Sheep says.
 
 **Settings › Basics** holds the everyday choices:
 
-- **How Sheep runs**: *Fastest* uses every graphics card that helps; *Balanced* (the default) is fast and leaves the computer free for other work; *Cool and quiet* keeps 2 GB of graphics memory free and uses one card. The heat guard stays on in all three.
+- **How Sheep runs**: *Fastest* uses every graphics card that helps; *Balanced* (the default) is fast and leaves the computer free for other work; *Cool and quiet* keeps 2 GB of graphics memory free and uses one card.
 - **Where answers come from**: only this computer, or this computer with NVIDIA Nemotron on Nebius. The same switch sits under the chat box.
 - **Search the web**, **the agent may** (ask first, edit freely, plan only), your workspace folder, and light or dark.
 
-**Settings › Accounts** holds the Nebius, Tavily and Hugging Face keys. **Settings › Activity** shows what Sheep did and how the
+**Settings › Models** chooses the model for each job (see Models). **Settings › Accounts** holds the Nebius, Tavily and Hugging Face keys. **Settings › Activity** shows what Sheep did and how the
 model runs. Everything else is in **Settings › Advanced**: changing one of those makes "How Sheep runs" read *Custom*.
 
 ## This computer
@@ -132,8 +153,13 @@ Intel graphics. Choose where text models run:
 | Processor | the processor only |
 
 A choice this computer cannot run is greyed out, with the reason on hover. If a graphics card fails, the reply
-finishes on the processor and Settings says why. The **heat guard** slows Sheep down when the computer is hot
-and saves the battery when it is unplugged.
+finishes on the processor and Settings says why.
+
+The **heat guard** lets everything run at full speed and pauses only when the graphics card reaches 99 °C
+(the processor sensor 103 °C), so the computer does not shut down in the middle of your work. On battery,
+background checks wait for the charger. After a new model is added, Sheep times it on each device here
+(speed trial) and tries a few engine settings (engine tune), keeping one only if the answer stays word
+for word the same.
 
 ## Privacy
 
@@ -151,6 +177,7 @@ and the provider currently configured for this setup.
 | "Sheep could not reach Nebius" | Check the internet connection; in Sheep mode the local model answers with no connection. |
 | "Nebius did not accept the key" | Paste the right key in **Settings › Accounts**. |
 | A model was refused | The reason says what to do instead. |
+| A picture, video or speech request says something is missing | Press the button in the reply (or open **Settings › Models**), then **Try again**. |
 | Web answers are missing | Check that web search is on in **Settings › Basics**. |
 
 ## Licences
