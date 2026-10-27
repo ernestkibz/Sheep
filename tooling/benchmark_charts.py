@@ -159,8 +159,7 @@ def engines(out):
     b.set_yticks([])
     b.set_xticks([0.8, 0.9, 1.0, 1.1, 1.2], ["0.8×", "0.9×", "1.0×", "1.1×", "1.2×"])
     clean(b, keep_bottom=True)
-    b.set_title("As whole servers: SML vs GGML in llama.cpp and in Ollama\n(SML speed ÷ the other's; "
-                "~710-token prompt, 128 tokens written)", loc="left", fontsize=12, color=INK, fontweight="bold")
+    b.set_title("As whole servers\n(SML speed ÷ GGML's; 710-token prompt)", loc="left", fontsize=12, color=INK, fontweight="bold")
     fig.text(0.02, 0.02, "Left: tooling/sml_cpu_race_ci.py, sml_gpu_race_ci.py. Right: tooling/market_race.py. "
              "Grey = within 2%, a tie.", fontsize=9, color=MUTED)
     fig.subplots_adjust(left=0.17, right=0.985, top=0.76, bottom=0.1, wspace=0.42)
