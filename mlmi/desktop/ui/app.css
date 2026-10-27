@@ -675,3 +675,4 @@ details.chk { border-top:1px solid var(--line); padding:8px 0; }
 details.chk > summary { cursor:pointer; list-style:none; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
 details.chk .note { white-space:pre-wrap; margin-top:6px; }
 .askbox .askin { width:100%; margin:4px 0 12px; }
+#composer textarea:focus-visible { outline:none; }      /* the box around it already lights up */
