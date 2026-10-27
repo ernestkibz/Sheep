@@ -12,6 +12,7 @@ Where they run (Settings › Advanced › This computer › pictures, sound, vid
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import threading
@@ -731,6 +732,117 @@ def hear(ctx, path):
         out["speech"] = []
         out["speech_note"] = f"speech: not heard ({str(e)[:80] or 'no speech-to-text model'})"
     return out
+
+
+# Watching a video (2026-10-27): it was only transcribed, its pictures never looked at. Key frames
+# are taken where the picture changes (ffmpeg's scene score), evenly when it hardly changes, each
+# described by the vision model when one is here; the sound is heard as studio_listen hears it.
+LOOK_FRAMES, LOOK_SCENE = 8, 0.3
+VIDEO_EXT = (".mp4", ".mov", ".mkv", ".webm", ".m4v", ".avi")
+
+
+def key_frame_times(src, duration, cap=LOOK_FRAMES, scene=LOOK_SCENE):
+    """Seconds where the picture changes most, at most cap of them; evenly spread when the
+    video hardly changes (fewer than 3 cuts)."""
+    exe = shutil.which("ffmpeg")
+    times = []
+    if exe:
+        try:
+            r = subprocess.run([exe, "-hide_banner", "-i", str(src), "-vf", f"select='gt(scene,{scene})',showinfo",
+                                "-an", "-f", "null", "-"], capture_output=True, text=True, timeout=300,
+                               creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            times = [float(x) for x in re.findall(r"pts_time:([0-9.]+)", r.stderr or "")]
+        except (OSError, subprocess.TimeoutExpired):
+            times = []
+    return spread_times(times, duration, cap)
+
+
+def spread_times(cuts, duration, cap=LOOK_FRAMES):
+    """The opening frame, then the cuts (thinned evenly to the cap); even spacing when there are few."""
+    d = float(duration or 0)
+    if len(cuts) < 3:
+        n = max(1, min(cap, int(d // 2) + 1)) if d else 1
+        return [round(d * (i + 0.5) / n, 2) for i in range(n)] if d else [0.0]
+    # a flickering clip (AI video at 8 fps) "cuts" every few frames: keep cuts apart
+    gap = max(0.75, d / (cap * 2)) if d else 0.75
+    pts = [0.5]
+    for t in sorted(t for t in cuts if 0.5 < t < d):
+        if t - pts[-1] >= gap:
+            pts.append(t)
+    if len(pts) < 3:
+        n = max(1, min(cap, int(d // 2) + 1)) if d else 1
+        return [round(d * (i + 0.5) / n, 2) for i in range(n)] if d else [0.0]
+    if len(pts) > cap:
+        step = (len(pts) - 1) / (cap - 1)
+        pts = [pts[round(i * step)] for i in range(cap)]
+    return [round(t, 2) for t in pts]
+
+
+def _clock(t):
+    return f"{int(t // 60)}:{t % 60:04.1f}"
+
+
+@tool("look_video", "media", 1,
+      "Watch a video in the workspace: what is seen at its key moments (when a picture-reading model is "
+      "here) and what is heard (speech with times, silences, loud moments, beat). Use it before answering "
+      "or editing anything about what happens in a video. Saves <name>.summary.txt.",
+      {"path": ("string", "the video file"), "question": ("string", "what to look for, optional")}, ("path",))
+def look_video(ctx, path, question=""):
+    src = ctx.ws.path(path, must_exist=True)
+    if src.suffix.lower() not in VIDEO_EXT:
+        raise ToolError(f"{path} is not a video")
+    if not shutil.which("ffmpeg"):
+        raise ToolError("ffmpeg is needed to look at videos: Settings › Advanced › This computer shows how to get it")
+    from .studio import _probe
+    from . import vision
+    duration, has_audio = _probe(src)
+    stem = Path(path).with_suffix("")
+    frame_dir = f"{stem.as_posix()}-frames"
+    lines, seen_note = [], ""
+    for t in key_frame_times(src, duration):
+        rel = f"{frame_dir}/{t:07.2f}.jpg".replace(" ", "_")
+        out = ctx.ws.path(rel)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run([shutil.which("ffmpeg"), "-hide_banner", "-loglevel", "error", "-y", "-ss", str(t), "-i", str(src),
+                        "-frames:v", "1", "-vf", "scale='min(768,iw)':-2", str(out)],
+                       capture_output=True, timeout=120, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        if not out.exists():
+            continue
+        what = ""
+        if not seen_note:
+            try:
+                what = str(vision.see_picture(ctx, rel, question or "Describe what is happening in this frame in one sentence."))
+            except ToolError as e:
+                seen_note = str(e)
+        lines.append((t, "seen", what.strip() or f"frame saved as {rel}"))
+    heard = {}
+    if has_audio:
+        try:
+            heard = hear(ctx, path)
+        except ToolError as e:
+            heard = {"speech_note": str(e)}
+    for a, b, words in heard.get("speech", []):
+        lines.append((a, "said", f"\"{words}\" (to {_clock(b)})"))
+    lines.sort(key=lambda r: r[0])
+    head = [f"{Path(path).name}: {_clock(duration or 0)} long, {'with' if has_audio else 'no'} sound"]
+    if seen_note:
+        head.append(f"Pictures: not described ({seen_note}). Add a picture-reading model to see them; key frames are saved in {frame_dir}/.")
+    if heard.get("speech_note"):
+        head.append(heard["speech_note"])
+    if heard.get("silences"):
+        head.append("Silences: " + ", ".join(f"{_clock(a)}-{_clock(b)}" for a, b in heard["silences"][:12]))
+    if heard.get("loud"):
+        head.append("Loudest moments: " + ", ".join(_clock(t) for t in heard["loud"]))
+    if heard.get("bpm"):
+        head.append(f"Beat: about {heard['bpm']} per minute")
+    body = [f"{_clock(t)}  {kind:5}  {text}" for t, kind, text in lines]
+    summary = "\n".join(head + [""] + body)
+    rel_sum = f"{stem.as_posix()}.summary.txt"
+    sp = ctx.ws.path(rel_sum)
+    with ctx.ws.changing(sp, by=ctx.by, what=f"video summary {rel_sum}"):
+        sp.write_text(summary + "\n", encoding="utf-8")
+    ctx.made.add(rel_sum)
+    return f"watched {path}; summary saved as {rel_sum}:\n{summary[:4000]}"
 
 
 def for_whisper(path):

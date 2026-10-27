@@ -176,6 +176,10 @@ EXTRAS = [
      ["studio_listen", "studio_set", "studio_add_text"]),
     (r"\b(transcribe|transcript|what (is|was) said|speech to text|recording|voice note|audio file|\.(mp3|wav|m4a|ogg|webm))\b",
      ["transcribe_audio"]),
+    # watching a video: what happens in it, finding a moment, cutting by what is seen or said
+    (r"\b(what (happens|is happening|goes on)|watch (it|this|the video)|describe (the|this) video|in (the|this) video|"
+     r"(find|keep|cut|remove) the (part|bit|moment|scene)s?|where (he|she|they|it) (says?|appears?|laughs?)|\.(mp4|mov|mkv|m4v))\b",
+     ["look_video", "studio_set", "studio_split"]),
     (r"\b(?:speak_text|read (it |this )?aloud|voice ?over|narrat\w*|spoken description|text to speech|say it|speak|audio version|"
      r"out loud|aloud|in a voice|(into|to) (speech|audio|a voice|a recording))\b", ["speak_text"]),
     # Studio's own change words, only when a Studio project, clip or layer is meant ("make the title

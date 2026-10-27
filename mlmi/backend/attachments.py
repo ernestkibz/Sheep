@@ -65,14 +65,19 @@ def intake(ws, paths, ctx):
                 if not ws.path(txt).exists():
                     ws.path(txt).write_text(_pdf_text(ws.path(rel, must_exist=True)), encoding="utf-8")
                 out.append((txt, f"the text of the attached PDF {rel}"))
-            elif ext in SOUND or ext in VIDEO:
+            elif ext in VIDEO:
+                # watched, not only transcribed: key frames (described when a picture-reading model is
+                # here) and the sound (speech with times, silences, loud moments), 2026-10-27
+                summary = rel[: -len(ext)] + ".summary.txt"
+                if not ws.path(summary).exists():
+                    T.run(ws, "look_video", {"path": rel}, by="agent", ctx=ctx)
+                out.append((summary, f"what is seen and heard in the attached video {rel}, moment by moment"))
+                out.append((rel, "the attached video itself, for Studio"))
+            elif ext in SOUND:
                 txt = rel[: -len(ext)] + ".txt"
                 if not ws.path(txt).exists():
                     T.run(ws, "transcribe_audio", {"path": rel}, by="agent", ctx=ctx)
-                kind = "video" if ext in VIDEO else "recording"
-                out.append((txt, f"what is said in the attached {kind} {rel}"))
-                if ext in VIDEO:
-                    out.append((rel, "the attached video itself, for Studio"))
+                out.append((txt, f"what is said in the attached recording {rel}"))
             elif ext in PICTURE:
                 out.append((rel, "an attached picture. Call see_picture to look at it before answering "
                                  "anything about it; it can also be placed in a document, a slide or a Studio video"))
