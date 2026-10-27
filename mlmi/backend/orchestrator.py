@@ -2232,13 +2232,9 @@ class Orchestrator:
             try:
                 if path != self.st.model_path or not self.st.engine.alive():
                     return
-                before = (self.plan or {}).get("device")
-                if not self.speed_trial(path):
-                    return                                  # yielded to the person; resumed later
-                if not self.engine_tune(path):
-                    return                                  # yielded to the person; resumed later
-                if (self.plan or {}).get("device") != before:
-                    signature = self.validation_signature(path, self.plan)
+                # The checks the person sees go first; the speed trial and the engine tune run after
+                # them. They ran first, and the card said "Starts in a moment" for minutes after every
+                # engine update (2026-10-27). If the trial moves the model, the checks run once more there.
                 current = self.entry(path)
                 deep_now = current.get("deep_validation") or {}
                 orient_now = current.get("orientation_validation") or {}
@@ -2257,6 +2253,17 @@ class Orchestrator:
                     self.background_checks["orientation"] = {"state": "blocked by canary failures", "progress": 0.0,
                                                                "done": 0, "total": ORIENTATION_TASKS,
                                                                "why": "the full canary check needs attention first"}
+                if path != self.st.model_path or self._background_should_yield():
+                    return
+                before = (self.plan or {}).get("device")
+                if not self.speed_trial(path):
+                    return                                  # yielded to the person; resumed later
+                if not self.engine_tune(path):
+                    return                                  # yielded to the person; resumed later
+                if (self.plan or {}).get("device") != before and path == self.st.model_path:
+                    signature = self.validation_signature(path, self.plan)   # the checks again, on the faster device
+                    if self.canary_suite("background", CANARIES, signature=signature) is not None:
+                        self.orient(background=True, signature=signature)
             finally:
                 self.lock.release()
                 self._requeue_when_clear(path)
