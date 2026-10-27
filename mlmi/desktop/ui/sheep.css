@@ -91,7 +91,7 @@ button.primary { border-color:var(--accent); box-shadow:0 2px 12px rgba(0,0,0,.1
 #readyBar .rb-details[hidden] { display:none; }
 #readyBar .rb-empty { margin:9px 0 0; color:var(--dim); font-size:12px; }
 #readyBar .sheep-mini svg { width:22px; height:22px; }
-#readyBar #rbPct { font-weight:800; color:var(--ink); font-variant-numeric: tabular-nums; }
+#readyBar #rbPct { font-weight:400; color:var(--dim); font-size:13px; font-variant-numeric: tabular-nums; }
 /* the fill moves with real progress; an endless shimmer on top repainted the bar every frame for minutes */
 #readyBar .progress i, .wait-line .progress i { background:linear-gradient(90deg, #8a8a8a, #e6e6e6); }
 #rbChecks { display:grid; gap:8px; margin-top:10px; }

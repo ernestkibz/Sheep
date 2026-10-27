@@ -222,7 +222,7 @@ const MLMI = (() => {
         ? Math.max(0, Math.min(100, Math.round(Number(active.progress) * 100))) : null;
       const why = active ? (readinessStates[active.state] || "") : "";
       $("#rbPct").textContent = !backgroundStarted ? "" : background.length
-        ? `Background quality checks · ${completed} of ${background.length} done${why && active.state !== "running" ? ` · ${why.toLowerCase()}` : ""}` : "Done";
+        ? `Quality checks · ${completed} of ${background.length}${why && active.state !== "running" ? ` · ${why.toLowerCase()}` : ""}` : "Done";
       const overall = background.length ? (completed + (activeProgress === null ? 0 : activeProgress / 100)) / background.length : 1;
       $("#rbFill").style.width = backgroundStarted ? `${Math.round(100 * overall)}%` : "0%";
       $("#rbProgress").classList.remove("indeterminate");
@@ -248,6 +248,21 @@ const MLMI = (() => {
         ? "Ready to chat · app check paused while you chat"
         : /^retrying/.test(appCheckActive.stage || "") ? `Ready to chat · ${appCheckActive.stage}` : "Ready to chat";
       $("#rbPct").textContent = ratio;
+    }
+    // One bar and the time left (2026-10-27): the details open on a click. The time is the
+    // checks' own estimate when they give one, else what is left at the pace so far.
+    if (hasModel && (waiting || showChecks)) {
+      const open = checks.filter((c) => !["passed", "failed", "blocked", "not started"].includes(c.state));
+      let left = 0, known = open.length > 0;
+      for (const c of open) {
+        const p = Number(c.progress), e = Number(c.elapsed_seconds), eta = Number(c.eta_seconds);
+        if (Number.isFinite(eta) && eta > 0) left += eta;
+        else if (p > 0.02 && p < 1 && Number.isFinite(e) && e > 0) left += e * (1 - p) / p;
+        else known = false;
+      }
+      const words = !open.length ? "" : !known ? "estimating the time left…"
+        : left < 20 ? "a few seconds left" : left < 90 ? `about ${Math.round(left / 10) * 10} s left` : `about ${Math.round(left / 60)} min left`;
+      if (words) $("#rbPct").textContent = `${$("#rbPct").textContent ? $("#rbPct").textContent + " · " : ""}${words}`;
     }
     if (showChecks) {
       $("#rbChecks").innerHTML = checks.map((c) => {
@@ -1725,6 +1740,8 @@ const MLMI = (() => {
       refresh();
     };
     $("#rbToggle").onclick = () => setReadinessExpanded($("#rbDetails").hidden);
+    // the bar and the line above it open the details too
+    $("#rbProgress").onclick = $("#rbText").onclick = () => setReadinessExpanded($("#rbDetails").hidden);
     $("#rbChoose").onclick = () => openSettings("models");
     $("#rbClose").onclick = () => { try { localStorage.setItem("sheep.readiness.closed", S.readinessFp || ""); } catch (_) { /* storage off */ } $("#readyBar").hidden = true; };
     $("#rbChecks").onclick = (e) => {

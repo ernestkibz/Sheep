@@ -303,3 +303,6 @@ a.btn:hover { background:var(--hover); }
 @media (max-width: 760px) { .model-slot-row { grid-template-columns:1fr; } }
 .rb-hint { margin:6px 2px 0; font-size:12.5px; }
 #readyBar #rbPct { font-weight:400; color:var(--dim); font-size:13px; }
+/* the start-up card: one bar with the time left; a click opens the details */
+#readyBar .rb-bar { margin:8px 2px 2px; height:6px; cursor:pointer; }
+#readyBar #rbText { cursor:pointer; }

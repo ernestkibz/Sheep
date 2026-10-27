@@ -58,7 +58,8 @@
             <button type="button" class="ghost rb-toggle" id="rbToggle" aria-expanded="false" aria-controls="rbDetails">Details</button>
             <button type="button" class="ghost rb-stop" id="rbCancel" title="Stop loading this model" aria-label="Stop loading this model">Stop</button>
             <button type="button" class="ghost rb-close" id="rbClose" aria-label="Hide this card; the checks keep running" title="Hide this card (the checks keep running)">Hide</button></div>
-            <div id="rbDetails" class="rb-details" hidden><div class="progress" id="rbProgress"><i id="rbFill"></i></div>
+            <div class="progress rb-bar" id="rbProgress" title="Click for the details"><i id="rbFill"></i></div>
+            <div id="rbDetails" class="rb-details" hidden>
               <div id="rbChecks" class="readiness-checks" aria-live="polite"></div>
               <p class="rb-hint dim">You can chat while these run. Click a row for its full report.</p>
               <p id="rbEmpty" class="rb-empty" hidden></p></div></section>
