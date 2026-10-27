@@ -222,7 +222,7 @@ const MLMI = (() => {
         ? Math.max(0, Math.min(100, Math.round(Number(active.progress) * 100))) : null;
       const why = active ? (readinessStates[active.state] || "") : "";
       $("#rbPct").textContent = !backgroundStarted ? "" : background.length
-        ? `Quality checks · ${completed} of ${background.length}${why && active.state !== "running" ? ` · ${why.toLowerCase()}` : ""}` : "Done";
+        ? `Polishing in the background · ${completed} of ${background.length}${why && !["running", "queued", "waiting for quick exam"].includes(active.state) ? ` · ${why.toLowerCase()}` : ""}` : "Done";
       const overall = background.length ? (completed + (activeProgress === null ? 0 : activeProgress / 100)) / background.length : 1;
       $("#rbFill").style.width = backgroundStarted ? `${Math.round(100 * overall)}%` : "0%";
       $("#rbProgress").classList.remove("indeterminate");
@@ -260,10 +260,12 @@ const MLMI = (() => {
         else if (p > 0.02 && p < 1 && Number.isFinite(e) && e > 0) left += e * (1 - p) / p;
         else known = false;
       }
-      const words = !open.length ? "" : !known ? "estimating the time left…"
+      const words = !open.length || !known ? ""
         : left < 20 ? "a few seconds left" : left < 90 ? `about ${Math.round(left / 10) * 10} s left` : `about ${Math.round(left / 60)} min left`;
       if (words) $("#rbPct").textContent = `${$("#rbPct").textContent ? $("#rbPct").textContent + " · " : ""}${words}`;
     }
+    $("#readyBar").style.setProperty("--p", String(Math.max(0, Math.min(100, parseFloat($("#rbFill").style.width) || 0))));
+    $("#readyBar").classList.toggle("busy", !!(waiting || checks.some((c) => c.state === "running")));
     if (showChecks) {
       $("#rbChecks").innerHTML = checks.map((c) => {
         const tone = c.state === "passed" ? "green" : c.state === "failed" && c.id === "startup" ? "red"
