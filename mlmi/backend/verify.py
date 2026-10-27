@@ -1,0 +1,107 @@
+"""Is what a job made what was asked? Read from the files themselves.
+
+When the model says a job is done, the orchestrator opens what it made and
+compares it with the request: a file asked for by name exists; a deck has the
+slides asked for; a Studio video is as long as asked; a list in a document has
+the items asked for. Each shortfall is said in plain words; the model gets one
+chance to fix them, and anything still short is told to the person, never
+hidden. (The other tool's verify_artifact checked slide counts; rebuilt here
+from the request's own numbers.)
+"""
+import re
+
+from . import formats as F
+
+WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
+         "ten": 10, "eleven": 11, "twelve": 12, "fifteen": 15, "twenty": 20, "thirty": 30}
+NUM = r"(\d{1,3}|" + "|".join(WORDS) + r")"
+EXTS = r"(sdoc|ssheet|sdeck|sstudio|docx|xlsx|pptx|pdf|txt|md|csv|py|html|js|png|mp4|wav)"
+
+
+def _n(w):
+    return int(w) if w.isdigit() else WORDS.get(w, 0)
+
+
+def _load(ws, rel):
+    try:
+        return F.load(ws.path(rel, must_exist=True))
+    except Exception:
+        return None
+
+
+def _list_items(d):
+    """Items in the document's lists, and its paragraphs, for counted requests."""
+    items = paras = 0
+    for b in d.get("blocks", []):
+        k = b.get("type", "")
+        if k in ("bullet", "numbered"):
+            items += 1
+        elif k == "paragraph" and b.get("style") != "quote":
+            paras += 1
+        elif k == "table":
+            items = max(items, len(b.get("rows") or []) - (1 if b.get("header") else 0))
+    return items, paras
+
+
+def shortfalls(ws, asked, made):
+    """[plain-words problem] for this request and the files the job made."""
+    t = (asked or "").lower()
+    made = sorted(made or [])
+    out = []
+    # a file asked for by name
+    for name, _ in re.findall(r"\b(?:called|named|save (?:it |this )?as|name it)\s+['\"]?([\w .-]+?\." + EXTS + r")\b", t):
+        name = name.strip()
+        if not any(m.lower().split("/")[-1] == name for m in made) and not ws.path(name).exists():
+            out.append(f"there is no file called {name}")
+    decks = [m for m in made if m.endswith(".sdeck")]
+    docs = [m for m in made if m.endswith(".sdoc")]
+    vids = [m for m in made if m.endswith(".sstudio")]
+    # slides asked for
+    m = re.search(r"\b" + NUM + r"[- ](?:content |more )?slides?\b", t)
+    if m and decks:
+        want = _n(m.group(1))
+        for rel in decks:
+            d = _load(ws, rel)
+            have = len(d.get("slides", [])) if d else 0
+            if d and have < want:
+                out.append(f"{rel} has {have} slide{'s' if have != 1 else ''}; {want} were asked for")
+    # a video's length (Studio)
+    m = re.search(r"\b" + NUM + r"[- ]?(?:seconds?|secs?|s)\b", t)
+    if m and vids:
+        want = _n(m.group(1))
+        from .tools.studio import length
+        for rel in vids:
+            d = _load(ws, rel)
+            if d and length(d) + 0.5 < want:
+                out.append(f"{rel} is {length(d):.0f} seconds long; {want} were asked for")
+    # counted items in a document ("three goals", "five bullet points")
+    m = re.search(r"\b" + NUM + r" (?:bullet points?|bullets|points|goals|steps|tips|ideas|reasons|items|questions)\b", t)
+    if m and docs:
+        want = _n(m.group(1))
+        for rel in docs:
+            d = _load(ws, rel)
+            if not d:
+                continue
+            items, paras = _list_items(d)
+            if max(items, paras) < want:
+                out.append(f"{rel} has {max(items, paras)} of the {want} {m.group(0).split(' ', 1)[1]} asked for")
+    # a formula over nothing: the 3B added "=SUM(C2:C4)" under a table whose numbers
+    # are in column B, a stray 0 row beside the real Total (2026-10-13 simulation)
+    from openpyxl.utils import get_column_letter, range_boundaries
+    for rel in (m for m in made if m.endswith(".ssheet")):
+        d = _load(ws, rel)
+        for sh in (d or {}).get("sheets", []):
+            cells = sh.get("cells") or {}
+            for k, v in cells.items():
+                if not (isinstance(v, str) and v.startswith("=")):
+                    continue
+                for ref in re.findall(r"\b([A-Z]{1,3}\d+:[A-Z]{1,3}\d+)\b", v.upper()):
+                    try:
+                        c0, r0, c1, r1 = range_boundaries(ref)
+                    except ValueError:
+                        continue
+                    inside = [cells.get(f"{get_column_letter(c)}{r}") for c in range(c0, c1 + 1)
+                              for r in range(r0, r1 + 1)]
+                    if all(x is None or x == "" for x in inside):
+                        out.append(f"{k} in {rel} is {v}, but {ref} is empty: point it at the numbers or remove it")
+    return out

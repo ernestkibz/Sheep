@@ -1,0 +1,14 @@
+#version 450
+#extension GL_GOOGLE_include_directive : enable
+// gate = silu(gate) * up, elementwise, for each row of the batch (y: the row).
+#include "common.glsl"
+layout(local_size_x = 256) in;
+layout(push_constant) uniform P { uint g, u, n, sg, su_; } p;
+
+void main() {
+    const uint row = gl_WorkGroupID.y, g0 = p.g + row * p.sg, u0 = p.u + row * p.su_;
+    for (uint i = gl_GlobalInvocationID.x; i < p.n; i += gl_NumWorkGroups.x * 256u) {
+        float g = sf[g0 + i];
+        sf[g0 + i] = g / (1.0 + exp(-g)) * sf[u0 + i];
+    }
+}

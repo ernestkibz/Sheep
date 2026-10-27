@@ -1,0 +1,33 @@
+#version 450
+#extension GL_GOOGLE_include_directive : enable
+// Gather x through the tensor's column order and quantize per group of 32 to int8,
+// as sml_quantize_act / quant_group (sml-gpu-fwd.cu): s = amax/127, q = rint(x/s)
+// ties to even, clamped to +-127; the group's sum of q is kept for the min term.
+// y: the row of the batch.
+#include "common.glsl"
+layout(local_size_x = 64) in;
+layout(push_constant) uniform P { uint x, perm, qw, qs, qm, n, sx, sqw, sqs; } p;
+
+void main() {
+    const uint ng = p.n / GROUP, row = gl_WorkGroupID.y;
+    const uint x = p.x + row * p.sx, qw = p.qw + row * p.sqw, qs = p.qs + row * p.sqs, qm = p.qm + row * p.sqs;
+    for (uint g = gl_GlobalInvocationID.x; g < ng; g += gl_NumWorkGroups.x * 64u) {
+        uint pb = p.perm + g * GROUP;
+        float amax = 0.0;
+        for (uint i = 0u; i < GROUP; i++) amax = max(amax, abs(sf[x + wu[pb + i]]));
+        float s = amax / 127.0;
+        float is = s > 0.0 ? 1.0 / s : 0.0;
+        int acc = 0;
+        for (uint k = 0u; k < 8u; k++) {
+            uint w = 0u;
+            for (uint b = 0u; b < 4u; b++) {
+                int q = clamp(int(roundEven(sf[x + wu[pb + 4u * k + b]] * is)), -127, 127);
+                acc += q;
+                w |= (uint(q) & 0xFFu) << (8u * b);
+            }
+            su[qw + g * 8u + k] = w;
+        }
+        sf[qs + g] = s;
+        su[qm + g] = uint(acc);
+    }
+}

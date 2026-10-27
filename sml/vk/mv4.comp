@@ -1,0 +1,65 @@
+#version 450
+#extension GL_GOOGLE_include_directive : enable
+// y = W x (+ bias), one activation (decode). Prompts use mv4b.comp, the batched form.
+// Four rows per workgroup, 16 threads per row; each thread reads its 64-weight block's
+// 32 code bytes and the two groups' activation words as 16-byte vectors. One row per
+// workgroup with scalar loads ran at ~9 GB/s on the Radeon, 94% of the token.
+#include "common.glsl"
+layout(local_size_x = 64) in;
+layout(push_constant) uniform P {
+    uint y, c4, sd, sq, md, mq, qw, qs, qm, bias, rows, n, have_min, has_bias;
+} p;
+shared float part[64];
+
+// one uvec4 of codes against the low group's and the high group's activation words
+int dot4(uvec4 w, uvec4 a, uvec4 b, out int hi) {
+    int lo = 0; hi = 0;
+    for (uint k = 0u; k < 4u; k++) {
+        uint wk = w[k], ak = a[k], bk = b[k];
+        for (uint i = 0u; i < 4u; i++) {
+            uint byte_ = (wk >> (8u * i)) & 0xFFu;
+            lo += int(byte_ & 0x0Fu) * sb(ak, i);
+            hi += int(byte_ >> 4u) * sb(bk, i);
+        }
+    }
+    return lo;
+}
+
+void main() {
+    const uint t = gl_LocalInvocationID.x, lane = t & 15u, sub = t >> 4u;
+    const uint ng = p.n / GROUP, nscale = (ng + GPS - 1u) / GPS, nblk = p.n / 64u;
+    for (uint rb = gl_WorkGroupID.x; rb * 4u < p.rows; rb += gl_NumWorkGroups.x) {
+        const uint r = rb * 4u + sub;
+        float acc = 0.0;
+        if (r < p.rows) {
+            const uint cr = (p.c4 + r * (p.n / 8u)) >> 2u;          // uvec4 index of the row
+            const uint qa = p.qw >> 2u;
+            for (uint blk = lane; blk < nblk; blk += 16u) {
+                const uint glo = 2u * blk, gh = glo + 1u;
+                const uvec4 w0 = wu4[cr + blk * 2u], w1 = wu4[cr + blk * 2u + 1u];
+                const uvec4 al0 = su4[qa + glo * 2u], al1 = su4[qa + glo * 2u + 1u];
+                const uvec4 ah0 = su4[qa + gh * 2u], ah1 = su4[qa + gh * 2u + 1u];
+                int h0, h1;
+                const int dl = dot4(w0, al0, ah0, h0) + dot4(w1, al1, ah1, h1);
+                const int dh = h0 + h1;
+                const float xl = sf[p.qs + glo], xh = sf[p.qs + gh];
+                acc += whalf(p.sd, r * nscale + glo / GPS) * float(wbyte(p.sq, r * ng + glo)) * xl * float(dl);
+                acc += whalf(p.sd, r * nscale + gh / GPS) * float(wbyte(p.sq, r * ng + gh)) * xh * float(dh);
+                if (p.have_min != 0u) {
+                    acc += whalf(p.md, r * nscale + glo / GPS) * (float(wbyte(p.mq, r * ng + glo)) - 127.0) * xl
+                           * float(int(su[p.qm + glo]));
+                    acc += whalf(p.md, r * nscale + gh / GPS) * (float(wbyte(p.mq, r * ng + gh)) - 127.0) * xh
+                           * float(int(su[p.qm + gh]));
+                }
+            }
+        }
+        part[t] = acc;
+        barrier();
+        for (uint s = 8u; s > 0u; s >>= 1) {
+            if (lane < s) part[t] += part[t + s];
+            barrier();
+        }
+        if (lane == 0u && r < p.rows) sf[p.y + r] = part[t] + (p.has_bias != 0u ? wf[p.bias + r] : 0.0);
+        barrier();
+    }
+}

@@ -1,0 +1,28 @@
+#version 450
+#extension GL_GOOGLE_include_directive : enable
+// mode 0: out = rmsnorm(x) * w.   mode 1: x += y first (the branch joins the stream).
+// One workgroup per row of the batch (y: the row). sml-gpu-fwd.cu sml_g_addnorm (RMSNorm).
+#include "common.glsl"
+layout(local_size_x = 256) in;
+layout(push_constant) uniform P { uint x, y, out_, w, b, n, mode, has_bias; float eps; uint sx, sy, so; } p;
+shared float part[256];
+
+void main() {
+    const uint t = gl_LocalInvocationID.x, row = gl_WorkGroupID.y;
+    const uint x = p.x + row * p.sx, y = p.y + row * p.sy, o = p.out_ + row * p.so;
+    if (p.mode == 1u)
+        for (uint i = t; i < p.n; i += 256u) sf[x + i] += sf[y + i];
+    memoryBarrierBuffer();
+    barrier();
+    float ss = 0.0;
+    for (uint i = t; i < p.n; i += 256u) { float v = sf[x + i]; ss += v * v; }
+    part[t] = ss;
+    barrier();
+    for (uint s = 128u; s > 0u; s >>= 1) {
+        if (t < s) part[t] += part[t + s];
+        barrier();
+    }
+    float scl = inversesqrt(part[0] / float(p.n) + p.eps);
+    for (uint i = t; i < p.n; i += 256u)
+        sf[o + i] = sf[x + i] * scl * wf[p.w + i] + (p.has_bias != 0u ? wf[p.b + i] : 0.0);
+}

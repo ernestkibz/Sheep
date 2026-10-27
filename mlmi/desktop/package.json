@@ -1,0 +1,14 @@
+{
+  "name": "mlmi",
+  "productName": "Sheep",
+  "version": "0.1.0",
+  "description": "Multi-Purpose Localized AI Model Inference Engine: the SHEEP engine, its apps, and the models that drive them.",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^40.6.0"
+  }
+}

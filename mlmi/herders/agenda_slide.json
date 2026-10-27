@@ -1,0 +1,1 @@
+{"name": "agenda_slide", "app": "slides", "description": "Insert (or refresh) an Agenda slide after the title slide, listing the other slides' titles", "params": {}, "asks": ["agenda slide", "add an agenda"]}

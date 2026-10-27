@@ -1,0 +1,11 @@
+#version 450
+#extension GL_GOOGLE_include_directive : enable
+// x += y, elementwise, for each row of the batch: the last branch joins the stream.
+#include "common.glsl"
+layout(local_size_x = 256) in;
+layout(push_constant) uniform P { uint x, y, n, sx, sy; } p;
+
+void main() {
+    const uint row = gl_WorkGroupID.y, x = p.x + row * p.sx, y = p.y + row * p.sy;
+    for (uint i = gl_GlobalInvocationID.x; i < p.n; i += gl_NumWorkGroups.x * 256u) sf[x + i] += sf[y + i];
+}

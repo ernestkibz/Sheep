@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Everything comes from Sheep itself; nothing from the web, no eval. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'">
+<title>Sheep</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<!-- Sheep: a chat first, the Sheep apps beside it, the machinery in Settings.
+     Our own interface: no framework, no CDN, no build step. -->
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="dash.css">
+<link rel="stylesheet" href="sheep.css">
+<link rel="stylesheet" href="studio.css">
+</head>
+<body>
+<div id="shell">
+  <aside id="side">
+    <div class="brand"><span class="logo" data-icon="sheep"></span><b>Sheep</b>
+      <button class="ghost ico" id="collapse" title="Hide the sidebar" data-icon="panel"></button></div>
+    <button class="side-item strong" id="newChat"><span data-icon="pencil"></span>New chat</button>
+    <div class="side-label">Apps</div>
+    <div class="tiles">
+      <button class="tile" data-app="words" title="Sheep Words: documents"><span class="badge" data-icon="doc"></span><span>Words</span></button>
+      <button class="tile" data-app="sheets" title="Sheep Sheets: workbooks"><span class="badge" data-icon="grid"></span><span>Sheets</span></button>
+      <button class="tile" data-app="slides" title="Sheep Slides: decks"><span class="badge" data-icon="slides"></span><span>Slides</span></button>
+      <button class="tile" data-app="studio" title="Sheep Studio: videos and motion graphics"><span class="badge" data-icon="play"></span><span>Studio</span></button>
+      <button class="tile" data-app="text" title="Sheep Text: notes, text and code files"><span class="badge" data-icon="code"></span><span>Text</span></button>
+    </div>
+    <div class="side-label">Chats</div>
+    <input type="search" id="chatSearch" class="chat-search" placeholder="Search chats" aria-label="Search chats">
+    <div id="chats"></div>
+    <div class="side-foot">
+      <button class="side-item" id="openGuide"><span data-icon="help"></span>Guide</button>
+      <button class="side-item" id="openSettings"><span data-icon="gear"></span>Settings</button>
+    </div>
+  </aside>
+
+  <main id="stage">
+    <header id="bar">
+      <button class="ghost ico" id="expand" title="Show the sidebar" data-icon="panel"></button>
+      <div class="picker" id="modelPick"><button class="ghost" id="modelBtn"><span id="modelName">Sheep</span><span data-icon="chev"></span></button>
+        <div class="menu" id="modelMenu"></div></div>
+      <button type="button" class="status" id="status" title="" aria-label="System status"><i class="dot" aria-hidden="true"></i><span id="statusText"></span></button>
+      <span class="grow"></span>
+      <button class="ghost workbtn" id="workBtn" title="Work Canvas: everything this chat made"><span data-icon="canvas"></span><span>Canvas</span><b id="workN"></b></button>
+      <button class="ghost ico" id="undoBtn" title="Undo the last change (Ctrl+Z)" data-icon="undo"></button>
+      <button class="ghost ico" id="redoBtn" title="Redo (Ctrl+Y)" data-icon="redo"></button>
+    </header>
+
+    <div id="split">
+      <section id="chat">
+        <div id="thread"></div>
+        <form id="composer">
+          <section id="readyBar" hidden aria-label="System readiness"><div class="rb"><span class="sheep-mini" data-icon="sheep" aria-hidden="true"></span><span id="rbText" role="status" aria-live="polite"></span>
+            <button type="button" class="ghost rb-choose" id="rbChoose" hidden>Add model</button><span class="grow"></span><span id="rbPct"></span>
+            <button type="button" class="ghost rb-toggle" id="rbToggle" aria-expanded="false" aria-controls="rbDetails">Details</button>
+            <button type="button" class="ghost rb-stop" id="rbCancel" title="Stop loading this model" aria-label="Stop loading this model">Stop</button>
+            <button type="button" class="ghost rb-close" id="rbClose" aria-label="Close" title="Close">✕</button></div>
+            <div id="rbDetails" class="rb-details" hidden><div class="progress" id="rbProgress"><i id="rbFill"></i></div>
+              <div id="rbChecks" class="readiness-checks" aria-live="polite"></div>
+              <p id="rbEmpty" class="rb-empty" hidden></p></div></section>
+          <div class="box">
+            <div id="attachRow" hidden></div>
+            <textarea id="askText" rows="1" placeholder="Message Sheep"></textarea>
+            <input type="file" id="attachInput" multiple hidden>
+            <div class="row">
+              <div class="seg" id="modeSeg" title="Sheep: nothing leaves this machine. Sheep + Nebius: the cloud helps with long jobs.">
+                <button type="button" data-mode="2">Sheep</button><button type="button" data-mode="1">Sheep + Nebius</button></div>
+              <span class="grow"></span>
+              <button type="button" class="ghost ico vbtn" id="attachBtn" title="Attach a document, picture, recording or video" data-icon="clip"></button>
+              <button type="button" class="ghost ico vbtn" id="micBtn" title="Dictate: press, speak, press again" data-icon="mic"></button>
+              <button type="button" class="ghost ico vbtn" id="talkBtn" title="Talk: a spoken conversation with the chat model" data-icon="wave"></button>
+              <button type="button" class="round stop" id="stopBtn" title="Stop" data-icon="stop" hidden></button>
+              <button type="submit" class="round" id="sendBtn" title="Send" data-icon="up"></button>
+            </div>
+          </div>
+          <div class="fine">Runs on this computer. Sheep can make mistakes; check important work.</div>
+        </form>
+      </section>
+      <div id="splitter" title="Drag to resize; double-click to reset" hidden></div>
+      <section id="canvas" hidden>
+        <div id="canvasHead"><button class="ghost" id="toWork" title="Back to the Work Canvas" hidden><span data-icon="canvas"></span>Work Canvas</button><span id="canvasTitle"></span><span class="grow"></span>
+          <button class="ghost ico" id="focusCanvas" title="Focus: the app takes the whole width (the chat comes back with this button)" data-icon="panel"></button>
+          <button class="ghost ico" id="closeCanvas" title="Close" data-icon="x"></button></div>
+        <div id="canvasBody"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<aside id="mediaInstall" class="media-install" hidden aria-live="polite" aria-atomic="true">
+  <div class="media-install-head">
+    <span class="media-install-mark" aria-hidden="true"><span data-icon="spark"></span></span>
+    <div class="media-install-title"><b id="mediaInstallTitle"></b><small id="mediaInstallPhase"></small></div>
+    <span id="mediaInstallPct" class="media-install-pct"></span>
+  </div>
+  <p id="mediaInstallDetail" class="media-install-detail"></p>
+  <div id="mediaInstallTrack" class="media-install-track" role="progressbar" aria-label="Media model installation progress" aria-valuemin="0" aria-valuemax="100">
+    <i id="mediaInstallFill"></i>
+  </div>
+  <p id="mediaInstallError" class="media-install-error" hidden role="alert"></p>
+  <details id="mediaInstallErrorDetails" class="media-install-error-details" hidden>
+    <summary>Details</summary><pre id="mediaInstallErrorCause"></pre>
+  </details>
+  <div class="media-install-foot"><span id="mediaInstallHint"></span>
+    <span><button id="mediaInstallCancel" class="ghost" type="button">Cancel</button>
+    <button id="mediaInstallDismiss" class="ghost" type="button" disabled>Dismiss</button></span></div>
+</aside>
+
+<div class="modal" id="settings" hidden>
+  <div class="sheet">
+    <nav class="tabsv" id="setTabs">
+      <div class="side-label">Settings</div>
+      <button data-tab="basics"><span data-icon="sliders"></span>Basics</button>
+      <button data-tab="models"><span data-icon="sheep"></span>Models</button>
+      <button data-tab="accounts"><span data-icon="key"></span>Accounts</button>
+      <button data-tab="activity"><span data-icon="gauge"></span>Activity</button>
+      <div class="tabsv-gap"></div>
+      <button data-tab="advanced"><span data-icon="chip"></span>Advanced</button>
+    </nav>
+    <div class="setbody"><button class="ghost ico close" id="closeSettings" title="Close" data-icon="x"></button><div id="setBody"></div></div>
+  </div>
+</div>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script src="words.js"></script>
+<script src="sheets.js"></script>
+<script src="slides.js"></script>
+<script src="studio.js"></script>
+<script src="views.js"></script>
+<script src="text.js"></script>
+<script src="work.js"></script>
+<script src="welcome.js"></script>
+<script src="guide.js"></script>
+<script src="voice.js"></script>
+<script>MLMI.start();</script>
+</body>
+</html>

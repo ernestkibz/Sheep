@@ -1,0 +1,43 @@
+#version 450
+#extension GL_GOOGLE_include_directive : enable
+// One workgroup per (query head, row of the batch): row b sits at position pos0 + b and
+// attends to the cache up to it (the batch's keys are all written first, by ropekv).
+// Scores in parallel, softmax with shared-memory reductions, then the weighted sum of V.
+#include "common.glsl"
+layout(local_size_x = 64) in;
+layout(push_constant) uniform P { uint out_, q, kl, vl, att, n_head, n_kv, hd, n_ctx, t0, pos; float inv; uint so, sq; } p;
+shared float red[64];
+
+void main() {
+    const uint h = gl_WorkGroupID.x, row = gl_WorkGroupID.y, t = gl_LocalInvocationID.x;
+    if (h >= p.n_head) return;
+    const uint pos = p.pos + row;
+    const uint rep = p.n_head / p.n_kv, kvh = h / rep, kvd = p.n_kv * p.hd;
+    const uint qh = p.q + row * p.sq + h * p.hd, a = p.att + (row * p.n_head + h) * p.n_ctx;
+    float mx = -3.4e38;
+    for (uint s = p.t0 + t; s <= pos; s += 64u) {
+        uint kh = p.kl + s * kvd + kvh * p.hd;
+        float d = 0.0;
+        for (uint i = 0u; i < p.hd; i++) d += sf[qh + i] * kv[kh + i];
+        d *= p.inv;
+        sf[a + s] = d;
+        mx = max(mx, d);
+    }
+    red[t] = mx;
+    barrier();
+    for (uint st = 32u; st > 0u; st >>= 1) { if (t < st) red[t] = max(red[t], red[t + st]); barrier(); }
+    mx = red[0];
+    barrier();
+    float sum = 0.0;
+    for (uint s = p.t0 + t; s <= pos; s += 64u) { float e = exp(sf[a + s] - mx); sf[a + s] = e; sum += e; }
+    red[t] = sum;
+    memoryBarrierBuffer();
+    barrier();
+    for (uint st = 32u; st > 0u; st >>= 1) { if (t < st) red[t] += red[t + st]; barrier(); }
+    float isum = 1.0 / red[0];
+    for (uint i = t; i < p.hd; i += 64u) {
+        float o = 0.0;
+        for (uint s = p.t0; s <= pos; s++) o += sf[a + s] * kv[p.vl + s * kvd + kvh * p.hd + i];
+        sf[p.out_ + row * p.so + h * p.hd + i] = o * isum;
+    }
+}

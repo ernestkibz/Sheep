@@ -1,0 +1,295 @@
+{
+ "rmsnorm swiglu": {
+  "labels": [
+   "llama",
+   "qwen2",
+   "granite",
+   "phi3",
+   "ernie4_5",
+   "seed_oss",
+   "glm",
+   "helium",
+   "smollm3",
+   "ministral"
+  ],
+  "env": "main",
+  "representative": "llama"
+ },
+ "rmsnorm swiglu qknorm": {
+  "labels": [
+   "qwen3",
+   "hunyuan_v1_dense"
+  ],
+  "env": "main",
+  "representative": "qwen3"
+ },
+ "layernorm gelu parallel": {
+  "labels": [
+   "gpt_neox",
+   "phi",
+   "gptj",
+   "falcon"
+  ],
+  "env": "main",
+  "representative": "gpt_neox"
+ },
+ "layernorm gelu learned-pos": {
+  "labels": [
+   "gpt2",
+   "gpt_bigcode",
+   "gpt_neo"
+  ],
+  "env": "main",
+  "representative": "gpt2"
+ },
+ "layernorm gelu alibi": {
+  "labels": [
+   "bloom",
+   "falcon-alibi",
+   "mpt"
+  ],
+  "env": "main",
+  "representative": "bloom"
+ },
+ "rmsnorm swiglu qknorm post-norms no-pre-norm": {
+  "labels": [
+   "olmo2",
+   "exaone4",
+   "exaone4-hybrid",
+   "olmo3"
+  ],
+  "env": "main",
+  "representative": "olmo2"
+ },
+ "rmsnorm experts swiglu": {
+  "labels": [
+   "granitemoe",
+   "mixtral"
+  ],
+  "env": "main",
+  "representative": "granitemoe"
+ },
+ "rmsnorm swiglu windows": {
+  "labels": [
+   "mistral",
+   "mistral-swa",
+   "mistral3"
+  ],
+  "env": "main",
+  "representative": "mistral"
+ },
+ "layernorm swiglu": {
+  "labels": [
+   "stablelm",
+   "olmo"
+  ],
+  "env": "main",
+  "representative": "stablelm"
+ },
+ "layernorm gelu": {
+  "labels": [
+   "starcoder2"
+  ],
+  "env": "main",
+  "representative": "starcoder2"
+ },
+ "layernorm swiglu parallel": {
+  "labels": [
+   "cohere",
+   "cohere2"
+  ],
+  "env": "main",
+  "representative": "cohere"
+ },
+ "rmsnorm geglu": {
+  "labels": [
+   "gemma"
+  ],
+  "env": "main",
+  "representative": "gemma"
+ },
+ "rmsnorm relu2": {
+  "labels": [
+   "arcee"
+  ],
+  "env": "main",
+  "representative": "arcee"
+ },
+ "layernorm relu2 qknorm": {
+  "labels": [
+   "persimmon"
+  ],
+  "env": "main",
+  "representative": "persimmon"
+ },
+ "layernorm relu2": {
+  "labels": [
+   "nemotron",
+   "jais2"
+  ],
+  "env": "main",
+  "representative": "nemotron"
+ },
+ "rmsnorm experts+shared swiglu": {
+  "labels": [
+   "qwen2_moe",
+   "granitemoeshared",
+   "ernie4_5_moe"
+  ],
+  "env": "main",
+  "representative": "qwen2_moe"
+ },
+ "rmsnorm experts swiglu qknorm": {
+  "labels": [
+   "olmoe",
+   "qwen3_moe"
+  ],
+  "env": "main",
+  "representative": "olmoe"
+ },
+ "rmsnorm geglu post-norms softcap": {
+  "labels": [
+   "gemma2"
+  ],
+  "env": "main",
+  "representative": "gemma2"
+ },
+ "rmsnorm geglu qknorm post-norms": {
+  "labels": [
+   "gemma3_text"
+  ],
+  "env": "main",
+  "representative": "gemma3_text"
+ },
+ "rmsnorm swiglu post-norms": {
+  "labels": [
+   "glm4"
+  ],
+  "env": "main",
+  "representative": "glm4"
+ },
+ "rmsnorm geglu softcap": {
+  "labels": [
+   "vaultgemma"
+  ],
+  "env": "main",
+  "representative": "vaultgemma"
+ },
+ "rmsnorm experts swiglu qknorm post-norms no-pre-norm": {
+  "labels": [
+   "flex_olmo"
+  ],
+  "env": "main",
+  "representative": "flex_olmo"
+ },
+ "rmsnorm experts+shared+v3 swiglu": {
+  "labels": [
+   "glm4_moe"
+  ],
+  "env": "main",
+  "representative": "glm4_moe"
+ },
+ "rmsnorm experts+shared+v3 swiglu qknorm": {
+  "labels": [
+   "dots1",
+   "exaone_moe"
+  ],
+  "env": "main",
+  "representative": "dots1"
+ },
+ "rmsnorm experts+shared swiglu qknorm": {
+  "labels": [
+   "hunyuan_v1_moe"
+  ],
+  "env": "main",
+  "representative": "hunyuan_v1_moe"
+ },
+ "rmsnorm mamba2 gelu": {
+  "labels": [
+   "mamba2"
+  ],
+  "env": "main",
+  "representative": "mamba2"
+ },
+ "rmsnorm mamba2 experts+shared swiglu": {
+  "labels": [
+   "granitemoehybrid"
+  ],
+  "env": "main",
+  "representative": "granitemoehybrid"
+ },
+ "rmsnorm mamba2 swiglu": {
+  "labels": [
+   "granitemoehybrid-nope",
+   "bamba"
+  ],
+  "env": "main",
+  "representative": "granitemoehybrid-nope"
+ },
+ "rmsnorm mamba1 gelu": {
+  "labels": [
+   "mamba",
+   "falcon_mamba"
+  ],
+  "env": "main",
+  "representative": "mamba"
+ },
+ "rmsnorm mamba1 experts swiglu": {
+  "labels": [
+   "jamba"
+  ],
+  "env": "main",
+  "representative": "jamba"
+ },
+ "rmsnorm shortconv swiglu qknorm": {
+  "labels": [
+   "lfm2"
+  ],
+  "env": "main",
+  "representative": "lfm2"
+ },
+ "rmsnorm deltanet experts+shared swiglu qknorm attn-gate": {
+  "labels": [
+   "qwen3_next",
+   "qwen3_5_moe_text"
+  ],
+  "env": "main",
+  "representative": "qwen3_next"
+ },
+ "rmsnorm deltanet swiglu qknorm attn-gate": {
+  "labels": [
+   "qwen3_5_text",
+   "qwen3_next-dense"
+  ],
+  "env": "main",
+  "representative": "qwen3_5_text"
+ },
+ "rmsnorm mamba2 relu2": {
+  "labels": [
+   "nemotron_h"
+  ],
+  "env": "tf5",
+  "representative": "nemotron_h"
+ },
+ "rmsnorm shortconv experts+v3 swiglu qknorm": {
+  "labels": [
+   "lfm2_moe"
+  ],
+  "env": "tf5",
+  "representative": "lfm2_moe"
+ },
+ "rmsnorm experts+shared+v3 swiglu qknorm post-norms attn-gate": {
+  "labels": [
+   "afmoe"
+  ],
+  "env": "tf5",
+  "representative": "afmoe"
+ },
+ "rmsnorm experts+v3 swiglu qknorm": {
+  "labels": [
+   "minimax_m2"
+  ],
+  "env": "tf5",
+  "representative": "minimax_m2"
+ }
+}

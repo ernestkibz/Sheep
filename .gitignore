@@ -1,0 +1,55 @@
+# Build output: make rebuilds all of it from the sources in sml/.
+*.exe
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+sml/sml-gpu-fwd*.ptx
+sml/*.raw.ptx
+
+# Models and their scratch. An .ssf is built by tooling/sml_build.py and is far
+# too large to track; the checkpoints it is built from belong to their publishers.
+*.ssf
+*.gguf
+*.safetensors
+models/
+build/
+build-*/
+
+# Measurement output, kept out of the repo so a number never enters history
+# without the paragraph that explains it.
+*.bin
+*.json.tmp
+tune/
+scratch/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# The forked web interface, replaced by sml/ui: untracked 2026-09-23.
+apps/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+sml/sml-gpu.ptx
+
+# upstream artwork that arrived with the fork: untracked 2026-09-23
+brand/matmul.*
+
+node_modules/
+tooling/compat_cache.json
+sml/vk/*.spv
+
+# working notes, test homes and run logs of the development sessions
+scratchpad/
+
+# packaging output and stray run logs
+*.egg-info/
+/*.jsonl

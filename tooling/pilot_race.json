@@ -1,0 +1,57 @@
+[
+ {
+  "label": "llama32-3b",
+  "hf": "C:/Users/earne/models/llama32-3b",
+  "t": "2026-09-30 15:08",
+  "alloc": "token_embd=6,attn_v=6@0;1;2;5;8;11;14;17;20;23;24;25;26;27,ffn_down=6@0;1;2;5;8;11;14;17;20;23;24;25;26;27",
+  "build_min": 106.4,
+  "bytes": {
+   "sheep": 2018627343,
+   "llama": 2019377280
+  },
+  "quality": {
+   "kld_sheep": 0.02555094701737187,
+   "kld_llama": 0.03240760136597303,
+   "top1_sheep": 0.8994708994708994,
+   "top1_llama": 0.8597883597883598,
+   "positions": 756,
+   "kld_diff_ci": [
+    -0.00904886483797828,
+    -0.004605156370269925
+   ],
+   "won": true,
+   "lost": false
+  },
+  "cpu_pp": {
+   "ratio": 1.484,
+   "ci": [
+    1.266,
+    1.562
+   ],
+   "verdict": "WON"
+  },
+  "cpu_tg": {
+   "ratio": 0.974,
+   "ci": [
+    0.952,
+    1.112
+   ],
+   "verdict": "NOT DECIDED"
+  },
+  "gpu_pp": {
+   "error": "no result",
+   "tail": "m.gguf, pp128, 6 rounds\n  round 1: EXCLUDED (sheep None, ref 58.46, correct False)\n  round 2: EXCLUDED (sheep None, ref 120.42, correct False)\n  round 3: EXCLUDED (sheep None, ref 353.63, correct False)\n  round 4: EXCLUDED (sheep None, ref 334.55, correct False)\n  round 5: EXCLUDED (sheep None, ref 338.44, correct False)\n  round 6: EXCLUDED (sheep None, ref 355.87, correct False)\n  no valid rounds"
+  },
+  "gpu_tg": {
+   "error": "no result",
+   "tail": "-q4km.gguf, decode tg64, 6 rounds\n  round 1: EXCLUDED (sheep None, ref 11.21, correct False)\n  round 2: EXCLUDED (sheep None, ref 10.1, correct False)\n  round 3: EXCLUDED (sheep None, ref 8.25, correct False)\n  round 4: EXCLUDED (sheep None, ref 4.39, correct False)\n  round 5: EXCLUDED (sheep None, ref 4.59, correct False)\n  round 6: EXCLUDED (sheep None, ref 4.38, correct False)\n  no valid rounds"
+  },
+  "won": {
+   "bytes": true,
+   "quality": true,
+   "cpu": false,
+   "gpu": false
+  },
+  "family_won": false
+ }
+]

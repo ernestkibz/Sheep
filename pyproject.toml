@@ -1,0 +1,47 @@
+[project]
+name = "sheep"
+version = "0.4.0"
+description = "SML inference engine and the SSF model format"
+requires-python = ">=3.9"
+dependencies = [
+    "huggingface-hub>=0.24",
+    # the model's own chat template (modes.py); without it every chat fell back to built-in frames
+    "jinja2>=3.1",
+    "numpy>=1.24",
+    "openpyxl>=3.1",
+    "Pillow>=10",
+    "psutil>=5.9",
+    "pypdf>=4.0",
+    "python-docx>=1.1",
+    "python-pptx>=1.0",
+    # voice: Windows voices for Read aloud / voice-overs (media.py runs it in a
+    # subprocess, so no import shows it), and Whisper for dictation, Talk and
+    # transcripts. As optional extras they were never installed, and the
+    # microphone and voice features could not work (2026-10-13).
+    "pyttsx3>=2.90; sys_platform == 'win32'",
+    "faster-whisper>=1.1",
+    "av>=12",          # Sheep decodes audio for Whisper itself (media.audio_16k)
+    # PDF export of documents, workbooks and decks (pdf_export.py)
+    "reportlab>=4.0",
+    "requests>=2.31",
+    "tqdm>=4.66",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project.optional-dependencies]
+audio = ["faster-whisper>=1.1"]
+gpu-quantization = ["torch>=2.4"]
+
+[tool.setuptools.packages.find]
+namespaces = true
+include = ["mlmi*", "tooling*"]
+
+[tool.setuptools.package-data]
+mlmi = ["desktop/ui/**/*", "herders/**/*", "backend/english_words.txt"]
+
+[project.scripts]
+sml-build = "tooling.sml_build:main"
+sml-gates = "tooling.sml_gates:main"

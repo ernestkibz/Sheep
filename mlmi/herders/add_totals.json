@@ -1,0 +1,1 @@
+{"name": "add_totals", "app": "sheets", "description": "Add a Total row under a table: SUM of every numeric column", "params": {"range": ["string", "optional: the table including its header row, e.g. A1:D9; omit for the whole filled block"], "sheet": ["string", "sheet name; omit for the first"]}, "asks": ["add totals", "total row", "sum the columns"]}

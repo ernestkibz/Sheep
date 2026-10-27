@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'none'">
+<title>Sheep</title>
+<style>
+  /* the same face and colours as the app; light or dark follows Windows until the app knows the saved choice */
+  @font-face { font-family:"Nunito"; src:url("fonts/Nunito.ttf") format("truetype"); font-weight:200 1000; }
+  :root { --bg:#090909; --ink:#f1f1f1; --dim:#aaaaaa; --line2:#383838; --fleece:#f4f4f4; --face:#050505; --eye:#ffffff; color-scheme:dark; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#ffffff; --ink:#151515; --dim:#666666; --line2:#c9c9c9; --fleece:#111111; --face:#ffffff; --eye:#111111; color-scheme:light; }
+  }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink); font-family:"Nunito", system-ui, sans-serif; }
+  body { display:flex; align-items:center; justify-content:center; flex-direction:column; gap:18px; }
+  svg { width:72px; height:72px; animation: bob 1.6s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-5px); } }
+  b { font-size:22px; font-weight:800; letter-spacing:.04em; }
+  .line { width:200px; height:3px; border-radius:2px; background:var(--line2); overflow:hidden; }
+  .line i { display:block; width:40%; height:100%; background:var(--ink); border-radius:2px; animation: run 1.1s ease-in-out infinite; }
+  @keyframes run { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+  #msg { color:var(--dim); font-size:13.5px; white-space:pre-wrap; max-width:640px; text-align:center; line-height:1.5; }
+  #retry { display:none; background:var(--ink); color:var(--bg); border:0; border-radius:10px; padding:9px 18px; font:inherit; font-weight:700; cursor:pointer; }
+  @media (prefers-reduced-motion: reduce) { svg, .line i { animation:none !important; } }
+</style>
+</head>
+<body>
+  <svg viewBox="0 0 64 64" aria-hidden="true">
+    <g fill="var(--fleece)"><circle cx="22" cy="28" r="10"/><circle cx="34" cy="22" r="11"/><circle cx="45" cy="29" r="10"/>
+    <circle cx="28" cy="38" r="10"/><circle cx="41" cy="39" r="10"/><circle cx="18" cy="37" r="7"/><circle cx="50" cy="38" r="7"/></g>
+    <g fill="var(--face)" stroke="var(--fleece)" stroke-width="2" stroke-linejoin="round"><rect x="25" y="46" width="4.5" height="10" rx="2"/><rect x="38" y="46" width="4.5" height="10" rx="2"/>
+    <ellipse cx="14" cy="30" rx="8" ry="9.5"/><ellipse cx="7.5" cy="24" rx="4" ry="2.4" transform="rotate(-25 7.5 24)"/>
+    <ellipse cx="19.5" cy="22" rx="4" ry="2.4" transform="rotate(25 19.5 22)"/></g>
+    <circle cx="11" cy="29" r="1.6" fill="var(--eye)"/><circle cx="17" cy="29" r="1.6" fill="var(--eye)"/>
+  </svg>
+  <b>Sheep</b>
+  <div class="line"><i></i></div>
+  <div id="msg">Starting Sheep…</div>
+  <button id="retry">Retry</button>
+<script>
+  const msg = document.getElementById("msg"), line = document.querySelector(".line"), retry = document.getElementById("retry");
+  if (window.mlmiDesktop) {
+    window.mlmiDesktop.onBootFailed((m) => { msg.textContent = m; line.style.display = "none"; retry.style.display = "block"; });
+    window.mlmiDesktop.onBootStatus((m) => { msg.textContent = m; line.style.display = ""; retry.style.display = "none"; });
+    retry.onclick = () => { retry.style.display = "none"; line.style.display = ""; msg.textContent = "Starting Sheep…";
+                            window.mlmiDesktop.retryBackend(); };
+  }
+</script>
+</body>
+</html>

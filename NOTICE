@@ -1,0 +1,33 @@
+Sheep
+=====
+
+Origin and attribution
+----------------------
+
+This project began on 2026-08-29 as a fork of an MIT-licensed C/C++ LLM
+inference project. Every file that originated upstream has since been deleted:
+
+* the tensor library and the model/graph runtime (tensor/, core/),
+* the format reader and converters (pygguf/),
+* the applications and their web UI (apps/), removed 2026-09-23.
+
+What remains in the working tree is original work written for this project:
+
+* sml/      the SSF format, quantized kernels, engine, CLI, server, GPU path
+* tooling/  the quantizer, calibration, gates, benchmarks, autotuner, live agent
+* brand/    logo and marks
+* the documentation at the top level
+
+The git history still contains the upstream code, at and after the baseline
+commit, so the upstream copyright and permission notice is kept verbatim in
+LICENSE and governs those historical revisions. Renaming files or symbols would
+not have changed that; deleting them is what changes it. Both copyright lines
+stand in LICENSE: the upstream authors for the history, and this project's
+author for the code in the tree.
+
+The reference engine is named in README.md, METHOD.md and RESULTS.md only to
+say what was measured against what. Nothing of its code is in this tree.
+
+Model identifiers, repository ids and download URLs are unchanged wherever they
+address files hosted by third parties, because they are compared against, or
+resolve to, bytes produced elsewhere.

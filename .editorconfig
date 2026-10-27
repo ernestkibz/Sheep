@@ -1,0 +1,17 @@
+# Sheep. Four spaces in C and Python, tabs in Makefiles because make demands it,
+# LF endings so the same file hashes the same on every machine.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[Makefile]
+indent_style = tab
+
+[*.{md,svg,html}]
+trim_trailing_whitespace = false

@@ -1,0 +1,46 @@
+/* Sheep Studio: the frame in the middle, the layer's settings on the right,
+   the timeline below. */
+.studio .tools { gap:6px; }
+.studio .st-time { font-variant-numeric: tabular-nums; color:var(--dim); font-size:12.5px; min-width:92px; }
+.st-menu { position:relative; }
+.st-pop { position:absolute; top:34px; left:0; z-index:30; min-width:200px; max-height:320px; overflow:auto; display:none;
+  background:var(--panel); border:1px solid var(--line2); border-radius:10px; padding:4px; box-shadow:0 12px 30px rgba(0,0,0,.35); }
+.st-pop.open { display:grid; animation: pop .15s ease-out; }
+.st-pop button { text-align:left; background:transparent; border:0; border-radius:7px; padding:7px 10px; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.st-pop button:hover { background:var(--hover); }
+.st-pop button + button { border-top:1px solid var(--line); border-radius:0; }
+
+.st-main { flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) 250px; }
+.st-stage { position:relative; display:grid; place-items:center; background:
+  repeating-conic-gradient(rgba(255,255,255,.025) 0% 25%, transparent 0% 50%) 0 0 / 22px 22px, var(--panel2); min-height:0; overflow:hidden; }
+.st-stage canvas, .st-stage video { box-shadow:0 10px 40px rgba(0,0,0,.45); border-radius:6px; max-width:calc(100% - 24px); max-height:calc(100% - 24px); }
+.st-stage canvas { cursor:crosshair; }
+.st-busy { position:absolute; inset:auto 50% 16px auto; transform:translateX(50%); background:var(--glass2); border:1px solid var(--line2);
+  padding:8px 14px; border-radius:20px; font-size:13px; }
+.st-insp { border-left:1px solid var(--line); background:var(--panel); padding:12px 14px; overflow:auto; display:flex; flex-direction:column; gap:10px; }
+.st-insp h3 { margin:0 0 2px; font-size:15px; }
+.st-insp label { display:grid; gap:4px; font-size:12px; color:var(--dim); }
+.st-insp input, .st-insp select, .st-insp textarea { width:100%; font-size:13px; }
+.st-insp input[type=color] { height:32px; padding:2px; }
+.st-insp .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.st-insp button { font-size:12.5px; }
+.st-insp .note { margin:0; word-break:break-all; }
+
+.st-tl { position:relative; height:190px; overflow:auto; border-top:1px solid var(--line); background:var(--panel); user-select:none; flex:none; }
+.st-ruler { position:sticky; top:0; height:24px; border-bottom:1px solid var(--line); background:var(--panel2); z-index:3; }
+.st-ruler span { position:absolute; top:4px; font-size:10.5px; color:var(--dim); transform:translateX(-50%); }
+.st-row { position:relative; height:30px; border-bottom:1px solid var(--line); cursor:pointer; }
+.st-row.on { background:rgba(255,255,255,.08); }
+.st-lab { position:absolute; left:8px; top:0; bottom:0; width:150px; display:flex; align-items:center; gap:6px; font-size:12px; color:var(--dim); overflow:hidden; }
+.st-lab span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.st-lab svg.i { width:14px; height:14px; flex:none; }
+.st-row.on .st-lab { color:var(--ink); }
+.st-bar { position:absolute; top:5px; height:20px; border-radius:6px; cursor:grab; background:
+  linear-gradient(180deg, color-mix(in srgb, var(--c) 85%, white), var(--c)); box-shadow:0 2px 6px rgba(0,0,0,.3); }
+.st-row.on .st-bar { outline:2px solid #fff; outline-offset:1px; }
+.st-grip { position:absolute; right:0; top:0; bottom:0; width:8px; cursor:ew-resize; border-radius:0 6px 6px 0; background:rgba(255,255,255,.35); }
+.st-head { position:absolute; top:0; bottom:0; width:2px; background:#ff5a6e; z-index:4; pointer-events:none; }
+.st-head::before { content:""; position:absolute; top:0; left:-5px; border:6px solid transparent; border-top-color:#ff5a6e; }
+.st-empty { padding:24px 170px; color:var(--dim); font-size:13px; }
+
+#split.canvas.wide { grid-template-columns:minmax(300px, var(--chatw, .5fr)) 6px minmax(0, 1.5fr); }

@@ -1,0 +1,39 @@
+#version 450
+#extension GL_GOOGLE_include_directive : enable
+// RoPE on q and k, then k and v into the cache, for each row of the batch (y: the row,
+// at position pos0 + row). sml_g_ropekv.
+#include "common.glsl"
+layout(local_size_x = 64) in;
+layout(push_constant) uniform P { uint q, k, v, kc, vc, cs, sn, n_head, n_kv, hd, half_, interleaved, sq, sk, kvd; } p;
+
+void rot(uint u, uint cs, uint sn) {
+    if (p.interleaved != 0u) {
+        for (uint i = 0u; i < p.half_; i++) {
+            float x0 = sf[u + 2u * i], x1 = sf[u + 2u * i + 1u], c = sf[cs + i], s = sf[sn + i];
+            sf[u + 2u * i] = x0 * c - x1 * s;
+            sf[u + 2u * i + 1u] = x0 * s + x1 * c;
+        }
+    } else {
+        for (uint i = 0u; i < p.half_; i++) {
+            float x0 = sf[u + i], x1 = sf[u + i + p.half_], c = sf[cs + i], s = sf[sn + i];
+            sf[u + i] = x0 * c - x1 * s;
+            sf[u + i + p.half_] = x0 * s + x1 * c;
+        }
+    }
+}
+
+void main() {
+    const uint h = gl_GlobalInvocationID.x, row = gl_WorkGroupID.y;
+    if (h >= p.n_head) return;
+    const uint q = p.q + row * p.sq, k = p.k + row * p.sk, v = p.v + row * p.sk;
+    const uint cs = p.cs + row * p.half_, sn = p.sn + row * p.half_;
+    rot(q + h * p.hd, cs, sn);
+    if (h < p.n_kv) {
+        rot(k + h * p.hd, cs, sn);
+        const uint kc = p.kc + row * p.kvd, vc = p.vc + row * p.kvd;
+        for (uint i = 0u; i < p.hd; i++) {
+            kv[kc + h * p.hd + i] = sf[k + h * p.hd + i];
+            kv[vc + h * p.hd + i] = sf[v + h * p.hd + i];
+        }
+    }
+}

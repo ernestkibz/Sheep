@@ -1,0 +1,16 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(-38,-16)">
+        <rect x="176" y="336" width="36" height="126" rx="18" fill="currentColor"/>
+        <rect x="272" y="346" width="36" height="116" rx="18" fill="currentColor"/>
+        <ellipse cx="460" cy="308" rx="28" ry="15" transform="rotate(-40 460 308)" fill="currentColor"/>
+        <path d="M122,196 a74,74 0 1,0 148,0 a74,74 0 1,0 -148,0 Z
+                 M196,164 a82,82 0 1,0 164,0 a82,82 0 1,0 -164,0 Z
+                 M284,206 a72,72 0 1,0 144,0 a72,72 0 1,0 -144,0 Z
+                 M108,278 a78,78 0 1,0 156,0 a78,78 0 1,0 -156,0 Z
+                 M184,290 a88,88 0 1,0 176,0 a88,88 0 1,0 -176,0 Z
+                 M278,282 a74,74 0 1,0 148,0 a74,74 0 1,0 -148,0 Z" fill="currentColor"/>
+        <path fill-rule="evenodd" clip-rule="evenodd"
+              d="M362,356 a58,52 0 1,0 116,0 a58,52 0 1,0 -116,0 Z
+                 M421,348 a11,11 0 1,0 22,0 a11,11 0 1,0 -22,0 Z" fill="currentColor"/>
+    </g>
+</svg>

@@ -1,0 +1,78 @@
+#version 450
+#extension GL_GOOGLE_include_directive : enable
+// Y = W X (+ bias) for a flat 6-bit tensor against nb quantized activations: the nibble
+// plane plus the 2-bit group-planar plane, code = lo4 + 16 * hi2, per 128-weight pack
+// (sml_g_smv6). Code words read once per batch (see mv4.comp).
+#include "common.glsl"
+#define NBMAX 8u
+layout(local_size_x = 64) in;
+layout(push_constant) uniform P {
+    uint y, c2, c4, sd, sq, md, mq, qw, qs, qm, bias, rows, n, have_min, has_bias, nb, sy, sqw, sqs;
+} p;
+shared float part[64 * NBMAX];
+
+void main() {
+    const uint t = gl_LocalInvocationID.x, lane = t & 15u, sub = t >> 4u;
+    const uint ng = p.n / GROUP, nscale = (ng + GPS - 1u) / GPS, npack = p.n / 128u;
+    for (uint rb = gl_WorkGroupID.x; rb * 4u < p.rows; rb += gl_NumWorkGroups.x) {
+        const uint r = rb * 4u + sub;
+        float acc[NBMAX];
+        for (uint b = 0u; b < NBMAX; b++) acc[b] = 0.0;
+        if (r < p.rows) {
+            const uint r2 = (p.c2 + r * (p.n / 16u)) >> 2u, r4 = (p.c4 + r * (p.n / 8u)) >> 2u;
+            for (uint pk = lane; pk < npack; pk += 16u) {
+                const uint base = pk * 4u;
+                float sc[4], mn[4];
+                for (uint g = 0u; g < 4u; g++) {
+                    const uint gi = base + g;
+                    sc[g] = whalf(p.sd, r * nscale + gi / GPS) * float(wbyte(p.sq, r * ng + gi));
+                    mn[g] = p.have_min != 0u
+                        ? whalf(p.md, r * nscale + gi / GPS) * (float(wbyte(p.mq, r * ng + gi)) - 127.0) : 0.0;
+                }
+                const uvec4 w2a = wu4[r2 + pk * 2u], w2b = wu4[r2 + pk * 2u + 1u];
+                const uvec4 waa = wu4[r4 + pk * 4u], wab = wu4[r4 + pk * 4u + 1u];
+                const uvec4 wba = wu4[r4 + pk * 4u + 2u], wbb = wu4[r4 + pk * 4u + 3u];
+                for (uint b = 0u; b < NBMAX; b++) {
+                    if (b >= p.nb) break;
+                    const uint qa = (p.qw + b * p.sqw) >> 2u, qs = p.qs + b * p.sqs, qm = p.qm + b * p.sqs;
+                    int d0 = 0, d1 = 0, d2 = 0, d3 = 0, e0 = 0, e1 = 0, e2 = 0, e3 = 0;
+                    for (uint h = 0u; h < 2u; h++) {
+                        const uvec4 w2 = h == 0u ? w2a : w2b, wa = h == 0u ? waa : wab, wb = h == 0u ? wba : wbb;
+                        const uvec4 a0 = su4[qa + (base + 0u) * 2u + h], a1 = su4[qa + (base + 1u) * 2u + h];
+                        const uvec4 a2 = su4[qa + (base + 2u) * 2u + h], a3 = su4[qa + (base + 3u) * 2u + h];
+                        for (uint k = 0u; k < 4u; k++)
+                            for (uint bb = 0u; bb < 4u; bb++) {
+                                const uint s8 = 8u * bb;
+                                const uint b2 = (w2[k] >> s8) & 0xFFu, ba = (wa[k] >> s8) & 0xFFu, bc = (wb[k] >> s8) & 0xFFu;
+                                const int x0 = sb(a0[k], bb), x1 = sb(a1[k], bb), x2 = sb(a2[k], bb), x3 = sb(a3[k], bb);
+                                d0 += int(b2 & 3u) * x0;          d1 += int((b2 >> 2u) & 3u) * x1;
+                                d2 += int((b2 >> 4u) & 3u) * x2;  d3 += int((b2 >> 6u) & 3u) * x3;
+                                e0 += int(ba & 0x0Fu) * x0;       e1 += int(ba >> 4u) * x1;
+                                e2 += int(bc & 0x0Fu) * x2;       e3 += int(bc >> 4u) * x3;
+                            }
+                    }
+                    const int ds[4] = int[4](e0 + 16 * d0, e1 + 16 * d1, e2 + 16 * d2, e3 + 16 * d3);
+                    for (uint g = 0u; g < 4u; g++) {
+                        const uint gi = base + g;
+                        const float xs = sf[qs + gi];
+                        acc[b] += sc[g] * xs * float(ds[g]);
+                        if (p.have_min != 0u) acc[b] += mn[g] * xs * float(int(su[qm + gi]));
+                    }
+                }
+            }
+        }
+        for (uint b = 0u; b < NBMAX; b++) part[t * NBMAX + b] = acc[b];
+        barrier();
+        for (uint s = 8u; s > 0u; s >>= 1) {
+            if (lane < s)
+                for (uint b = 0u; b < NBMAX; b++) part[t * NBMAX + b] += part[(t + s) * NBMAX + b];
+            barrier();
+        }
+        if (lane == 0u && r < p.rows)
+            for (uint b = 0u; b < NBMAX; b++) {
+                if (b >= p.nb) break;
+                sf[p.y + b * p.sy + r] = part[t * NBMAX + b] + (p.has_bias != 0u ? wf[p.bias + r] : 0.0);
+            }
+        barrier();
+    }
+}

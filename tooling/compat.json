@@ -1,0 +1,2215 @@
+{
+ "rows": [
+  {
+   "row": "llama",
+   "note": "RACED, Llama-3.2-1B: 41% better quality, 1.034x decode vs their Q4_K_M; GQA 32/8",
+   "maths": "head llama, llama-yarn, mistral, mistral-swa (big+small)",
+   "files": [
+    {
+     "src": "unsloth/Llama-3.2-1B-Instruct",
+     "ok": true,
+     "params": 1235814400,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "NousResearch/Meta-Llama-3.1-70B-Instruct",
+     "ok": true,
+     "params": 70553706496,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+     "ok": true,
+     "params": 1100048384,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "deepseek-ai/deepseek-llm-7b-chat",
+     "ok": true,
+     "params": 6910365696,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "NousResearch/Meta-Llama-3.1-70B-Instruct",
+   "largest_params": 70553706496,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "arcee",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: an UNGATED relu^2 MLP -- the old 'hf' row would have run SwiGLU",
+   "maths": "head arcee (big+small)",
+   "files": [
+    {
+     "src": "arcee-ai/AFM-4.5B",
+     "ok": true,
+     "params": 4619189760,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "optimum-intel-internal-testing/tiny-random-ArceeForCausalLM",
+     "ok": true,
+     "params": 4129088,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "arcee-ai/AFM-4.5B",
+   "largest_params": 4619189760,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "baichuan",
+   "note": "hf; W_pack is [Q|K|V]; 7B is RoPE, the 40-layer 13B is ALiBi; Baichuan 2's NormHead L2-normalizes the head's rows at inference -- all three read from modeling_baichuan.py and applied 2026-10-13 (before, W_pack had no place in the name table and no Baichuan checkpoint built)",
+   "maths": "same engine kernels as head llama, llama-yarn, ministral, smollm3",
+   "files": [
+    {
+     "src": "baichuan-inc/Baichuan2-7B-Chat",
+     "ok": true,
+     "params": 7505973248,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "baichuan-inc/Baichuan2-13B-Chat",
+     "ok": true,
+     "params": 13896668160,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "baichuan-inc/Baichuan2-13B-Chat",
+   "largest_params": 13896668160,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "codeshell",
+   "note": "hf; LayerNorm (its checkpoints carry norm biases), 2026-10-13",
+   "maths": "same engine kernels as head starcoder2",
+   "files": [
+    {
+     "src": "WisdomShell/CodeShell-7B-Chat",
+     "ok": true,
+     "params": 7975361152,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "WisdomShell/CodeShell-7B-Chat",
+   "largest_params": 7975361152,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "deepseek",
+   "note": "hf; MoE v1 family head vs its own expert block on transformers' Llama, 2026-10-19",
+   "maths": "head deepseek_moe_v1 (big+small)",
+   "files": [
+    {
+     "src": "deepseek-ai/deepseek-moe-16b-chat",
+     "ok": true,
+     "params": 16375728128,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "deepseek-ai/deepseek-moe-16b-chat",
+   "largest_params": 16375728128,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "exaone",
+   "note": "hf",
+   "maths": "same engine kernels as head llama, llama-yarn, ministral, smollm3",
+   "files": [
+    {
+     "src": "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct",
+     "ok": true,
+     "params": 2405327360,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "optimum-intel-internal-testing/tiny-random-exaone",
+     "ok": true,
+     "params": 3306768,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct",
+   "largest_params": 2405327360,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "exaone4",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: post-norms and Q/K norm; hybrid form: windows on the local layers, no rotary on the global ones",
+   "maths": "head exaone4, exaone4-hybrid (big+small)",
+   "files": [
+    {
+     "src": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+     "ok": true,
+     "params": 1279391488,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "LGAI-EXAONE/EXAONE-4.0-32B",
+     "ok": true,
+     "params": 32003216384,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "LGAI-EXAONE/EXAONE-4.0-32B",
+   "largest_params": 32003216384,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "granite",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: embedding/residual/logit/attention scales",
+   "maths": "head granite (big+small)",
+   "files": [
+    {
+     "src": "ibm-granite/granite-3.1-2b-instruct",
+     "ok": true,
+     "params": 2533531648,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "ibm-granite/granite-3.3-8b-instruct",
+     "ok": true,
+     "params": 8170864640,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "ibm-granite/granite-3.3-8b-instruct",
+   "largest_params": 8170864640,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "internlm2",
+   "note": "hf; wqkv per K/V group [q.. k v] (layout 'group'), mapped 2026-10-13 -- before, no InternLM2 checkpoint built",
+   "maths": "same engine kernels as head llama, llama-yarn, ministral, smollm3",
+   "files": [
+    {
+     "src": "internlm/internlm2_5-1_8b-chat",
+     "ok": true,
+     "params": 1889110016,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "internlm/internlm2_5-7b-chat",
+     "ok": true,
+     "params": 7737708544,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "optimum-intel-internal-testing/tiny-random-internlm2",
+     "ok": true,
+     "params": 24052864,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "internlm/internlm2_5-7b-chat",
+   "largest_params": 7737708544,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "minicpm",
+   "note": "hf; scale_emb, scale_depth/sqrt(layers) and hidden/dim_model_base on Granite's three scales, 2026-10-13 -- before, they were ignored and it ran as plain llama; its config has no model_type (read from MiniCPMForCausalLM)",
+   "maths": "same engine kernels as head granite",
+   "files": [
+    {
+     "src": "openbmb/MiniCPM-2B-sft-bf16",
+     "ok": true,
+     "params": 2724880896,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "optimum-intel-internal-testing/tiny-random-minicpm",
+     "ok": true,
+     "params": 80000640,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "openbmb/MiniCPM-2B-sft-bf16",
+   "largest_params": 2724880896,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "minicpm3",
+   "note": "latent attention (arch bit 11) with halved rotary and LongRoPE on the rotary rows, MiniCPM scales; family head vs transformers 5.17, 2026-10-19",
+   "maths": "head minicpm3 (big+small)",
+   "files": [
+    {
+     "src": "openbmb/MiniCPM3-4B",
+     "ok": true,
+     "params": 4073875968,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "openbmb/MiniCPM3-4B",
+   "largest_params": 4073875968,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "olmo",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: weightless LayerNorm, Q/K/V clamp",
+   "maths": "head olmo (big+small)",
+   "files": [
+    {
+     "src": "allenai/OLMo-1B-hf",
+     "ok": true,
+     "params": 1176764416,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "optimum-intel-internal-testing/tiny-random-olmo-hf",
+     "ok": true,
+     "params": 6537728,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "allenai/OLMo-1B-hf",
+   "largest_params": 1176764416,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "orion",
+   "note": "hf; LayerNorm (norm biases in its checkpoints; it ran as RMSNorm), 2026-10-13",
+   "maths": "head olmo's kernels plus attn_norm.bias, ffn_norm.bias, output_norm.bias, each run by another passing head",
+   "files": [
+    {
+     "src": "OrionStarAI/Orion-14B-Chat",
+     "ok": true,
+     "params": 14498703360,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "optimum-intel-internal-testing/tiny-random-orion",
+     "ok": true,
+     "params": 22086912,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "OrionStarAI/Orion-14B-Chat",
+   "largest_params": 14498703360,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "qwen",
+   "note": "hf",
+   "maths": "head phi3's kernels plus attn_k.bias, attn_q.bias, attn_v.bias, each run by another passing head",
+   "files": [
+    {
+     "src": "Qwen/Qwen-1_8B-Chat",
+     "ok": false,
+     "params": null,
+     "why": "gated or private on Hugging Face (needs a login): not probed",
+     "skip": true
+    },
+    {
+     "src": "Qwen/Qwen-7B-Chat",
+     "ok": true,
+     "params": 7721324544,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "Qwen/Qwen-7B-Chat",
+   "largest_params": 7721324544,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "qwen2",
+   "note": "RACED, Qwen2.5-3B: 0.99405 vs fp16, 23% better quality and 1.144x decode vs their Q4_K_M",
+   "maths": "head qwen2 (big+small)",
+   "files": [
+    {
+     "src": "Qwen/Qwen2.5-0.5B-Instruct",
+     "ok": true,
+     "params": 494032768,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "Qwen/Qwen2.5-72B-Instruct",
+     "ok": true,
+     "params": 72706203648,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "Qwen/Qwen2.5-Coder-7B-Instruct",
+     "ok": true,
+     "params": 7615616512,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "Qwen/Qwen2.5-72B-Instruct",
+   "largest_params": 72706203648,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "smollm3",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: NoPE on every fourth layer, per-layer rotary table",
+   "maths": "head smollm3 (big+small)",
+   "files": [
+    {
+     "src": "HuggingFaceTB/SmolLM3-3B",
+     "ok": true,
+     "params": 3075098624,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "HuggingFaceTB/SmolLM3-3B",
+   "largest_params": 3075098624,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "xverse",
+   "note": "hf",
+   "maths": "same engine kernels as head llama, llama-yarn, ministral, smollm3",
+   "files": [
+    {
+     "src": "xverse/XVERSE-7B-Chat",
+     "ok": true,
+     "params": 7299848192,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "optimum-intel-internal-testing/tiny-random-xverse",
+     "ok": true,
+     "params": 6459056,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "xverse/XVERSE-7B-Chat",
+   "largest_params": 7299848192,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "nemotron",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: LayerNorm1P (w+1) and an ungated relu^2 MLP",
+   "maths": "head nemotron (big+small)",
+   "files": [
+    {
+     "src": "nvidia/Nemotron-Mini-4B-Instruct",
+     "ok": true,
+     "params": 4190509056,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "nvidia/Minitron-8B-Base",
+     "ok": true,
+     "params": 8271699968,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "nvidia/Minitron-8B-Base",
+   "largest_params": 8271699968,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "seed_oss",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28",
+   "maths": "head seed_oss (big+small)",
+   "files": [
+    {
+     "src": "ByteDance-Seed/Seed-OSS-36B-Instruct",
+     "ok": true,
+     "params": 36151104512,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "tiny-random/seed-oss",
+     "ok": true,
+     "params": 2497064,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "ByteDance-Seed/Seed-OSS-36B-Instruct",
+   "largest_params": 36151104512,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "apertus",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-30: xIELU with its learned alpha_p/alpha_n per layer (bf16 softplus, as transformers computes), Q/K norm; CPU only, the GPU refuses xIELU by name",
+   "maths": "head apertus (big+small)",
+   "files": [
+    {
+     "src": "swiss-ai/Apertus-8B-Instruct-2509",
+     "ok": true,
+     "params": 8053338176,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "tiny-random/apertus",
+     "ok": true,
+     "params": 2110636,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "swiss-ai/Apertus-8B-Instruct-2509",
+   "largest_params": 8053338176,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "pangu_embed",
+   "note": "hf",
+   "maths": "head llama, llama-yarn, smollm3, ministral's kernels plus attn_k.bias, attn_output.bias, attn_q.bias, attn_v.bias, each run by another passing head",
+   "files": [
+    {
+     "src": "FreedomIntelligence/openPangu-Embedded-1B",
+     "ok": true,
+     "params": 1391497728,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "FreedomIntelligence/openPangu-Embedded-1B",
+   "largest_params": 1391497728,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "ernie4_5",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: interleaved rotary",
+   "maths": "head ernie4_5 (big+small)",
+   "files": [
+    {
+     "src": "baidu/ERNIE-4.5-0.3B-PT",
+     "ok": true,
+     "params": 360748032,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "hf-tiny-v2/tiny-random-Ernie4_5Model",
+     "ok": false,
+     "params": null,
+     "why": "Ernie4_5Model: a base model without an LM head, not a chat checkpoint",
+     "skip": true
+    }
+   ],
+   "largest_probed": "baidu/ERNIE-4.5-0.3B-PT",
+   "largest_params": 360748032,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "hunyuan_dense",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28 (hunyuan_v1_dense): Q/K norm AFTER the rotary; its query_layernorm/key_layernorm had been dropped silently",
+   "maths": "head hunyuan_v1_dense (big+small)",
+   "files": [
+    {
+     "src": "tencent/Hunyuan-1.8B-Instruct",
+     "ok": true,
+     "params": 1791080448,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "tencent/Hunyuan-7B-Instruct",
+     "ok": true,
+     "params": 7504568320,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "tencent/Hunyuan-7B-Instruct",
+   "largest_params": 7504568320,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "gpt_neox",
+   "note": "RACED, pythia-410m: 12.4% better quality, 1.503x decode; partial rotary and parallel residual, both read from config",
+   "maths": "head gpt_neox (big+small)",
+   "files": [
+    {
+     "src": "EleutherAI/pythia-410m",
+     "ok": true,
+     "params": 505997504,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "EleutherAI/pythia-12b",
+     "ok": true,
+     "params": 11997067840,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "EleutherAI/pythia-12b",
+   "largest_params": 11997067840,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "stablelm",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: LayerNorm, 25% rotary, QKV bias",
+   "maths": "head stablelm (big+small)",
+   "files": [
+    {
+     "src": "stabilityai/stablelm-2-1_6b-chat",
+     "ok": true,
+     "params": 1644515328,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "stabilityai/stablelm-zephyr-3b",
+     "ok": true,
+     "params": 2795443200,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "stabilityai/stablelm-zephyr-3b",
+   "largest_params": 2795443200,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "persimmon",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: LayerNorm Q/K norms with bias, relu^2, partial rotary",
+   "maths": "head persimmon (big+small)",
+   "files": [
+    {
+     "src": "adept/persimmon-8b-chat",
+     "ok": true,
+     "params": 9397175296,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "hf-tiny-v2/tiny-random-PersimmonModel",
+     "ok": false,
+     "params": null,
+     "why": "PersimmonModel: a base model without an LM head, not a chat checkpoint",
+     "skip": true
+    }
+   ],
+   "largest_probed": "adept/persimmon-8b-chat",
+   "largest_params": 9397175296,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "phi2",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28 (phi): one shared LayerNorm, parallel branches, output-head bias",
+   "maths": "head phi (big+small)",
+   "files": [
+    {
+     "src": "microsoft/phi-2",
+     "ok": true,
+     "params": 2779683840,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "microsoft/phi-2",
+   "largest_params": 2779683840,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "phi3",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: fused qkv with grouped K/V and fused gate|up; LongRoPE (Phi-3-128k, Phi-4-mini) since 2026-10-13: short factors, context capped at the original window, attention factor in the Q/K weights (family head phi3-longrope)",
+   "maths": "head phi3, phi3-longrope (big+small)",
+   "files": [
+    {
+     "src": "microsoft/Phi-3-mini-4k-instruct",
+     "ok": true,
+     "params": 3821079552,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "microsoft/Phi-4-mini-instruct",
+     "ok": true,
+     "params": 3836021760,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "trl-internal-testing/tiny-Phi3ForCausalLM",
+     "ok": true,
+     "params": 514136,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "microsoft/Phi-4-mini-instruct",
+   "largest_params": 3836021760,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "starcoder2",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: LayerNorm with bias, ungated GELU; sliding window applied",
+   "maths": "head starcoder2 (big+small)",
+   "files": [
+    {
+     "src": "bigcode/starcoder2-3b",
+     "ok": true,
+     "params": 3030371328,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "bigcode/starcoder2-15b",
+     "ok": true,
+     "params": 15957889024,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "bigcode/starcoder2-15b",
+   "largest_params": 15957889024,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "command_r",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28 (cohere): interleaved rotary, one LayerNorm without bias feeding parallel branches, logit_scale multiplies",
+   "maths": "head cohere (big+small)",
+   "files": [
+    {
+     "src": "CohereForAI/c4ai-command-r-v01",
+     "ok": false,
+     "params": null,
+     "why": "gated or private on Hugging Face (needs a login): not probed",
+     "skip": true
+    },
+    {
+     "src": "CohereForAI/aya-23-8B",
+     "ok": false,
+     "params": null,
+     "why": "gated or private on Hugging Face (needs a login): not probed",
+     "skip": true
+    },
+    {
+     "src": "adamo1139/aya-expanse-8b-ungated",
+     "ok": true,
+     "params": 8028033024,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "Citaman/command-r-1-layer",
+     "ok": true,
+     "params": 5016403968,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "adamo1139/aya-expanse-8b-ungated",
+   "largest_params": 8028033024,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "cohere2",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: alternating local/global, rotary on the local layers only",
+   "maths": "head cohere2 (big+small)",
+   "files": [
+    {
+     "src": "CohereForAI/c4ai-command-r7b-12-2024",
+     "ok": false,
+     "params": null,
+     "why": "gated or private on Hugging Face (needs a login): not probed",
+     "skip": true
+    },
+    {
+     "src": "trl-internal-testing/tiny-Cohere2ForCausalLM",
+     "ok": true,
+     "params": 2099096,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "trl-internal-testing/tiny-Cohere2ForCausalLM",
+   "largest_params": 2099096,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "chameleon",
+   "note": "text path (the VQ image tokenizer set aside); per-head LayerNorm Q/K norms (arch bit 9, CPU); family head vs transformers 5.17, 2026-10-19",
+   "maths": "head chameleon (big+small)",
+   "files": [
+    {
+     "src": "facebook/chameleon-7b",
+     "ok": false,
+     "params": null,
+     "why": "gated or private on Hugging Face (needs a login): not probed",
+     "skip": true
+    },
+    {
+     "src": "leloy/Anole-7b-v0.1-hf",
+     "ok": true,
+     "params": 7082385283,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "leloy/Anole-7b-v0.1-hf",
+   "largest_params": 7082385283,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "gptj",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: interleaved rotary over rotary_dim, parallel branches, head bias",
+   "maths": "head gptj (big+small)",
+   "files": [
+    {
+     "src": "EleutherAI/gpt-j-6b",
+     "ok": true,
+     "params": 6168323296,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "peft-internal-testing/tiny-random-GPTJForCausalLM",
+     "ok": true,
+     "params": 129184,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "EleutherAI/gpt-j-6b",
+   "largest_params": 6168323296,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "bloom",
+   "note": "GRADED 2026-09-24, BLOOM-560m: ALiBi slopes equal HF's build_alibi_tensor to 3e-8; KL 0.34 to fp32 (GPT-2, 19/20, is 0.41), top-1 8/20 on distributions this flat (top two often within 0.01). Weights-vs-engine split NOT run",
+   "maths": "head bloom (big+small)",
+   "files": [
+    {
+     "src": "bigscience/bloom-560m",
+     "ok": true,
+     "params": 559214592,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "bigscience/bloomz-7b1",
+     "ok": true,
+     "params": 7069016064,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "bigscience/bloomz-7b1",
+   "largest_params": 7069016064,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "mpt",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: ALiBi, LayerNorm without bias, fused [Q|K|V]",
+   "maths": "head mpt (big+small)",
+   "files": [
+    {
+     "src": "mosaicml/mpt-7b-instruct",
+     "ok": false,
+     "params": null,
+     "why": "gated or private on Hugging Face (needs a login): not probed",
+     "skip": true
+    },
+    {
+     "src": "mosaicml/mpt-7b",
+     "ok": false,
+     "params": null,
+     "why": "gated or private on Hugging Face (needs a login): not probed",
+     "skip": true
+    },
+    {
+     "src": "yujiepan/mpt-tiny-random",
+     "ok": true,
+     "params": 405032,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "yujiepan/mpt-tiny-random",
+   "largest_params": 405032,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "falcon",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: RoPE (7B: multi-query, parallel, one LayerNorm) and ALiBi (rw: per-head packing, ALiBi before the scale), and the new decoder's K/V groups",
+   "maths": "head falcon, falcon-alibi (big+small)",
+   "files": [
+    {
+     "src": "tiiuae/falcon-7b-instruct",
+     "ok": true,
+     "params": 7217189760,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "yujiepan/falcon-tiny-random",
+     "ok": true,
+     "params": 521648,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "tiiuae/falcon-7b-instruct",
+   "largest_params": 7217189760,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "gpt2",
+   "note": "GRADED 2026-09-24, GPT-2 small: 19/20 top-1 vs HF fp32. Conv1D [in,out] weights, learned positions, no rotary; the tied head at 6 bits was worth 7/20 -> 19/20",
+   "maths": "head gpt2 (big+small)",
+   "files": [
+    {
+     "src": "openai-community/gpt2",
+     "ok": true,
+     "params": 137022720,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "openai-community/gpt2-xl",
+     "ok": true,
+     "params": 1607942848,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "openai-community/gpt2-xl",
+   "largest_params": 1607942848,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "opt",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-30: learned positions offset by 2, pre-LayerNorm, ReLU FFN; llama.cpp has no converter for it",
+   "maths": "head opt (big+small)",
+   "files": [
+    {
+     "src": "facebook/opt-125m",
+     "ok": true,
+     "params": 163848192,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "facebook/opt-6.7b",
+     "ok": true,
+     "params": 6658473984,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "peft-internal-testing/tiny-random-OPTForCausalLM",
+     "ok": true,
+     "params": 812404,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "facebook/opt-6.7b",
+   "largest_params": 6658473984,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "biogpt",
+   "note": "family head vs transformers 4.57.6, 2026-09-30: learned positions offset by 2, sqrt(d) embedding scale, exact GELU; llama.cpp has no converter for it",
+   "maths": "head biogpt (big+small)",
+   "files": [
+    {
+     "src": "microsoft/biogpt",
+     "ok": true,
+     "params": 390164480,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "microsoft/biogpt",
+   "largest_params": 390164480,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "xglm",
+   "note": "family head vs transformers 4.57.6, 2026-09-30: sinusoidal positions stored as a table, sqrt(d) embedding scale; llama.cpp has no converter for it",
+   "maths": "head xglm (big+small)",
+   "files": [
+    {
+     "src": "facebook/xglm-564M",
+     "ok": true,
+     "params": 826615808,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "facebook/xglm-564M",
+   "largest_params": 826615808,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "codegen",
+   "note": "family head vs transformers 4.57.6, 2026-09-30: GPT-J shape, qkv in four model-parallel [q|v|k] blocks; llama.cpp has no converter for it",
+   "maths": "head codegen (big+small)",
+   "files": [
+    {
+     "src": "Salesforce/codegen-350M-mono",
+     "ok": true,
+     "params": 440598528,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "hf-tiny-v2/tiny-random-CodeGenForCausalLM",
+     "ok": true,
+     "params": 3294263,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "Salesforce/codegen-350M-mono",
+   "largest_params": 440598528,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "gpt_bigcode",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: StarCoder-1: one shared K/V head in the fused c_attn",
+   "maths": "head gpt_bigcode (big+small)",
+   "files": [
+    {
+     "src": "bigcode/tiny_starcoder_py",
+     "ok": true,
+     "params": 164144128,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "optimum-internal-testing/tiny-random-gpt_bigcode-multi_query-False",
+     "ok": false,
+     "params": null,
+     "why": "GPTBigCodeModel: a base model without an LM head, not a chat checkpoint",
+     "skip": true
+    }
+   ],
+   "largest_probed": "bigcode/tiny_starcoder_py",
+   "largest_params": 164144128,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "qwen3",
+   "note": "family head vs transformers 4.57.6 and Qwen3-0.6B built; Q/K norm, and a head (128) wider than n_embd / n_head (64) -- the old note 'otherwise identical to qwen2' missed that",
+   "maths": "head qwen3 (big+small)",
+   "files": [
+    {
+     "src": "Qwen/Qwen3-0.6B",
+     "ok": true,
+     "params": 751632384,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "Qwen/Qwen3-32B",
+     "ok": true,
+     "params": 32762123264,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "Qwen/Qwen3-8B-FP8",
+     "ok": true,
+     "params": 8191159296,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "Qwen/Qwen3-32B",
+   "largest_params": 32762123264,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "olmo2",
+   "note": "GRADED 2026-09-24, OLMo-2-0425-1B: the engine is EXACT -- 20/20 top-1 and corr 0.9988 against HF running the file's own weights. The 4-bit weights cost the rest: 10/20 top-1 vs fp32 (Llama-3.2-1B: 12/20 on the same prompts). Post-norms rescale every branch, so weight error is not damped: a measured allocation (--alloc) is the lever, not the engine",
+   "maths": "head olmo2 (big+small)",
+   "files": [
+    {
+     "src": "allenai/OLMo-2-0425-1B",
+     "ok": true,
+     "params": 1484916736,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "allenai/OLMo-2-1124-13B-Instruct",
+     "ok": true,
+     "params": 13716198400,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "allenai/OLMo-2-1124-13B-Instruct",
+   "largest_params": 13716198400,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "gemma",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: (1+w) norms, GeGLU, sqrt(d) embedding scale -- all three were missing",
+   "maths": "head gemma (big+small)",
+   "files": [
+    {
+     "src": "unsloth/gemma-2b-it",
+     "ok": true,
+     "params": 2506172416,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "unsloth/gemma-7b-it",
+     "ok": true,
+     "params": 8537680896,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "unsloth/gemma-7b-it",
+   "largest_params": 8537680896,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "gemma2",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: alternating window/global, attention softcap, four norms per layer",
+   "maths": "head gemma2 (big+small)",
+   "files": [
+    {
+     "src": "unsloth/gemma-2-2b-it",
+     "ok": true,
+     "params": 2614341888,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "trl-internal-testing/tiny-Gemma2ForCausalLM",
+     "ok": true,
+     "params": 2049992,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "unsloth/gemma-2-2b-it",
+   "largest_params": 2614341888,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "gemma3",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28 (gemma3_text): 5:1 local/global with two rotary bases, Q/K norm; text path -- the image path is vision",
+   "maths": "head gemma3_text (big+small)",
+   "files": [
+    {
+     "src": "unsloth/gemma-3-1b-it",
+     "ok": true,
+     "params": 999885952,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "unsloth/gemma-3-27b-it",
+     "ok": true,
+     "params": 27432406640,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "unsloth/gemma-3-27b-it",
+   "largest_params": 27432406640,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "mixtral",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: renormalized top-2 of per-expert w1/w3/w2",
+   "maths": "head mixtral (big+small)",
+   "files": [
+    {
+     "src": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+     "ok": true,
+     "params": 46702792704,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "yujiepan/mixtral-tiny-random",
+     "ok": true,
+     "params": 257716,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+   "largest_params": 46702792704,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "qwen2moe",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28 (qwen2_moe): softmax top-k (not renormalized) + a shared expert scaled by sigmoid(gate)",
+   "maths": "head qwen2_moe (big+small)",
+   "files": [
+    {
+     "src": "Qwen/Qwen1.5-MoE-A2.7B-Chat",
+     "ok": true,
+     "params": 14315784192,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "Qwen/Qwen1.5-MoE-A2.7B-Chat",
+   "largest_params": 14315784192,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "qwen3moe",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: experts + Q/K norm",
+   "maths": "head qwen3_moe (big+small)",
+   "files": [
+    {
+     "src": "Qwen/Qwen3-30B-A3B",
+     "ok": true,
+     "params": 30532122624,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "Qwen/Qwen3-30B-A3B",
+   "largest_params": 30532122624,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "phimoe",
+   "note": "sparsemixer routing (moe_flags bit 2); family head vs transformers 5.17, 2026-10-19",
+   "maths": "head phimoe (big+small)",
+   "files": [
+    {
+     "src": "microsoft/Phi-3.5-MoE-instruct",
+     "ok": true,
+     "params": 41873153344,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "microsoft/Phi-3.5-MoE-instruct",
+   "largest_params": 41873153344,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "dbrx",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-30: experts stored fused as [E*ff, d] (w1 gates, v1 ups, w2 downs transposed), clamped Wqkv, bias-less LayerNorm, softmax top-k renormalized by the sum",
+   "maths": "head dbrx (big+small)",
+   "files": [
+    {
+     "src": "yujiepan/dbrx-tiny-random",
+     "ok": true,
+     "params": 806132,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "yujiepan/dbrx-tiny-random",
+   "largest_params": 806132,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "olmoe",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: experts, whole-projection Q/K norm, not renormalized",
+   "maths": "head olmoe (big+small)",
+   "files": [
+    {
+     "src": "allenai/OLMoE-1B-7B-0924",
+     "ok": true,
+     "params": 6919161856,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "allenai/OLMoE-1B-7B-0924",
+   "largest_params": 6919161856,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "granitemoe",
+   "note": "VERIFIED 2026-09-24 on granite-3.1-1b-a400m: 32 experts, top-8 renormalized, Granite scales; vs full precision rel-RMS 0.167, top-1 19/20. CPU only, prompts stepped. Other MoE families need their expert names mapped (and shared experts, non-renormalized routing) before they count",
+   "maths": "head granitemoe (big+small)",
+   "files": [
+    {
+     "src": "ibm-granite/granite-3.1-1b-a400m-instruct",
+     "ok": true,
+     "params": 1334628352,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "ibm-granite/granite-3.1-3b-a800m-instruct",
+     "ok": true,
+     "params": 3298793472,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "ibm-granite/granite-3.1-3b-a800m-instruct",
+   "largest_params": 3298793472,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "deepseek2",
+   "note": "multi-head latent attention expanded per head in the engine (arch bit 11, CPU), V2 and V3 routing; family heads vs transformers 5.17, 2026-10-19",
+   "maths": "head deepseek_v2, deepseek_v3 (big+small)",
+   "files": [
+    {
+     "src": "deepseek-ai/DeepSeek-V2-Lite-Chat",
+     "ok": true,
+     "params": 15706484224,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "deepseek-ai/DeepSeek-V3",
+     "ok": true,
+     "params": 684531386000,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "moonshotai/Moonlight-16B-A3B-Instruct",
+     "ok": true,
+     "params": 15960111936,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "deepseek-ai/DeepSeek-V3",
+   "largest_params": 684531386000,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "glm4_moe",
+   "note": "GLM-4.5: sigmoid scores, bias-corrected choice in expert groups, routing scale, shared experts; family head 2026-09-28",
+   "maths": "head glm4_moe (big+small)",
+   "files": [
+    {
+     "src": "zai-org/GLM-4.5-Air",
+     "ok": true,
+     "params": 110468824832,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "optimum-intel-internal-testing/tiny-random-glm4-moe",
+     "ok": true,
+     "params": 216644,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "zai-org/GLM-4.5-Air",
+   "largest_params": 110468824832,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "dots1",
+   "note": "dots.llm1: DeepSeek-V3-style routing; family head 2026-09-28",
+   "maths": "head dots1 (big+small)",
+   "files": [
+    {
+     "src": "rednote-hilab/dots.llm1.inst",
+     "ok": true,
+     "params": 142774381696,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "hf-tiny-v2/tiny-random-Dots1Model",
+     "ok": false,
+     "params": null,
+     "why": "Dots1Model: a base model without an LM head, not a chat checkpoint",
+     "skip": true
+    }
+   ],
+   "largest_probed": "rednote-hilab/dots.llm1.inst",
+   "largest_params": 142774381696,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "ernie4_5_moe",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: softmax scores, experts CHOSEN with a learned correction bias, renormalized; shared experts; interleaved rotary",
+   "maths": "head ernie4_5_moe (big+small)",
+   "files": [
+    {
+     "src": "baidu/ERNIE-4.5-21B-A3B-PT",
+     "ok": true,
+     "params": 21948655808,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "hf-tiny-v2/tiny-random-Ernie4_5_MoeModel",
+     "ok": false,
+     "params": null,
+     "why": "Ernie4_5_MoeModel: a base model without an LM head, not a chat checkpoint",
+     "skip": true
+    }
+   ],
+   "largest_probed": "baidu/ERNIE-4.5-21B-A3B-PT",
+   "largest_params": 21948655808,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "hunyuan_moe",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28 (hunyuan_v1_moe): renormalized top-k, ungated shared MLP, Q/K norm after the rotary",
+   "maths": "head hunyuan_v1_moe (big+small)",
+   "files": [
+    {
+     "src": "tencent/Hunyuan-A13B-Instruct",
+     "ok": true,
+     "params": 80393183232,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "tencent/Hunyuan-A13B-Instruct",
+   "largest_params": 80393183232,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "openai_moe",
+   "note": "gpt-oss under their name",
+   "maths_why": "no head, no real-checkpoint grade, and no head shares its engine signature",
+   "files": [],
+   "runs": false,
+   "verdict": "maths unproven"
+  },
+  {
+   "row": "lfm2moe",
+   "note": "LFM2-MoE: LFM2 layers with sigmoid-routed experts and an expert bias; family head vs transformers 5.17, 2026-09-28",
+   "maths": "head lfm2_moe (big+small)",
+   "files": [
+    {
+     "src": "LiquidAI/LFM2-8B-A1B",
+     "ok": true,
+     "params": 8339930560,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "LiquidAI/LFM2-8B-A1B",
+   "largest_params": 8339930560,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "afmoe",
+   "note": "AFMoE (Arcee): gated attention, rotary on local layers, sandwich norms, V3-style routing with route_scale; family head vs transformers 5.17, 2026-09-28",
+   "maths": "head afmoe (big+small)",
+   "files": [
+    {
+     "src": "arcee-ai/Trinity-Mini",
+     "ok": true,
+     "params": 26123974400,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "arcee-ai/Trinity-Nano-Preview",
+     "ok": true,
+     "params": 6120003328,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "arcee-ai/Trinity-Mini",
+   "largest_params": 26123974400,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "minimax_m2",
+   "note": "MiniMax-M2: sigmoid routing with a correction bias, renormalized; family head vs transformers 5.17, 2026-09-28",
+   "maths": "head minimax_m2 (big+small)",
+   "files": [
+    {
+     "src": "MiniMaxAI/MiniMax-M2",
+     "ok": true,
+     "params": 228703644928,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "tiny-random/minimax-m2",
+     "ok": true,
+     "params": 3313000,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "MiniMaxAI/MiniMax-M2",
+   "largest_params": 228703644928,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "jamba",
+   "note": "Jamba: Mamba-1 layers with dt/B/C norms, attention with no positions, experts (not renormalized); family head 2026-09-28; CPU, prompts stepped",
+   "maths": "head jamba (big+small)",
+   "files": [
+    {
+     "src": "ai21labs/AI21-Jamba-Mini-1.5",
+     "ok": false,
+     "params": null,
+     "why": "gated or private on Hugging Face (needs a login): not probed",
+     "skip": true
+    },
+    {
+     "src": "ai21labs/Jamba-v0.1",
+     "ok": true,
+     "params": 51570323328,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "ai21labs/AI21-Jamba-Reasoning-3B",
+     "ok": true,
+     "params": 3197109632,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "ai21labs/Jamba-v0.1",
+   "largest_params": 51570323328,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "bamba",
+   "note": "IBM Bamba: Mamba-2 and attention layers (Granite-4-H's maths); family head vs transformers 5.17, 2026-10-19",
+   "maths": "head bamba (big+small)",
+   "files": [
+    {
+     "src": "ibm-ai-platform/Bamba-9B-v2",
+     "ok": true,
+     "params": 9780235392,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "ibm-ai-platform/Bamba-9B-v2",
+   "largest_params": 9780235392,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "falcon_h1",
+   "note": "Mamba-2 beside attention in every layer, summed; muP multipliers folded into the weights; family head vs transformers 5.17, 2026-10-19",
+   "maths": "head falcon_h1 (big+small)",
+   "files": [
+    {
+     "src": "tiiuae/Falcon-H1-1.5B-Instruct",
+     "ok": true,
+     "params": 1554863488,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "tiiuae/Falcon-H1-1.5B-Instruct",
+   "largest_params": 1554863488,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "granite_hybrid",
+   "note": "Granite-4.0-H (granitemoehybrid): Mamba-2 + attention (RoPE or none) + experts + shared MLP + Granite scales; family heads 2026-09-28; CPU, prompts stepped",
+   "maths": "head granitemoehybrid, granitemoehybrid-nope (big+small)",
+   "files": [
+    {
+     "src": "ibm-granite/granite-4.0-h-tiny",
+     "ok": true,
+     "params": 6939037248,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "ibm-granite/granite-4.0-h-small",
+     "ok": true,
+     "params": 32207337984,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "ibm-granite/granite-4.0-h-small",
+   "largest_params": 32207337984,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "nemotron_h",
+   "note": "Nemotron-H / Nemotron Nano 2: Mamba-2 (per-group gated norm), attention with no positions, and relu^2 MLP as separate blocks; family head vs transformers 5.17, 2026-09-28; CPU, prompts stepped",
+   "maths": "head nemotron_h, nemotron_h_moe (big+small)",
+   "files": [
+    {
+     "src": "nvidia/NVIDIA-Nemotron-Nano-9B-v2",
+     "ok": true,
+     "params": 8888227328,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "nvidia/NVIDIA-Nemotron-Nano-12B-v2",
+     "ok": true,
+     "params": 12310001152,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "nvidia/NVIDIA-Nemotron-Nano-12B-v2",
+   "largest_params": 12310001152,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "lfm2",
+   "note": "LFM2: short convolutions (B*x through a causal depthwise conv, times C) interleaved with Q/K-normed attention; family head 2026-09-28; prompts stepped, CPU only",
+   "maths": "head lfm2 (big+small)",
+   "files": [
+    {
+     "src": "LiquidAI/LFM2-350M",
+     "ok": true,
+     "params": 354483968,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "LiquidAI/LFM2-1.2B",
+     "ok": true,
+     "params": 1170340608,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "LiquidAI/LFM2-1.2B",
+   "largest_params": 1170340608,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "mamba",
+   "note": "Mamba-1 (and falcon_mamba): family heads 2026-09-28; positions in order, prompts stepped, CPU only",
+   "maths": "head falcon_mamba, mamba (big+small)",
+   "files": [
+    {
+     "src": "state-spaces/mamba-130m-hf",
+     "ok": true,
+     "params": 129135360,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "tiiuae/falcon-mamba-7b",
+     "ok": true,
+     "params": 7272665088,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "tiiuae/falcon-mamba-7b",
+   "largest_params": 7272665088,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "mamba2",
+   "note": "Mamba-2: state-space mixer (conv, per-head state, gated norm); family head 2026-09-28; positions in order, prompts stepped, CPU only",
+   "maths": "head mamba2 (big+small)",
+   "files": [
+    {
+     "src": "AntonV/mamba2-130m-hf",
+     "ok": true,
+     "params": 128989632,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "hf-tiny-v2/tiny-random-Mamba2ForCausalLM",
+     "ok": true,
+     "params": 3233808,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "AntonV/mamba2-130m-hf",
+   "largest_params": 128989632,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "idefics3",
+   "note": "VISION, GRADED 2026-09-24 on SmolVLM-256M (splitting off): tower rows vs HF image features rel 1.5e-6; 'The circle is red.' word for word. CPU, stepped prompt; sml_vlm_grade.py",
+   "maths": "graded on a real checkpoint (VISION)",
+   "files": [
+    {
+     "src": "HuggingFaceTB/SmolVLM-256M-Instruct",
+     "ok": true,
+     "params": 256484928,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "HuggingFaceTB/SmolVLM-256M-Instruct",
+   "largest_params": 256484928,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "glm4",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: GLM-4-0414 sandwich norms, interleaved partial rotary",
+   "maths": "head glm4 (big+small)",
+   "files": [
+    {
+     "src": "THUDM/GLM-4-9B-0414",
+     "ok": true,
+     "params": 9400279040,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "tiny-random/glm-4",
+     "ok": true,
+     "params": 4854928,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "THUDM/GLM-4-9B-0414",
+   "largest_params": 9400279040,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "gpt_oss",
+   "note": "attention sinks, router and expert biases, the clamped SwiGLU on interleaved gate/up (arch bit 10, CPU), MXFP4 originals decoded as transformers does; family head vs transformers 5.17, 2026-10-19",
+   "maths": "head gpt_oss (big+small)",
+   "files": [
+    {
+     "src": "openai/gpt-oss-20b",
+     "ok": true,
+     "params": 20914757184,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "openai/gpt-oss-120b",
+     "ok": true,
+     "params": 116829156672,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "openai/gpt-oss-120b",
+   "largest_params": 116829156672,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "exaone_moe",
+   "note": "EXAONE-MoE: EXAONE 4 layers with grouped V3-style routing and shared experts; family head vs transformers 5.17, 2026-09-28",
+   "maths": "head exaone_moe (big+small)",
+   "files": [
+    {
+     "src": "LGAI-EXAONE/K-EXAONE-236B-A23B",
+     "ok": true,
+     "params": 237099669632,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "LGAI-EXAONE/K-EXAONE-236B-A23B",
+   "largest_params": 237099669632,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "nemotron_h_moe",
+   "note": "Nemotron 3 Nano: nemotron_h with ungated relu^2 experts, sigmoid routing; family head vs transformers 5.17, 2026-10-19",
+   "maths": "head nemotron_h_moe (big+small)",
+   "files": [
+    {
+     "src": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+     "ok": true,
+     "params": 31577940288,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+   "largest_params": 31577940288,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "qwen3next",
+   "note": "Qwen3-Next: Gated DeltaNet linear attention (3 of 4 layers), gated full attention, experts with a gated shared expert, (1+w) norms; family head 2026-09-28; CPU, prompts stepped",
+   "maths": "head qwen3_next, qwen3_next-dense (big+small)",
+   "files": [
+    {
+     "src": "Qwen/Qwen3-Next-80B-A3B-Instruct",
+     "ok": true,
+     "params": 81324862720,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "Qwen/Qwen3-Next-80B-A3B-Instruct",
+   "largest_params": 81324862720,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "jais2",
+   "note": "Jais 2: checked against transformers 5.17 (family head), 2026-09-28",
+   "maths": "head jais2 (big+small)",
+   "files": [
+    {
+     "src": "inceptionai/Jais-2-8B-Chat",
+     "ok": false,
+     "params": null,
+     "why": "gated or private on Hugging Face (needs a login): not probed",
+     "skip": true
+    },
+    {
+     "src": "inceptionai/jais-2-8b-chat",
+     "ok": false,
+     "params": null,
+     "why": "gated or private on Hugging Face (needs a login): not probed",
+     "skip": true
+    },
+    {
+     "src": "yoriis/JAIS2-IT-0.3",
+     "ok": true,
+     "params": 8090401280,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "hf-tiny-v2/tiny-random-Jais2ForCausalLM",
+     "ok": true,
+     "params": 9627200,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "yoriis/JAIS2-IT-0.3",
+   "largest_params": 8090401280,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "mistral3",
+   "note": "text path: a mistral text model inside a Pixtral vision wrapper (Mistral Small 3.x, Devstral, Magistral); family head 2026-09-28. Images are not run -- the vision tower is set aside by name",
+   "maths": "head mistral3 (big+small)",
+   "files": [
+    {
+     "src": "unsloth/Mistral-Small-3.1-24B-Instruct-2503",
+     "ok": true,
+     "params": 24011361280,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "mistralai/Devstral-Small-2505",
+     "ok": false,
+     "params": null,
+     "why": "no tokenizer (tokenizer.json, tokenizer.model, vocab.json + merges.txt or a .tiktoken)",
+     "skip": null
+    }
+   ],
+   "largest_probed": "unsloth/Mistral-Small-3.1-24B-Instruct-2503",
+   "largest_params": 24011361280,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "qwen35",
+   "note": "Qwen 3.5 (text): Gated DeltaNet linear attention 3:1 with gated full attention, (1+w) norms, 25% rotary at 1e7 (rope_parameters); family head vs transformers 5.17 2026-09-28; the vision tower and the multi-token-prediction head are set aside; CPU, prompts stepped",
+   "maths": "head qwen3_5_text (big+small)",
+   "files": [
+    {
+     "src": "Qwen/Qwen3.5-0.8B",
+     "ok": true,
+     "params": 873438784,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "Qwen/Qwen3.5-9B",
+     "ok": true,
+     "params": 9653104368,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "Qwen/Qwen3.5-27B",
+     "ok": true,
+     "params": 27781427952,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "Qwen/Qwen3.5-27B",
+   "largest_params": 27781427952,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "qwen35moe",
+   "note": "Qwen 3.5-MoE (text): Qwen 3.5 layers with experts and a gated shared expert; family head vs transformers 5.17, 2026-09-28",
+   "maths": "head qwen3_5_moe_text (big+small)",
+   "files": [
+    {
+     "src": "Qwen/Qwen3.5-35B-A3B",
+     "ok": true,
+     "params": 35951822704,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "Qwen/Qwen3.5-122B-A10B",
+     "ok": true,
+     "params": 125086497008,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "tiny-random/qwen3.5-moe",
+     "ok": true,
+     "params": 4902384,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "Qwen/Qwen3.5-122B-A10B",
+   "largest_params": 125086497008,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "starcoder",
+   "note": "same as gpt_bigcode under their GGUF name; family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28",
+   "maths": "same engine kernels as head gpt2, gpt_bigcode",
+   "files": [
+    {
+     "src": "bigcode/tiny_starcoder_py",
+     "ok": true,
+     "params": 164144128,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "bigcode/tiny_starcoder_py",
+   "largest_params": 164144128,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "mistral",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: llama naming; sliding_window applied (it had been ignored)",
+   "maths": "head mistral, mistral-swa (big+small)",
+   "files": [
+    {
+     "src": "unsloth/mistral-7b-instruct-v0.3",
+     "ok": true,
+     "params": 7248023552,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "trl-internal-testing/tiny-MistralForCausalLM-0.2",
+     "ok": true,
+     "params": 513960,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "unsloth/mistral-7b-instruct-v0.3",
+   "largest_params": 7248023552,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "ministral",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: llama with alternating windows",
+   "maths": "head ministral (big+small)",
+   "files": [
+    {
+     "src": "mistralai/Ministral-8B-Instruct-2410",
+     "ok": true,
+     "params": 8019808256,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "mistralai/Ministral-8B-Instruct-2410",
+   "largest_params": 8019808256,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "helium",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: interleaved rotary",
+   "maths": "head helium (big+small)",
+   "files": [
+    {
+     "src": "kyutai/helium-1-preview-2b",
+     "ok": true,
+     "params": 2172643840,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "hf-tiny-v2/tiny-random-HeliumModel",
+     "ok": false,
+     "params": null,
+     "why": "HeliumModel: a base model without an LM head, not a chat checkpoint",
+     "skip": true
+    }
+   ],
+   "largest_probed": "kyutai/helium-1-preview-2b",
+   "largest_params": 2172643840,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "glm",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: GLM-4 dense (glm-4-9b-chat-hf): interleaved partial rotary, fused gate|up",
+   "maths": "head glm (big+small)",
+   "files": [
+    {
+     "src": "THUDM/glm-4-9b-chat-hf",
+     "ok": true,
+     "params": 9399951360,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "optimum-intel-internal-testing/tiny-random-glm-edge",
+     "ok": true,
+     "params": 36288768,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "THUDM/glm-4-9b-chat-hf",
+   "largest_params": 9399951360,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "olmo3",
+   "note": "family head vs transformers 4.57.6 and 5.17 (rotary settings nested per layer type, read since 2026-10-13): OLMo-2 post-norms with alternating windows. The released OLMo 3 checkpoints apply YaRN (attention factor 1.21) to the global layers only: since 2026-10-13 the factor is folded into the Q/K norm weights of those layers and the local layers rotate unscaled (family head olmo3-yarn)",
+   "maths": "head olmo3, olmo3-yarn (big+small)",
+   "files": [
+    {
+     "src": "allenai/Olmo-3-7B-Instruct",
+     "ok": true,
+     "params": 7298011136,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "allenai/Olmo-3-32B-Think",
+     "ok": true,
+     "params": 32233522176,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "trl-internal-testing/tiny-Olmo3ForCausalLM",
+     "ok": true,
+     "params": 1606432,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "allenai/Olmo-3-32B-Think",
+   "largest_params": 32233522176,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "flex_olmo",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: OLMo-2 post-norms with experts",
+   "maths": "head flex_olmo (big+small)",
+   "files": [
+    {
+     "src": "allenai/FlexOlmo-7x7B-1T",
+     "ok": true,
+     "params": 33270665216,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "allenai/FlexOlmo-7x7B-1T-RT",
+     "ok": true,
+     "params": 33270665216,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "allenai/FlexOlmo-7x7B-1T",
+   "largest_params": 33270665216,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "vaultgemma",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: Gemma norms, pre-norms only",
+   "maths": "head vaultgemma (big+small)",
+   "files": [
+    {
+     "src": "google/vaultgemma-1b",
+     "ok": false,
+     "params": null,
+     "why": "gated or private on Hugging Face (needs a login): not probed",
+     "skip": true
+    },
+    {
+     "src": "hf-tiny-v2/tiny-random-VaultGemmaForCausalLM",
+     "ok": true,
+     "params": 16398496,
+     "why": null,
+     "skip": null
+    },
+    {
+     "src": "hf-tiny-v2/tiny-random-VaultGemmaModel",
+     "ok": false,
+     "params": null,
+     "why": "VaultGemmaModel: a base model without an LM head, not a chat checkpoint",
+     "skip": true
+    }
+   ],
+   "largest_probed": "hf-tiny-v2/tiny-random-VaultGemmaForCausalLM",
+   "largest_params": 16398496,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "granitemoeshared",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: Granite MoE plus a shared MLP (fused gate|up)",
+   "maths": "head granitemoeshared (big+small)",
+   "files": [
+    {
+     "src": "ibm-research/moe-7b-1b-active-shared-experts",
+     "ok": true,
+     "params": 6372584448,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "ibm-research/moe-7b-1b-active-shared-experts",
+   "largest_params": 6372584448,
+   "runs": true,
+   "verdict": "runs"
+  },
+  {
+   "row": "gpt_neo",
+   "note": "family head vs transformers 4.57.6 (tooling/sml_family_heads.py), 2026-09-28: learned positions, alternating local/global, unscaled scores",
+   "maths": "head gpt_neo (big+small)",
+   "files": [
+    {
+     "src": "EleutherAI/gpt-neo-125m",
+     "ok": true,
+     "params": 150364416,
+     "why": null,
+     "skip": null
+    }
+   ],
+   "largest_probed": "EleutherAI/gpt-neo-125m",
+   "largest_params": 150364416,
+   "runs": true,
+   "verdict": "runs"
+  }
+ ],
+ "runs": 90,
+ "of": 91
+}

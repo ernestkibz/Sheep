@@ -1,0 +1,4371 @@
+[
+ {
+  "label": "afmoe",
+  "model_type": "afmoe",
+  "shape": "big",
+  "sens": 0.08032196682508438,
+  "stepped": {
+   "rel": 0.07220671566228287,
+   "worst": 0.0778834043349595,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.07135442619300622,
+   "worst": 0.08630387751523849,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "afmoe",
+  "represents": "Arcee MoE",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "afmoe",
+  "model_type": "afmoe",
+  "shape": "small",
+  "sens": 0.06504340230561977,
+  "stepped": {
+   "rel": 0.05763189638606861,
+   "worst": 0.07059491374398742,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.06265522882981273,
+   "worst": 0.06819102471945948,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "afmoe",
+  "represents": "Arcee MoE",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "apertus",
+  "model_type": "apertus",
+  "shape": "big",
+  "sens": 0.056387422587277074,
+  "stepped": {
+   "rel": 0.04863998687538662,
+   "worst": 0.056888178602743394,
+   "top1": "2/4"
+  },
+  "batched": {
+   "rel": 0.05191789651846105,
+   "worst": 0.058606306838805,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "apertus",
+  "represents": "xIELU activation, Q/K norm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "apertus",
+  "model_type": "apertus",
+  "shape": "small",
+  "sens": 0.046414819611294234,
+  "stepped": {
+   "rel": 0.04422481710275744,
+   "worst": 0.05496723240069674,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.045850279863366206,
+   "worst": 0.05702171839333399,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "apertus",
+  "represents": "xIELU activation, Q/K norm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "arcee",
+  "model_type": "arcee",
+  "shape": "big",
+  "sens": 0.053177349646009314,
+  "stepped": {
+   "rel": 0.05175811115924332,
+   "worst": 0.055065256189537545,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.0527361074244171,
+   "worst": 0.05758925701757957,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "arcee",
+  "represents": "llama with an UNGATED ReLU^2 MLP",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "arcee",
+  "model_type": "arcee",
+  "shape": "small",
+  "sens": 0.0415517465640315,
+  "stepped": {
+   "rel": 0.043031018355283376,
+   "worst": 0.04711179348090313,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04441593129869744,
+   "worst": 0.048530845576892745,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "arcee",
+  "represents": "llama with an UNGATED ReLU^2 MLP",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "bamba",
+  "model_type": "bamba",
+  "shape": "big",
+  "sens": 0.08524898289815017,
+  "stepped": {
+   "rel": 0.08151723531289704,
+   "worst": 0.09425482219506946,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.08151723531289704,
+   "worst": 0.09425482219506946,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "Mamba-2 layers with an attention layer and SwiGLU MLPs",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "bamba",
+  "model_type": "bamba",
+  "shape": "small",
+  "sens": 0.05034174398444704,
+  "stepped": {
+   "rel": 0.05046396424936137,
+   "worst": 0.10392058813664547,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05046396424936137,
+   "worst": 0.10392058813664547,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "Mamba-2 layers with an attention layer and SwiGLU MLPs",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "biogpt",
+  "model_type": "biogpt",
+  "shape": "big",
+  "sens": 0.026510377357850196,
+  "stepped": {
+   "rel": 0.024607678606934386,
+   "worst": 0.025198032137400392,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.024675689573395162,
+   "worst": 0.025102028600531994,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "learned positions, scaled embedding",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "biogpt",
+  "model_type": "biogpt",
+  "shape": "small",
+  "sens": 0.026516792634728014,
+  "stepped": {
+   "rel": 0.023932913395197437,
+   "worst": 0.02499248430146996,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.02401870911000157,
+   "worst": 0.02507400430828031,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "learned positions, scaled embedding",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "bitnet",
+  "model_type": "bitnet",
+  "shape": "big",
+  "error": "build: 8 tensor(s) in this checkpoint have no place in the name table, and running without them is a different model: model.layers.0.mlp.ffn_sub_norm.weight, model.layers.0.self_attn.attn_sub_norm.weight, model.layers.1.mlp.ffn_sub_norm.weight, model.layers.1.self_attn.attn_sub_norm.weight, model.layers.2.mlp.ffn_sub_norm.weight, model.layers.2.self_attn.attn_sub_norm.weight, model.layers.3.mlp.ffn_sub_n",
+  "roster": "bitnet",
+  "represents": "ternary weights with sub-norms",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "bitnet",
+  "model_type": "bitnet",
+  "shape": "small",
+  "error": "build: 4 tensor(s) in this checkpoint have no place in the name table, and running without them is a different model: model.layers.0.mlp.ffn_sub_norm.weight, model.layers.0.self_attn.attn_sub_norm.weight, model.layers.1.mlp.ffn_sub_norm.weight, model.layers.1.self_attn.attn_sub_norm.weight",
+  "roster": "bitnet",
+  "represents": "ternary weights with sub-norms",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "bloom",
+  "model_type": "bloom",
+  "shape": "big",
+  "sens": 0.04238434540568725,
+  "stepped": {
+   "rel": 0.03727845480113966,
+   "worst": 0.0468413950223511,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03786076123888729,
+   "worst": 0.04742953692642361,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "bloom",
+  "represents": "ALiBi, LayerNorm, embedding LayerNorm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "bloom",
+  "model_type": "bloom",
+  "shape": "small",
+  "sens": 0.03928128249565775,
+  "stepped": {
+   "rel": 0.03469922301049253,
+   "worst": 0.03717652634206523,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03683633999470508,
+   "worst": 0.039184702345249,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "bloom",
+  "represents": "ALiBi, LayerNorm, embedding LayerNorm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "chameleon",
+  "model_type": "chameleon",
+  "shape": "big",
+  "sens": 0.05122562040042149,
+  "stepped": {
+   "rel": 0.04827427436797324,
+   "worst": 0.04853814895349633,
+   "top1": "2/4"
+  },
+  "batched": {
+   "rel": 0.05065867406491675,
+   "worst": 0.051174840433009024,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "chameleon",
+  "represents": "Chameleon's text path: per-head LayerNorm Q/K norms",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "chameleon",
+  "model_type": "chameleon",
+  "shape": "small",
+  "sens": 0.03933854106952603,
+  "stepped": {
+   "rel": 0.038696551524427046,
+   "worst": 0.04070464708022024,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03981187172981891,
+   "worst": 0.041754992064845155,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "chameleon",
+  "represents": "Chameleon's text path: per-head LayerNorm Q/K norms",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "codegen",
+  "model_type": "codegen",
+  "shape": "big",
+  "sens": 0.040672085264582235,
+  "stepped": {
+   "rel": 0.037006309293672573,
+   "worst": 0.03992678928788969,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03832208641359665,
+   "worst": 0.040147477118723886,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "GPT-J shape, fused qkv in model-parallel order",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "codegen",
+  "model_type": "codegen",
+  "shape": "small",
+  "sens": 0.036545169655989876,
+  "stepped": {
+   "rel": 0.03399520313791771,
+   "worst": 0.03979799369429132,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.035335732156117676,
+   "worst": 0.040299339203314584,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "GPT-J shape, fused qkv in model-parallel order",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "cohere",
+  "model_type": "cohere",
+  "shape": "big",
+  "sens": 0.05402805718096165,
+  "stepped": {
+   "rel": 0.04999612886021486,
+   "worst": 0.05354397963394308,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05163126696347824,
+   "worst": 0.05389966391571847,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "command_r",
+  "represents": "LayerNorm without bias, parallel residual, logit scale",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "cohere",
+  "model_type": "cohere",
+  "shape": "small",
+  "sens": 0.04377841026638234,
+  "stepped": {
+   "rel": 0.04129539955154213,
+   "worst": 0.04322877678813056,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04224288432508533,
+   "worst": 0.0436457356864117,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "command_r",
+  "represents": "LayerNorm without bias, parallel residual, logit scale",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "cohere2",
+  "model_type": "cohere2",
+  "shape": "big",
+  "sens": 0.056099364975911725,
+  "stepped": {
+   "rel": 0.05147074981454637,
+   "worst": 0.05492790901605095,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05438618643256511,
+   "worst": 0.05712837546199644,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "cohere2",
+  "represents": "alternating window/global",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "cohere2",
+  "model_type": "cohere2",
+  "shape": "small",
+  "sens": 0.04475909074990047,
+  "stepped": {
+   "rel": 0.04172280157998522,
+   "worst": 0.04305283775611088,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04303546690328383,
+   "worst": 0.043260566558972466,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "cohere2",
+  "represents": "alternating window/global",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "dbrx",
+  "model_type": "dbrx",
+  "shape": "big",
+  "sens": 0.040897960829421494,
+  "stepped": {
+   "rel": 0.03876076002683397,
+   "worst": 0.0418619523717719,
+   "top1": "1/4"
+  },
+  "batched": {
+   "rel": 0.03788580598364666,
+   "worst": 0.04459852644980477,
+   "top1": "2/4"
+  },
+  "pass": true,
+  "roster": "dbrx",
+  "represents": "fused experts, clamp",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "dbrx",
+  "model_type": "dbrx",
+  "shape": "small",
+  "sens": 0.040897960829421494,
+  "stepped": {
+   "rel": 0.03876076002683397,
+   "worst": 0.0418619523717719,
+   "top1": "1/4"
+  },
+  "batched": {
+   "rel": 0.03788580598364666,
+   "worst": 0.04459852644980477,
+   "top1": "2/4"
+  },
+  "pass": true,
+  "roster": "dbrx",
+  "represents": "fused experts, clamp",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "deepseek_moe_v1",
+  "model_type": "deepseek",
+  "shape": "big",
+  "sens": 0.062414308520319706,
+  "stepped": {
+   "rel": 0.061001134404507815,
+   "worst": 0.15538704386760183,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.0635381013311129,
+   "worst": 0.1535106819215419,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "deepseek",
+  "represents": "DeepSeek MoE v1: softmax top-k without renormalizing, shared experts, dense first layer",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "deepseek_moe_v1",
+  "model_type": "deepseek",
+  "shape": "small",
+  "sens": 0.048162635246259286,
+  "stepped": {
+   "rel": 0.047273311978004565,
+   "worst": 0.048467254359602,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04626478385315659,
+   "worst": 0.04917276019798621,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "deepseek",
+  "represents": "DeepSeek MoE v1: softmax top-k without renormalizing, shared experts, dense first layer",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "deepseek_v2",
+  "model_type": "deepseek_v2",
+  "shape": "big",
+  "sens": 0.06298145839747185,
+  "stepped": {
+   "rel": 0.06062049604800951,
+   "worst": 0.0644903437988704,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.059486423680457014,
+   "worst": 0.0658981765605092,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "deepseek2",
+  "represents": "multi-head latent attention",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "deepseek_v2",
+  "model_type": "deepseek_v2",
+  "shape": "small",
+  "sens": 0.04916719993695678,
+  "stepped": {
+   "rel": 0.048148983237012985,
+   "worst": 0.16528381865205122,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04909253130623033,
+   "worst": 0.16369332447532253,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "deepseek2",
+  "represents": "multi-head latent attention",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "deepseek_v3",
+  "model_type": "deepseek_v3",
+  "shape": "big",
+  "sens": 0.081768350714048,
+  "stepped": {
+   "rel": 0.07895238122016704,
+   "worst": 0.09340503810930234,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.0800788857001826,
+   "worst": 0.09039411061469586,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "deepseek2",
+  "represents": "latent attention + V3 routing",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "deepseek_v3",
+  "model_type": "deepseek_v3",
+  "shape": "small",
+  "sens": 0.051878870422639084,
+  "stepped": {
+   "rel": 0.051623769576258485,
+   "worst": 0.0540541192600919,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05299523358542806,
+   "worst": 0.05965390906319185,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "deepseek2",
+  "represents": "latent attention + V3 routing",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "dots1",
+  "model_type": "dots1",
+  "shape": "big",
+  "sens": 0.019960777297328095,
+  "stepped": {
+   "rel": 0.026709209281447523,
+   "worst": 0.083660428315555,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04229040121348224,
+   "worst": 0.0808880743442415,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "at6": {
+   "sens": 0.0887303644417364,
+   "stepped": {
+    "rel": 0.38852582959801196,
+    "worst": 0.8197163710926263,
+    "top1": "2/4"
+   },
+   "batched": {
+    "rel": 0.39610488990738774,
+    "worst": 0.8199187102472801,
+    "top1": "2/4"
+   },
+   "pass": false
+  },
+  "bits": 8,
+  "roster": "dots1",
+  "represents": "V3-style routing",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "dots1",
+  "model_type": "dots1",
+  "shape": "small",
+  "sens": 0.049114928768425645,
+  "stepped": {
+   "rel": 0.05023803898465625,
+   "worst": 0.546962493134698,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.05362420823436141,
+   "worst": 0.5464670680785081,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "dots1",
+  "represents": "V3-style routing",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "ernie4_5",
+  "model_type": "ernie4_5",
+  "shape": "big",
+  "sens": 0.05797443666239222,
+  "stepped": {
+   "rel": 0.055334676779017086,
+   "worst": 0.06031810540444555,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.058344907802409,
+   "worst": 0.060305371424694255,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "ernie4_5",
+  "represents": "llama-shaped",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "ernie4_5",
+  "model_type": "ernie4_5",
+  "shape": "small",
+  "sens": 0.04663978520540269,
+  "stepped": {
+   "rel": 0.04286591032417074,
+   "worst": 0.044503727854955204,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04448947299073419,
+   "worst": 0.04729446042410525,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "ernie4_5",
+  "represents": "llama-shaped",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "ernie4_5_moe",
+  "model_type": "ernie4_5_moe",
+  "shape": "big",
+  "sens": 0.06125575495691954,
+  "stepped": {
+   "rel": 0.0651916038426443,
+   "worst": 0.06914726930149842,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.06806773129507449,
+   "worst": 0.07468190723884222,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "ernie4_5_moe",
+  "represents": "softmax, bias-corrected choice, renormalized, shared expert",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "ernie4_5_moe",
+  "model_type": "ernie4_5_moe",
+  "shape": "small",
+  "sens": 0.04627111709944146,
+  "stepped": {
+   "rel": 0.04564490326640829,
+   "worst": 0.05821046095606109,
+   "top1": "2/4"
+  },
+  "batched": {
+   "rel": 0.04861092915785213,
+   "worst": 0.05765386078603232,
+   "top1": "2/4"
+  },
+  "pass": true,
+  "roster": "ernie4_5_moe",
+  "represents": "softmax, bias-corrected choice, renormalized, shared expert",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "exaone4",
+  "model_type": "exaone4",
+  "shape": "big",
+  "sens": 0.07316661597316103,
+  "stepped": {
+   "rel": 0.062289590552317316,
+   "worst": 0.07349867174829686,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.06372569715500011,
+   "worst": 0.07333075546580835,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "exaone4",
+  "represents": "post-norms and Q/K norm (OLMo-2-like)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "exaone4",
+  "model_type": "exaone4",
+  "shape": "small",
+  "sens": 0.06141511897387556,
+  "stepped": {
+   "rel": 0.05208054300665772,
+   "worst": 0.057330688640858565,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.05640549666962283,
+   "worst": 0.06077487615823307,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "exaone4",
+  "represents": "post-norms and Q/K norm (OLMo-2-like)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "exaone4-hybrid",
+  "model_type": "exaone4",
+  "shape": "big",
+  "sens": 0.07767754808514826,
+  "stepped": {
+   "rel": 0.06592842132553785,
+   "worst": 0.0842242716329354,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.06802829970423652,
+   "worst": 0.08568696176683178,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "exaone4",
+  "represents": "sliding layers rotated, global layers NoPE (EXAONE-4.0-32B style)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "exaone4-hybrid",
+  "model_type": "exaone4",
+  "shape": "small",
+  "sens": 0.06465992329737931,
+  "stepped": {
+   "rel": 0.05861838237708984,
+   "worst": 0.06753254907531062,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05761926190758042,
+   "worst": 0.06600701994437881,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "exaone4",
+  "represents": "sliding layers rotated, global layers NoPE (EXAONE-4.0-32B style)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "exaone_moe",
+  "model_type": "exaone_moe",
+  "shape": "big",
+  "sens": 0.06585851647098506,
+  "stepped": {
+   "rel": 0.0854672730902756,
+   "worst": 0.09317773490088925,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.08890325662197293,
+   "worst": 0.09525229922353418,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "exaone_moe",
+  "represents": "EXAONE with experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "exaone_moe",
+  "model_type": "exaone_moe",
+  "shape": "small",
+  "sens": 0.05199640409660751,
+  "stepped": {
+   "rel": 0.049653075501164774,
+   "worst": 0.05748733487402947,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.04769546807654704,
+   "worst": 0.05661073549276372,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "exaone_moe",
+  "represents": "EXAONE with experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "falcon",
+  "model_type": "falcon",
+  "shape": "big",
+  "sens": 0.04371251832563173,
+  "stepped": {
+   "rel": 0.037653113114658604,
+   "worst": 0.039926628260220406,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03879154604155863,
+   "worst": 0.04189041234377112,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "falcon",
+  "represents": "RoPE falcon-7B style: MQA, parallel attention, shared LayerNorm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "falcon",
+  "model_type": "falcon",
+  "shape": "small",
+  "sens": 0.03790068289213812,
+  "stepped": {
+   "rel": 0.03523717625661561,
+   "worst": 0.036765488597049194,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03554051004291853,
+   "worst": 0.03708127419517025,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "falcon",
+  "represents": "RoPE falcon-7B style: MQA, parallel attention, shared LayerNorm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "falcon-alibi",
+  "model_type": "falcon",
+  "shape": "big",
+  "sens": 0.04260697231024204,
+  "stepped": {
+   "rel": 0.045848842575706386,
+   "worst": 0.047456617136499624,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.046845981800245226,
+   "worst": 0.049621778539529975,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "falcon",
+  "represents": "ALiBi falcon-rw style",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "falcon-alibi",
+  "model_type": "falcon",
+  "shape": "small",
+  "sens": 0.03726844415532524,
+  "stepped": {
+   "rel": 0.043910608841784764,
+   "worst": 0.04571953289714378,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04589849778882871,
+   "worst": 0.04727642841323296,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "falcon",
+  "represents": "ALiBi falcon-rw style",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "falcon_h1",
+  "model_type": "falcon_h1",
+  "shape": "big",
+  "sens": 0.044846259502499555,
+  "stepped": {
+   "rel": 0.04738969751144622,
+   "worst": 0.058107237830880176,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04738969751144622,
+   "worst": 0.058107237830880176,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "falcon_h1",
+  "represents": "attention and Mamba-2 in parallel in every layer, with multipliers",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "falcon_h1",
+  "model_type": "falcon_h1",
+  "shape": "small",
+  "sens": 0.03557864313474976,
+  "stepped": {
+   "rel": 0.03000367560413117,
+   "worst": 0.0346892972407956,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03000367560413117,
+   "worst": 0.0346892972407956,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "falcon_h1",
+  "represents": "attention and Mamba-2 in parallel in every layer, with multipliers",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "falcon_mamba",
+  "model_type": "falcon_mamba",
+  "shape": "big",
+  "sens": 0.08826210311041394,
+  "stepped": {
+   "rel": 0.08094150963661537,
+   "worst": 0.10466962675809477,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.08094150963661537,
+   "worst": 0.10466962675809477,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "mamba",
+  "represents": "Falcon-Mamba: Mamba-1 with weightless dt/B/C norms",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "falcon_mamba",
+  "model_type": "falcon_mamba",
+  "shape": "small",
+  "sens": 0.09582787915384036,
+  "stepped": {
+   "rel": 0.07692988398712738,
+   "worst": 0.1148185526930713,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.07692988398712738,
+   "worst": 0.1148185526930713,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "mamba",
+  "represents": "Falcon-Mamba: Mamba-1 with weightless dt/B/C norms",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "flex_olmo",
+  "model_type": "flex_olmo",
+  "shape": "big",
+  "sens": 0.07412559067628804,
+  "stepped": {
+   "rel": 0.07421727628604335,
+   "worst": 0.17055251834992458,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.07465671659058946,
+   "worst": 0.17372346975498487,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "OLMo experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "flex_olmo",
+  "model_type": "flex_olmo",
+  "shape": "small",
+  "sens": 0.05945162692419388,
+  "stepped": {
+   "rel": 0.06839482019275976,
+   "worst": 0.41809962147581,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.06891593117867625,
+   "worst": 0.0970275668599701,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "OLMo experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gemma",
+  "model_type": "gemma",
+  "shape": "big",
+  "sens": 0.026917823681752915,
+  "stepped": {
+   "rel": 0.024569445069175612,
+   "worst": 0.02548798431539734,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.024469940618081824,
+   "worst": 0.025417388120028687,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "gemma",
+  "represents": "(1+w) RMSNorm, GeGLU, sqrt(d) embedding scale",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gemma",
+  "model_type": "gemma",
+  "shape": "small",
+  "sens": 0.02661701011371797,
+  "stepped": {
+   "rel": 0.024327004967219006,
+   "worst": 0.024771293079506342,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.024114668145267693,
+   "worst": 0.024963771365981616,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "gemma",
+  "represents": "(1+w) RMSNorm, GeGLU, sqrt(d) embedding scale",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gemma2",
+  "model_type": "gemma2",
+  "shape": "big",
+  "sens": 0.027078022409399646,
+  "stepped": {
+   "rel": 0.02468895127434966,
+   "worst": 0.026140509252468476,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.024718795991264295,
+   "worst": 0.026315993397827937,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "gemma2",
+  "represents": "alternating window/global, attention softcap",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gemma2",
+  "model_type": "gemma2",
+  "shape": "small",
+  "sens": 0.027063343169854093,
+  "stepped": {
+   "rel": 0.025707756273316923,
+   "worst": 0.02624609202983371,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.02540232041235139,
+   "worst": 0.02640186716107682,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "gemma2",
+  "represents": "alternating window/global, attention softcap",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gemma3_text",
+  "model_type": "gemma3_text",
+  "shape": "big",
+  "sens": 0.02721437290204903,
+  "stepped": {
+   "rel": 0.024601461621874165,
+   "worst": 0.025913603099507986,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.02468490822969921,
+   "worst": 0.02603580420083449,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "gemma3",
+  "represents": "alternating window/global with two rope bases, Q/K norm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gemma3_text",
+  "model_type": "gemma3_text",
+  "shape": "small",
+  "sens": 0.02656385467272398,
+  "stepped": {
+   "rel": 0.02450115152772751,
+   "worst": 0.025306289731122963,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.024487178993449148,
+   "worst": 0.025367006895727667,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "gemma3",
+  "represents": "alternating window/global with two rope bases, Q/K norm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "glm",
+  "model_type": "glm",
+  "shape": "big",
+  "sens": 0.05927958989058413,
+  "stepped": {
+   "rel": 0.053431677560272436,
+   "worst": 0.056227427157363764,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05597942958496585,
+   "worst": 0.056755954831018175,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "chatglm",
+  "represents": "GLM-4 dense",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "glm",
+  "model_type": "glm",
+  "shape": "small",
+  "sens": 0.04620457910449498,
+  "stepped": {
+   "rel": 0.04205487582276599,
+   "worst": 0.04256647825670493,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.042835881593434405,
+   "worst": 0.04469691892024056,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "chatglm",
+  "represents": "GLM-4 dense",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "glm4",
+  "model_type": "glm4",
+  "shape": "big",
+  "sens": 0.07506373967808813,
+  "stepped": {
+   "rel": 0.06744006670848078,
+   "worst": 0.07239108708599845,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.07019051460100319,
+   "worst": 0.0785494730633299,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "glm4",
+  "represents": "GLM-4-0414: post-norms, interleaved partial rotary",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "glm4",
+  "model_type": "glm4",
+  "shape": "small",
+  "sens": 0.06096896106820026,
+  "stepped": {
+   "rel": 0.056600614107866334,
+   "worst": 0.06319597646925834,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.058365848195339076,
+   "worst": 0.06627598962789544,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "glm4",
+  "represents": "GLM-4-0414: post-norms, interleaved partial rotary",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "glm4_moe",
+  "model_type": "glm4_moe",
+  "shape": "big",
+  "sens": 0.08363028370991837,
+  "stepped": {
+   "rel": 0.10099592142605687,
+   "worst": 0.5748766268014438,
+   "top1": "2/4"
+  },
+  "batched": {
+   "rel": 0.10528825634496403,
+   "worst": 0.572807513370695,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "glm4_moe",
+  "represents": "sigmoid routing, correction bias, 2 groups of 4, scale 2.5, shared expert, a dense first layer",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "glm4_moe",
+  "model_type": "glm4_moe",
+  "shape": "small",
+  "sens": 0.04862871804332286,
+  "stepped": {
+   "rel": 0.047386048763755406,
+   "worst": 0.051859852773694384,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.05328125397534253,
+   "worst": 0.05505661428576182,
+   "top1": "2/4"
+  },
+  "pass": true,
+  "roster": "glm4_moe",
+  "represents": "sigmoid routing, correction bias, 2 groups of 4, scale 2.5, shared expert, a dense first layer",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gpt2",
+  "model_type": "gpt2",
+  "shape": "big",
+  "sens": 0.034687363163465025,
+  "stepped": {
+   "rel": 0.02843155732783933,
+   "worst": 0.030548305542442533,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.029270504919286063,
+   "worst": 0.03113822647698192,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "gpt2",
+  "represents": "learned positions, Conv1D, GELU",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gpt2",
+  "model_type": "gpt2",
+  "shape": "small",
+  "sens": 0.02963177906909938,
+  "stepped": {
+   "rel": 0.02519948059617496,
+   "worst": 0.026386879230499972,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.02562088866855801,
+   "worst": 0.026806352918733605,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "gpt2",
+  "represents": "learned positions, Conv1D, GELU",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gpt_bigcode",
+  "model_type": "gpt_bigcode",
+  "shape": "big",
+  "sens": 0.041364018432558304,
+  "stepped": {
+   "rel": 0.033366403459574825,
+   "worst": 0.03430220952246031,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03404047263720134,
+   "worst": 0.034788896803651506,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "gpt_bigcode",
+  "represents": "learned positions, fused q|k|v with one shared K/V head",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gpt_bigcode",
+  "model_type": "gpt_bigcode",
+  "shape": "small",
+  "sens": 0.03365780633992012,
+  "stepped": {
+   "rel": 0.02831596417863362,
+   "worst": 0.03146569619113964,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.029143545497831973,
+   "worst": 0.030727966497993142,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "gpt_bigcode",
+  "represents": "learned positions, fused q|k|v with one shared K/V head",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gpt_neo",
+  "model_type": "gpt_neo",
+  "shape": "big",
+  "sens": 0.08202325853516787,
+  "stepped": {
+   "rel": 0.06539548234922395,
+   "worst": 0.06644015627308571,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.06557061855225893,
+   "worst": 0.07044263134447437,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "learned positions, alternating local and global attention",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gpt_neo",
+  "model_type": "gpt_neo",
+  "shape": "small",
+  "sens": 0.06053850552229007,
+  "stepped": {
+   "rel": 0.0526856312280485,
+   "worst": 0.053310717675714214,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.05608509287036555,
+   "worst": 0.06416769494463138,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "learned positions, alternating local and global attention",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gpt_neox",
+  "model_type": "gpt_neox",
+  "shape": "big",
+  "sens": 0.042226827753197485,
+  "stepped": {
+   "rel": 0.03702504203487425,
+   "worst": 0.04204456493343755,
+   "top1": "2/4"
+  },
+  "batched": {
+   "rel": 0.0381916123135365,
+   "worst": 0.04168140335971414,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "gpt_neox",
+  "represents": "LayerNorm, partial rotary, parallel residual, GELU",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gpt_neox",
+  "model_type": "gpt_neox",
+  "shape": "small",
+  "sens": 0.036350236608839216,
+  "stepped": {
+   "rel": 0.03382267500719027,
+   "worst": 0.0341107553795907,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.033579305697253536,
+   "worst": 0.03610406421797009,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "gpt_neox",
+  "represents": "LayerNorm, partial rotary, parallel residual, GELU",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gpt_oss",
+  "model_type": "gpt_oss",
+  "shape": "big",
+  "sens": 0.06510618764619623,
+  "stepped": {
+   "rel": 0.060067033017338956,
+   "worst": 0.08486222105244305,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.06373423307773467,
+   "worst": 0.08924851183344562,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "gpt_oss",
+  "represents": "attention sinks, clamped SwiGLU experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gpt_oss",
+  "model_type": "gpt_oss",
+  "shape": "small",
+  "sens": 0.04434783267161106,
+  "stepped": {
+   "rel": 0.048369825398316565,
+   "worst": 0.07441720635846723,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.052300511147097196,
+   "worst": 0.07164575189261697,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "gpt_oss",
+  "represents": "attention sinks, clamped SwiGLU experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gptj",
+  "model_type": "gptj",
+  "shape": "big",
+  "sens": 0.04099131140662213,
+  "stepped": {
+   "rel": 0.037858644769411615,
+   "worst": 0.04561765327145168,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.037761473631202615,
+   "worst": 0.04591885032668715,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "gptj",
+  "represents": "interleaved rotary, parallel attention+MLP",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "gptj",
+  "model_type": "gptj",
+  "shape": "small",
+  "sens": 0.037744100721627726,
+  "stepped": {
+   "rel": 0.03275068509424768,
+   "worst": 0.034275448151568876,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03525415617937179,
+   "worst": 0.03605650618811294,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "gptj",
+  "represents": "interleaved rotary, parallel attention+MLP",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "granite",
+  "model_type": "granite",
+  "shape": "big",
+  "sens": 0.028139075866619928,
+  "stepped": {
+   "rel": 0.026301714760068554,
+   "worst": 0.026828258655558906,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.026486267474640342,
+   "worst": 0.026895195937189253,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "granite",
+  "represents": "dense Granite scales",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "granite",
+  "model_type": "granite",
+  "shape": "small",
+  "sens": 0.027489840380393295,
+  "stepped": {
+   "rel": 0.02469866395832108,
+   "worst": 0.025725076578118344,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.02505977966281943,
+   "worst": 0.026097220806891485,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "granite",
+  "represents": "dense Granite scales",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "granitemoe",
+  "model_type": "granitemoe",
+  "shape": "big",
+  "sens": 0.027249823993144122,
+  "stepped": {
+   "rel": 0.025592063450226733,
+   "worst": 0.026436958101886895,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.025717061511185108,
+   "worst": 0.026344777459591222,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "granitemoe",
+  "represents": "top-k experts, Granite scales",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "granitemoe",
+  "model_type": "granitemoe",
+  "shape": "small",
+  "sens": 0.02699205347927212,
+  "stepped": {
+   "rel": 0.025026849285716628,
+   "worst": 0.025587514788924074,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.025402962599969506,
+   "worst": 0.02546777232252043,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "granitemoe",
+  "represents": "top-k experts, Granite scales",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "granitemoehybrid",
+  "model_type": "granitemoehybrid",
+  "shape": "big",
+  "sens": 0.03162084786832201,
+  "stepped": {
+   "rel": 0.02931671795650312,
+   "worst": 0.030239711969482157,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.02931671795650312,
+   "worst": 0.030239711969482157,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "granite_hybrid",
+  "represents": "Granite-4.0-H: Mamba-2 + attention + experts + shared MLP + Granite scales",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "granitemoehybrid",
+  "model_type": "granitemoehybrid",
+  "shape": "small",
+  "sens": 0.028839957551661997,
+  "stepped": {
+   "rel": 0.026892427890182414,
+   "worst": 0.03578316323068197,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.026892427890182414,
+   "worst": 0.03578316323068197,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "granite_hybrid",
+  "represents": "Granite-4.0-H: Mamba-2 + attention + experts + shared MLP + Granite scales",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "granitemoehybrid-nope",
+  "model_type": "granitemoehybrid",
+  "shape": "big",
+  "sens": 0.1665716167033116,
+  "stepped": {
+   "rel": 0.15827945451664577,
+   "worst": 0.22275655878100065,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.15827945451664577,
+   "worst": 0.22275655878100065,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "granite_hybrid",
+  "represents": "Granite-4.0-H as shipped: no rotary, dense shared MLP",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "granitemoehybrid-nope",
+  "model_type": "granitemoehybrid",
+  "shape": "small",
+  "sens": 0.11237515721299576,
+  "stepped": {
+   "rel": 0.10362710602915934,
+   "worst": 0.14433037067329635,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.10362710602915934,
+   "worst": 0.14433037067329635,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "granite_hybrid",
+  "represents": "Granite-4.0-H as shipped: no rotary, dense shared MLP",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "granitemoeshared",
+  "model_type": "granitemoeshared",
+  "shape": "big",
+  "sens": 0.44925094160608625,
+  "stepped": {
+   "rel": 0.2922848433414425,
+   "worst": 0.43758067054336636,
+   "top1": "1/4"
+  },
+  "batched": {
+   "rel": 0.3852150410654396,
+   "worst": 0.3993879022915483,
+   "top1": "1/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "Granite MoE + shared expert",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "granitemoeshared",
+  "model_type": "granitemoeshared",
+  "shape": "small",
+  "sens": 0.10751657257237843,
+  "stepped": {
+   "rel": 0.11183222928399944,
+   "worst": 0.20810400133196957,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.15159036503456805,
+   "worst": 0.21440589486148914,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "Granite MoE + shared expert",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "helium",
+  "model_type": "helium",
+  "shape": "big",
+  "sens": 0.057959527327563765,
+  "stepped": {
+   "rel": 0.05443893978140127,
+   "worst": 0.061683965587541884,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.058339885958951856,
+   "worst": 0.06765249131439396,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "llama-shaped (Kyutai)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "helium",
+  "model_type": "helium",
+  "shape": "small",
+  "sens": 0.04755717596204455,
+  "stepped": {
+   "rel": 0.04130596189390798,
+   "worst": 0.042276063123744385,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.0437980348549536,
+   "worst": 0.04637212278029759,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "llama-shaped (Kyutai)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "hunyuan_v1_dense",
+  "model_type": "hunyuan_v1_dense",
+  "shape": "big",
+  "sens": 0.053437987209163554,
+  "stepped": {
+   "rel": 0.04978391340830389,
+   "worst": 0.052789320221044406,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.052331316354128896,
+   "worst": 0.05626582128428216,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "hunyuan_dense",
+  "represents": "Q/K norm, llama-shaped",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "hunyuan_v1_dense",
+  "model_type": "hunyuan_v1_dense",
+  "shape": "small",
+  "sens": 0.04450783912102846,
+  "stepped": {
+   "rel": 0.04029386750220349,
+   "worst": 0.04259984370880335,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04125099971556673,
+   "worst": 0.04341147161959411,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "hunyuan_dense",
+  "represents": "Q/K norm, llama-shaped",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "hunyuan_v1_moe",
+  "model_type": "hunyuan_v1_moe",
+  "shape": "big",
+  "sens": 0.06366020052589742,
+  "stepped": {
+   "rel": 0.05940850556348965,
+   "worst": 0.07229491806044315,
+   "top1": "2/4"
+  },
+  "batched": {
+   "rel": 0.0662631306590924,
+   "worst": 0.07852469918003703,
+   "top1": "2/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "HunYuan experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "hunyuan_v1_moe",
+  "model_type": "hunyuan_v1_moe",
+  "shape": "small",
+  "sens": 0.05137439196319106,
+  "stepped": {
+   "rel": 0.04252495986369506,
+   "worst": 0.04414830175998322,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.04638095204960796,
+   "worst": 0.046809698695823736,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "HunYuan experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "jais2",
+  "model_type": "jais2",
+  "shape": "big",
+  "sens": 0.05569780936968444,
+  "stepped": {
+   "rel": 0.04719845479364486,
+   "worst": 0.06244535990464466,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.0489231798035898,
+   "worst": 0.0630980180060958,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "jais2",
+  "represents": "Jais 2",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "jais2",
+  "model_type": "jais2",
+  "shape": "small",
+  "sens": 0.040877010806093295,
+  "stepped": {
+   "rel": 0.038198697238207874,
+   "worst": 0.0400696151394569,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.04007336276565863,
+   "worst": 0.0407888832810677,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "jais2",
+  "represents": "Jais 2",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "jamba",
+  "model_type": "jamba",
+  "shape": "big",
+  "sens": 0.12887663335328203,
+  "stepped": {
+   "rel": 0.11767057917279164,
+   "worst": 0.15555228507862212,
+   "top1": "2/4"
+  },
+  "batched": {
+   "rel": 0.11767057917279164,
+   "worst": 0.15555228507862212,
+   "top1": "2/4"
+  },
+  "pass": true,
+  "roster": "jamba",
+  "represents": "Mamba-1 + attention (no positions) + experts, dt/B/C norms",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "jamba",
+  "model_type": "jamba",
+  "shape": "small",
+  "sens": 0.05618519320354126,
+  "stepped": {
+   "rel": 0.05982086294965691,
+   "worst": 0.08966259056110289,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05982086294965691,
+   "worst": 0.08966259056110289,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "jamba",
+  "represents": "Mamba-1 + attention (no positions) + experts, dt/B/C norms",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "lfm2",
+  "model_type": "lfm2",
+  "shape": "big",
+  "sens": 0.08285561299560999,
+  "stepped": {
+   "rel": 0.07246716909203021,
+   "worst": 0.08120946278885927,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.07246716909203021,
+   "worst": 0.08120946278885927,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "lfm2",
+  "represents": "short-convolution hybrid",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "lfm2",
+  "model_type": "lfm2",
+  "shape": "small",
+  "sens": 0.04978030924247472,
+  "stepped": {
+   "rel": 0.046782852713597264,
+   "worst": 0.05644627658424854,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.046782852713597264,
+   "worst": 0.05644627658424854,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "lfm2",
+  "represents": "short-convolution hybrid",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "lfm2_moe",
+  "model_type": "lfm2_moe",
+  "shape": "big",
+  "sens": 0.07175152373888594,
+  "stepped": {
+   "rel": 0.06456538003581806,
+   "worst": 0.06978775066079537,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.06456538003581806,
+   "worst": 0.06978775066079537,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "lfm2moe",
+  "represents": "LFM2 with experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "lfm2_moe",
+  "model_type": "lfm2_moe",
+  "shape": "small",
+  "sens": 0.05029697273583977,
+  "stepped": {
+   "rel": 0.05102419296513958,
+   "worst": 0.05554239653722042,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05102419296513958,
+   "worst": 0.05554239653722042,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "lfm2moe",
+  "represents": "LFM2 with experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "llama",
+  "model_type": "llama",
+  "shape": "big",
+  "sens": 0.05497633919214579,
+  "stepped": {
+   "rel": 0.05376674078557049,
+   "worst": 0.05803598054304389,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.05590616458159531,
+   "worst": 0.06174295580170203,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "llama",
+  "represents": "RMSNorm, halved RoPE, SwiGLU, GQA",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "llama",
+  "model_type": "llama",
+  "shape": "small",
+  "sens": 0.046859610681695994,
+  "stepped": {
+   "rel": 0.04135524115835964,
+   "worst": 0.045258327039425984,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.042086820043673,
+   "worst": 0.04573983627949348,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "llama",
+  "represents": "RMSNorm, halved RoPE, SwiGLU, GQA",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "llama-yarn",
+  "model_type": "llama",
+  "shape": "big",
+  "sens": 0.0616195984624187,
+  "stepped": {
+   "rel": 0.05753711295632607,
+   "worst": 0.06395975059815036,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.06008873729748683,
+   "worst": 0.0659329207338353,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "llama",
+  "represents": "YaRN on every layer (Qwen3 long context, DeepSeek-R1 distills)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "llama-yarn",
+  "model_type": "llama",
+  "shape": "small",
+  "sens": 0.05387209364630178,
+  "stepped": {
+   "rel": 0.04531704858447182,
+   "worst": 0.05140206394869262,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.04746929986787565,
+   "worst": 0.05407464876652787,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "llama",
+  "represents": "YaRN on every layer (Qwen3 long context, DeepSeek-R1 distills)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "llama4_text",
+  "model_type": "llama4_text",
+  "shape": "big",
+  "error": "build: 20 tensor(s) in this checkpoint have no place in the name table, and running without them is a different model: model.layers.0.feed_forward.experts.down_proj, model.layers.0.feed_forward.experts.gate_up_proj, model.layers.0.feed_forward.shared_expert.down_proj.weight, model.layers.0.feed_forward.shared_expert.gate_proj.weight, model.layers.0.feed_forward.shared_expert.up_proj.weight, model.layers.",
+  "roster": "llama4",
+  "represents": "NoPE layers, chunked attention, experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "llama4_text",
+  "model_type": "llama4_text",
+  "shape": "small",
+  "error": "build: 10 tensor(s) in this checkpoint have no place in the name table, and running without them is a different model: model.layers.0.feed_forward.experts.down_proj, model.layers.0.feed_forward.experts.gate_up_proj, model.layers.0.feed_forward.shared_expert.down_proj.weight, model.layers.0.feed_forward.shared_expert.gate_proj.weight, model.layers.0.feed_forward.shared_expert.up_proj.weight, model.layers.",
+  "roster": "llama4",
+  "represents": "NoPE layers, chunked attention, experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mamba",
+  "model_type": "mamba",
+  "shape": "big",
+  "sens": 0.05502912093349807,
+  "stepped": {
+   "rel": 0.04794059939000736,
+   "worst": 0.05216118610091438,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.04794059939000736,
+   "worst": 0.05216118610091438,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "mamba",
+  "represents": "Mamba-1: low-rank dt, per-channel state",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mamba",
+  "model_type": "mamba",
+  "shape": "small",
+  "sens": 0.060688255301048336,
+  "stepped": {
+   "rel": 0.057780434701467716,
+   "worst": 0.06951068260004899,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.057780434701467716,
+   "worst": 0.06951068260004899,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "mamba",
+  "represents": "Mamba-1: low-rank dt, per-channel state",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mamba2",
+  "model_type": "mamba2",
+  "shape": "big",
+  "sens": 0.05928496921997517,
+  "stepped": {
+   "rel": 0.06282254942023825,
+   "worst": 0.07342726386451631,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.06282254942023825,
+   "worst": 0.07342726386451631,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "mamba2",
+  "represents": "pure Mamba-2: conv, per-head state in 2 groups, gated norm, no FFN",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mamba2",
+  "model_type": "mamba2",
+  "shape": "small",
+  "sens": 0.05378341869812668,
+  "stepped": {
+   "rel": 0.056405045521115825,
+   "worst": 0.07518180922133491,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.056405045521115825,
+   "worst": 0.07518180922133491,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "mamba2",
+  "represents": "pure Mamba-2: conv, per-head state in 2 groups, gated norm, no FFN",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "minicpm3",
+  "model_type": "minicpm3",
+  "shape": "big",
+  "sens": 0.026516765065861873,
+  "stepped": {
+   "rel": 0.024382570162120077,
+   "worst": 0.02499417517297328,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.02453041970717311,
+   "worst": 0.02535008819760332,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "minicpm3",
+  "represents": "MiniCPM3: latent attention with halved rotary, MiniCPM's three scales",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "minicpm3",
+  "model_type": "minicpm3",
+  "shape": "small",
+  "sens": 0.026977610024462362,
+  "stepped": {
+   "rel": 0.02431263857640759,
+   "worst": 0.02501494443718413,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.02438950695029359,
+   "worst": 0.024972919930722103,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "minicpm3",
+  "represents": "MiniCPM3: latent attention with halved rotary, MiniCPM's three scales",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "minimax_m2",
+  "model_type": "minimax_m2",
+  "shape": "big",
+  "sens": 0.04499104986403389,
+  "stepped": {
+   "rel": 0.06066155378654285,
+   "worst": 0.31528190537687695,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.051058362349966364,
+   "worst": 0.05360931624236753,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "minimax_m2",
+  "represents": "MiniMax-M2",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "minimax_m2",
+  "model_type": "minimax_m2",
+  "shape": "small",
+  "sens": 0.03675048974045625,
+  "stepped": {
+   "rel": 0.03725088717963073,
+   "worst": 0.038425183890306656,
+   "top1": "2/4"
+  },
+  "batched": {
+   "rel": 0.03755412656255684,
+   "worst": 0.040019424074841846,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "minimax_m2",
+  "represents": "MiniMax-M2",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "ministral",
+  "model_type": "ministral",
+  "shape": "big",
+  "sens": 0.05495503376759368,
+  "stepped": {
+   "rel": 0.05321279867127164,
+   "worst": 0.05443446359699082,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.056358500330542544,
+   "worst": 0.058712208719729604,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "llama with alternating windows",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "ministral",
+  "model_type": "ministral",
+  "shape": "small",
+  "sens": 0.0483192856536655,
+  "stepped": {
+   "rel": 0.0426231240963488,
+   "worst": 0.05135930713532248,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.044923096144687785,
+   "worst": 0.050659310967879914,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "llama with alternating windows",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mistral",
+  "model_type": "mistral",
+  "shape": "big",
+  "sens": 0.05497633919214579,
+  "stepped": {
+   "rel": 0.05376674078557049,
+   "worst": 0.05803598054304389,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.05590616458159531,
+   "worst": 0.06174295580170203,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "llama",
+  "represents": "llama naming, full attention",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mistral",
+  "model_type": "mistral",
+  "shape": "small",
+  "sens": 0.046859610681695994,
+  "stepped": {
+   "rel": 0.04135524115835964,
+   "worst": 0.045258327039425984,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.042086820043673,
+   "worst": 0.04573983627949348,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "llama",
+  "represents": "llama naming, full attention",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mistral-swa",
+  "model_type": "mistral",
+  "shape": "big",
+  "sens": 0.06153833613920705,
+  "stepped": {
+   "rel": 0.056957867301482085,
+   "worst": 0.058213984910843786,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05930462999612445,
+   "worst": 0.06404995670285432,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "llama",
+  "represents": "llama + uniform sliding window (8 < the 20-token prompt)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mistral-swa",
+  "model_type": "mistral",
+  "shape": "small",
+  "sens": 0.04700095723501769,
+  "stepped": {
+   "rel": 0.04452017172248184,
+   "worst": 0.052415435919385515,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04543610195285121,
+   "worst": 0.05188324943405022,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "llama",
+  "represents": "llama + uniform sliding window (8 < the 20-token prompt)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mistral3",
+  "model_type": "mistral3",
+  "shape": "big",
+  "sens": 0.042581391914552805,
+  "stepped": {
+   "rel": 0.03999820440188511,
+   "worst": 0.04098854338071199,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04080644738543003,
+   "worst": 0.043189487930996306,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "mistral3",
+  "represents": "Mistral Small 3.x / Devstral: a mistral text model in a vision wrapper (text path)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mistral3",
+  "model_type": "mistral3",
+  "shape": "small",
+  "sens": 0.042581391914552805,
+  "stepped": {
+   "rel": 0.03999820440188511,
+   "worst": 0.04098854338071199,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04080644738543003,
+   "worst": 0.043189487930996306,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "mistral3",
+  "represents": "Mistral Small 3.x / Devstral: a mistral text model in a vision wrapper (text path)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mixtral",
+  "model_type": "mixtral",
+  "shape": "big",
+  "sens": 0.06265655466861468,
+  "stepped": {
+   "rel": 0.04819304825851102,
+   "worst": 0.10883646963645191,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.06052166883805976,
+   "worst": 0.10683593062663575,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "mixtral",
+  "represents": "8x7B-style experts, renormalized top-2",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mixtral",
+  "model_type": "mixtral",
+  "shape": "small",
+  "sens": 0.03905484826836751,
+  "stepped": {
+   "rel": 0.03758631316153059,
+   "worst": 0.04372990610589033,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04119470802901952,
+   "worst": 0.04579527286617596,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "mixtral",
+  "represents": "8x7B-style experts, renormalized top-2",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mpt",
+  "model_type": "mpt",
+  "shape": "big",
+  "sens": 0.04026331309969343,
+  "stepped": {
+   "rel": 0.0371339610337891,
+   "worst": 0.03751441010398909,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03669945748690433,
+   "worst": 0.03774002870218857,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "mpt",
+  "represents": "ALiBi, LayerNorm without bias",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "mpt",
+  "model_type": "mpt",
+  "shape": "small",
+  "sens": 0.04026331309969343,
+  "stepped": {
+   "rel": 0.0371339610337891,
+   "worst": 0.03751441010398909,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03669945748690433,
+   "worst": 0.03774002870218857,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "mpt",
+  "represents": "ALiBi, LayerNorm without bias",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "nemotron",
+  "model_type": "nemotron",
+  "shape": "big",
+  "sens": 0.1293803477479973,
+  "stepped": {
+   "rel": 0.12189297222039133,
+   "worst": 0.13570403147711124,
+   "top1": "2/4"
+  },
+  "batched": {
+   "rel": 0.12856635787839463,
+   "worst": 0.1474611365438218,
+   "top1": "2/4"
+  },
+  "pass": true,
+  "roster": "nemotron",
+  "represents": "(w+1) LayerNorm, ReLU^2 ungated MLP",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "nemotron",
+  "model_type": "nemotron",
+  "shape": "small",
+  "sens": 0.07363634775848889,
+  "stepped": {
+   "rel": 0.09349937201561884,
+   "worst": 0.1297902375122888,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.0872218740549904,
+   "worst": 0.13273312000425466,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "nemotron",
+  "represents": "(w+1) LayerNorm, ReLU^2 ungated MLP",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "nemotron_h",
+  "model_type": "nemotron_h",
+  "shape": "big",
+  "sens": 0.05460774585202746,
+  "stepped": {
+   "rel": 0.04725880236200576,
+   "worst": 0.0640010108089781,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04725880236200576,
+   "worst": 0.0640010108089781,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "nemotron_h",
+  "represents": "Mamba-2, attention and MLP as separate layers",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "nemotron_h",
+  "model_type": "nemotron_h",
+  "shape": "small",
+  "sens": 0.04905707171454947,
+  "stepped": {
+   "rel": 0.044040801977615215,
+   "worst": 0.05041298148019704,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.044040801977615215,
+   "worst": 0.05041298148019704,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "nemotron_h",
+  "represents": "Mamba-2, attention and MLP as separate layers",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "nemotron_h_moe",
+  "model_type": "nemotron_h",
+  "shape": "big",
+  "sens": 0.051271533457613074,
+  "stepped": {
+   "rel": 0.04865891330643203,
+   "worst": 0.06610113382476544,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04865891330643203,
+   "worst": 0.06610113382476544,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "nemotron_h_moe",
+  "represents": "Nemotron 3 Nano: Mamba-2, attention and ungated relu^2 experts (sigmoid routing)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "nemotron_h_moe",
+  "model_type": "nemotron_h",
+  "shape": "small",
+  "sens": 0.05214416945091526,
+  "stepped": {
+   "rel": 0.049619310852859685,
+   "worst": 0.056868776631649964,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.049619310852859685,
+   "worst": 0.056868776631649964,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "nemotron_h_moe",
+  "represents": "Nemotron 3 Nano: Mamba-2, attention and ungated relu^2 experts (sigmoid routing)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "olmo",
+  "model_type": "olmo",
+  "shape": "big",
+  "sens": 0.05640004785191795,
+  "stepped": {
+   "rel": 0.05169627920408405,
+   "worst": 0.05556093984689256,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.052396063842743895,
+   "worst": 0.05871353864745219,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "olmo",
+  "represents": "non-parametric LayerNorm, SwiGLU",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "olmo",
+  "model_type": "olmo",
+  "shape": "small",
+  "sens": 0.042915399116126296,
+  "stepped": {
+   "rel": 0.04047564788574411,
+   "worst": 0.04316066211628154,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.042656267821778955,
+   "worst": 0.04483763762302802,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "olmo",
+  "represents": "non-parametric LayerNorm, SwiGLU",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "olmo2",
+  "model_type": "olmo2",
+  "shape": "big",
+  "sens": 0.07817170346105705,
+  "stepped": {
+   "rel": 0.06671327424330287,
+   "worst": 0.06740921993887691,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.068508224381225,
+   "worst": 0.07302352190251118,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "olmo2",
+  "represents": "post-norms on each branch, Q/K norm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "olmo2",
+  "model_type": "olmo2",
+  "shape": "small",
+  "sens": 0.06420010432286415,
+  "stepped": {
+   "rel": 0.05490744223137854,
+   "worst": 0.0734241039592944,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05733626680408005,
+   "worst": 0.0707145198225404,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "olmo2",
+  "represents": "post-norms on each branch, Q/K norm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "olmo3",
+  "model_type": "olmo3",
+  "shape": "big",
+  "sens": 0.07353368913600683,
+  "stepped": {
+   "rel": 0.0655440957062468,
+   "worst": 0.07371475551013061,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.07005225665698936,
+   "worst": 0.07706943423230228,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "OLMo-2 shape with alternating windows",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "olmo3",
+  "model_type": "olmo3",
+  "shape": "small",
+  "sens": 0.06189475006007687,
+  "stepped": {
+   "rel": 0.05281099577926019,
+   "worst": 0.053151533139445734,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05407236413599828,
+   "worst": 0.05819694979405128,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "OLMo-2 shape with alternating windows",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "olmo3-yarn",
+  "model_type": "olmo3",
+  "shape": "big",
+  "sens": 0.07948348739647729,
+  "stepped": {
+   "rel": 0.0729147009071267,
+   "worst": 0.0830056623356557,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.07510252753185256,
+   "worst": 0.0895495546886879,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "olmo3",
+  "represents": "YaRN on the global layers only, as OLMo 3 ships, through its Q/K norm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "olmo3-yarn",
+  "model_type": "olmo3",
+  "shape": "small",
+  "sens": 0.07126146150544099,
+  "stepped": {
+   "rel": 0.05797481645328249,
+   "worst": 0.061632768734359834,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.05971481125754685,
+   "worst": 0.0637761955386079,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "olmo3",
+  "represents": "YaRN on the global layers only, as OLMo 3 ships, through its Q/K norm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "olmoe",
+  "model_type": "olmoe",
+  "shape": "big",
+  "sens": 0.011408381338815998,
+  "stepped": {
+   "rel": 0.016677405133044942,
+   "worst": 0.018252090318726558,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.01928527773975226,
+   "worst": 0.047909891264336396,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "at6": {
+   "sens": 0.052774174101703465,
+   "stepped": {
+    "rel": 0.09280821985553805,
+    "worst": 0.13908050010188913,
+    "top1": "4/4"
+   },
+   "batched": {
+    "rel": 0.05645409283650264,
+    "worst": 0.1254042636063829,
+    "top1": "4/4"
+   },
+   "pass": false
+  },
+  "bits": 8,
+  "roster": "olmoe",
+  "represents": "experts, Q/K norm, not renormalized",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "olmoe",
+  "model_type": "olmoe",
+  "shape": "small",
+  "sens": 0.03676994285837454,
+  "stepped": {
+   "rel": 0.034006673255887535,
+   "worst": 0.0367490963424646,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03514460765538921,
+   "worst": 0.038388221360028445,
+   "top1": "2/4"
+  },
+  "pass": true,
+  "roster": "olmoe",
+  "represents": "experts, Q/K norm, not renormalized",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "opt",
+  "model_type": "opt",
+  "shape": "big",
+  "sens": 0.03763022897578926,
+  "stepped": {
+   "rel": 0.03288560235153817,
+   "worst": 0.03306302114261191,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03304689963496801,
+   "worst": 0.03443840327928111,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "learned positions offset by 2, ReLU",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "opt",
+  "model_type": "opt",
+  "shape": "small",
+  "sens": 0.032869351849750844,
+  "stepped": {
+   "rel": 0.026830228039721165,
+   "worst": 0.02785214235220887,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.02751488501062088,
+   "worst": 0.028309566494458663,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "learned positions offset by 2, ReLU",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "persimmon",
+  "model_type": "persimmon",
+  "shape": "big",
+  "sens": 0.0478935026563638,
+  "stepped": {
+   "rel": 0.04601867203824824,
+   "worst": 0.05139750322921096,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.047483941347443145,
+   "worst": 0.05326471398594883,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "persimmon",
+  "represents": "LayerNorm Q/K, ReLU^2, partial rotary",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "persimmon",
+  "model_type": "persimmon",
+  "shape": "small",
+  "sens": 0.04542672085487908,
+  "stepped": {
+   "rel": 0.042455276037715206,
+   "worst": 0.045289441686623924,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.04535055688607152,
+   "worst": 0.047611150061059516,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "persimmon",
+  "represents": "LayerNorm Q/K, ReLU^2, partial rotary",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "phi",
+  "model_type": "phi",
+  "shape": "big",
+  "sens": 0.04328856507914715,
+  "stepped": {
+   "rel": 0.038363115732399984,
+   "worst": 0.03911012368597629,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03978525733242265,
+   "worst": 0.040862630124886244,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "phi2",
+  "represents": "one shared LayerNorm, parallel attention+MLP, partial rotary",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "phi",
+  "model_type": "phi",
+  "shape": "small",
+  "sens": 0.03635703898226945,
+  "stepped": {
+   "rel": 0.03177242014283363,
+   "worst": 0.03363122189555254,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.032487975961552215,
+   "worst": 0.03652160462680633,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "phi2",
+  "represents": "one shared LayerNorm, parallel attention+MLP, partial rotary",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "phi3",
+  "model_type": "phi3",
+  "shape": "big",
+  "sens": 0.0584338673232539,
+  "stepped": {
+   "rel": 0.05145719548399289,
+   "worst": 0.05756784051382746,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.054535666209542186,
+   "worst": 0.06231865314743105,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "phi3",
+  "represents": "fused qkv and gate_up, RMSNorm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "phi3",
+  "model_type": "phi3",
+  "shape": "small",
+  "sens": 0.04634690412214318,
+  "stepped": {
+   "rel": 0.040386230050551336,
+   "worst": 0.04567338601658865,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04316125087035334,
+   "worst": 0.04408206035305491,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "phi3",
+  "represents": "fused qkv and gate_up, RMSNorm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "phi3-longrope",
+  "model_type": "phi3",
+  "shape": "big",
+  "sens": 0.06686830920760878,
+  "stepped": {
+   "rel": 0.06278879060724629,
+   "worst": 0.07555257181494326,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.06514738377266574,
+   "worst": 0.08001831566585933,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "phi3",
+  "represents": "LongRoPE on a 75% rotary (Phi-4-mini, Phi-3-128k)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "phi3-longrope",
+  "model_type": "phi3",
+  "shape": "small",
+  "sens": 0.048979117522818076,
+  "stepped": {
+   "rel": 0.04223690181729425,
+   "worst": 0.04999444876299679,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.041599639149752114,
+   "worst": 0.050477588686541966,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "phi3",
+  "represents": "LongRoPE on a 75% rotary (Phi-4-mini, Phi-3-128k)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "phimoe",
+  "model_type": "phimoe",
+  "shape": "big",
+  "sens": 0.03331280019842441,
+  "stepped": {
+   "rel": 0.027330206382093592,
+   "worst": 0.04137381998318911,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.0473496633901188,
+   "worst": 0.07131657558272446,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "at6": {
+   "sens": 0.0694317448120366,
+   "stepped": {
+    "rel": 0.13054156775010578,
+    "worst": 0.3754871796636438,
+    "top1": "2/4"
+   },
+   "batched": {
+    "rel": 0.22444317408595887,
+    "worst": 0.3697111966610762,
+    "top1": "2/4"
+   },
+   "pass": false
+  },
+  "bits": 8,
+  "roster": "phimoe",
+  "represents": "sparsemixer routing",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "phimoe",
+  "model_type": "phimoe",
+  "shape": "small",
+  "sens": 0.055577108826939156,
+  "stepped": {
+   "rel": 0.049676924428936176,
+   "worst": 0.5170226306068074,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.050238996914900955,
+   "worst": 0.5179448678954788,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "phimoe",
+  "represents": "sparsemixer routing",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen2",
+  "model_type": "qwen2",
+  "shape": "big",
+  "sens": 0.06016097205588847,
+  "stepped": {
+   "rel": 0.05425713816606522,
+   "worst": 0.0567031537854888,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.05633593943727974,
+   "worst": 0.06023357493264512,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "qwen2",
+  "represents": "llama + QKV bias",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen2",
+  "model_type": "qwen2",
+  "shape": "small",
+  "sens": 0.047195947138219674,
+  "stepped": {
+   "rel": 0.04211868371491796,
+   "worst": 0.04722160511677673,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.043151150216110726,
+   "worst": 0.05039036744918602,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "qwen2",
+  "represents": "llama + QKV bias",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen2_moe",
+  "model_type": "qwen2_moe",
+  "shape": "big",
+  "sens": 0.05427133815243462,
+  "stepped": {
+   "rel": 0.05326544099619923,
+   "worst": 0.055219452790848604,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.05750886350268132,
+   "worst": 0.12320561816664692,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "qwen2moe",
+  "represents": "experts + gated shared expert, softmax weights not renormalized",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen2_moe",
+  "model_type": "qwen2_moe",
+  "shape": "small",
+  "sens": 0.042568152619023726,
+  "stepped": {
+   "rel": 0.04226032354728564,
+   "worst": 0.04630410190563848,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.0437223918729389,
+   "worst": 0.047549321526291696,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "qwen2moe",
+  "represents": "experts + gated shared expert, softmax weights not renormalized",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen3",
+  "model_type": "qwen3",
+  "shape": "big",
+  "sens": 0.05270825743063452,
+  "stepped": {
+   "rel": 0.05111256273430359,
+   "worst": 0.052404283830525485,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.052748213360546733,
+   "worst": 0.055915061175822685,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "qwen3",
+  "represents": "llama + Q/K RMSNorm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen3",
+  "model_type": "qwen3",
+  "shape": "small",
+  "sens": 0.044176376462026545,
+  "stepped": {
+   "rel": 0.04206939802790448,
+   "worst": 0.04285992800382829,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.04330371836780152,
+   "worst": 0.0446082479979461,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "qwen3",
+  "represents": "llama + Q/K RMSNorm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen3_5_moe_text",
+  "model_type": "qwen3_5_moe_text",
+  "shape": "big",
+  "sens": 0.27079568396493936,
+  "stepped": {
+   "rel": 0.28130431953579293,
+   "worst": 0.4055055949578974,
+   "top1": "2/4"
+  },
+  "batched": {
+   "rel": 0.28130431953579293,
+   "worst": 0.4055055949578974,
+   "top1": "2/4"
+  },
+  "pass": true,
+  "roster": "qwen35moe",
+  "represents": "Qwen 3.5 with experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen3_5_moe_text",
+  "model_type": "qwen3_5_moe_text",
+  "shape": "small",
+  "sens": 0.10833186058607674,
+  "stepped": {
+   "rel": 0.10206263183678303,
+   "worst": 0.13991774654266503,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.10206263183678303,
+   "worst": 0.13991774654266503,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "qwen35moe",
+  "represents": "Qwen 3.5 with experts",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen3_5_text",
+  "model_type": "qwen3_5_text",
+  "shape": "big",
+  "sens": 0.13070503500427075,
+  "stepped": {
+   "rel": 0.12006237323788521,
+   "worst": 0.19940377801037815,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.12006237323788521,
+   "worst": 0.19940377801037815,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "qwen35",
+  "represents": "Qwen 3.5: Gated DeltaNet 1:1 here (3:1 shipped), gated attention, 25% rotary at 1e7 (needs transformers >= 5: run with the venv-tf5 python)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen3_5_text",
+  "model_type": "qwen3_5_text",
+  "shape": "small",
+  "sens": 0.09853923513376873,
+  "stepped": {
+   "rel": 0.09544360620258813,
+   "worst": 0.1009235180279424,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.09544360620258813,
+   "worst": 0.1009235180279424,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "qwen35",
+  "represents": "Qwen 3.5: Gated DeltaNet 1:1 here (3:1 shipped), gated attention, 25% rotary at 1e7 (needs transformers >= 5: run with the venv-tf5 python)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen3_moe",
+  "model_type": "qwen3_moe",
+  "shape": "big",
+  "sens": 0.051975573200912,
+  "stepped": {
+   "rel": 0.04650183034531269,
+   "worst": 0.04828601159784863,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.0480221537397173,
+   "worst": 0.05023606313141825,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "qwen3moe",
+  "represents": "experts + Q/K norm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen3_moe",
+  "model_type": "qwen3_moe",
+  "shape": "small",
+  "sens": 0.03963054153347105,
+  "stepped": {
+   "rel": 0.03850698015573961,
+   "worst": 0.039742475546055284,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04001438537214229,
+   "worst": 0.04127742034171907,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "qwen3moe",
+  "represents": "experts + Q/K norm",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen3_next",
+  "model_type": "qwen3_next",
+  "shape": "big",
+  "sens": 0.25210188383261245,
+  "stepped": {
+   "rel": 0.21577716752101056,
+   "worst": 0.37202839904792057,
+   "top1": "2/4"
+  },
+  "batched": {
+   "rel": 0.21577716752101056,
+   "worst": 0.37202839904792057,
+   "top1": "2/4"
+  },
+  "pass": true,
+  "roster": "qwen3next",
+  "represents": "Gated DeltaNet + gated attention + experts, (1+w) norms",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen3_next",
+  "model_type": "qwen3_next",
+  "shape": "small",
+  "sens": 0.08033984203577876,
+  "stepped": {
+   "rel": 0.10727418725803936,
+   "worst": 0.1296683152860774,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.10727418725803936,
+   "worst": 0.1296683152860774,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "qwen3next",
+  "represents": "Gated DeltaNet + gated attention + experts, (1+w) norms",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen3_next-dense",
+  "model_type": "qwen3_next",
+  "shape": "big",
+  "sens": 0.23133002572631445,
+  "stepped": {
+   "rel": 0.16301588042947512,
+   "worst": 0.42401102969193716,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.16301588042947512,
+   "worst": 0.42401102969193716,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "qwen3next",
+  "represents": "Qwen3-Next with dense MLPs: the linear attention alone",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "qwen3_next-dense",
+  "model_type": "qwen3_next",
+  "shape": "small",
+  "sens": 0.1070096748834434,
+  "stepped": {
+   "rel": 0.120815202672519,
+   "worst": 0.15000527634398753,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.120815202672519,
+   "worst": 0.15000527634398753,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "qwen3next",
+  "represents": "Qwen3-Next with dense MLPs: the linear attention alone",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "seed_oss",
+  "model_type": "seed_oss",
+  "shape": "big",
+  "sens": 0.06016097205588847,
+  "stepped": {
+   "rel": 0.05425713816606522,
+   "worst": 0.0567031537854888,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.05633593943727974,
+   "worst": 0.06023357493264512,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "seed_oss",
+  "represents": "llama-shaped with biases",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "seed_oss",
+  "model_type": "seed_oss",
+  "shape": "small",
+  "sens": 0.047195947138219674,
+  "stepped": {
+   "rel": 0.04211868371491796,
+   "worst": 0.04722160511677673,
+   "top1": "3/4"
+  },
+  "batched": {
+   "rel": 0.043151150216110726,
+   "worst": 0.05039036744918602,
+   "top1": "3/4"
+  },
+  "pass": true,
+  "roster": "seed_oss",
+  "represents": "llama-shaped with biases",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "smollm3",
+  "model_type": "smollm3",
+  "shape": "big",
+  "sens": 0.05822000825640681,
+  "stepped": {
+   "rel": 0.05679294213986792,
+   "worst": 0.06206327877896201,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05886919283625566,
+   "worst": 0.06394190302944655,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "smollm3",
+  "represents": "llama with NoPE on every 4th layer (4 layers: the last has none)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "smollm3",
+  "model_type": "smollm3",
+  "shape": "small",
+  "sens": 0.05566132704964975,
+  "stepped": {
+   "rel": 0.054779606562434816,
+   "worst": 0.061293393526250205,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.0555616710349671,
+   "worst": 0.06280973792801027,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "smollm3",
+  "represents": "llama with NoPE on every 4th layer (4 layers: the last has none)",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "stablelm",
+  "model_type": "stablelm",
+  "shape": "big",
+  "sens": 0.06229862845478827,
+  "stepped": {
+   "rel": 0.05387787583912888,
+   "worst": 0.05596233522959726,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.05697029567489606,
+   "worst": 0.05864564325340766,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "stablelm",
+  "represents": "LayerNorm, 25% rotary, QKV bias, SwiGLU",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "stablelm",
+  "model_type": "stablelm",
+  "shape": "small",
+  "sens": 0.047584312113712474,
+  "stepped": {
+   "rel": 0.043976581043411136,
+   "worst": 0.04421461236086867,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.04689586914904695,
+   "worst": 0.04752761617274724,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "stablelm",
+  "represents": "LayerNorm, 25% rotary, QKV bias, SwiGLU",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "starcoder2",
+  "model_type": "starcoder2",
+  "shape": "big",
+  "sens": 0.04379081604482926,
+  "stepped": {
+   "rel": 0.038486191993333634,
+   "worst": 0.044185748078466126,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.039729231815780836,
+   "worst": 0.044401129803787805,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "starcoder2",
+  "represents": "LayerNorm with bias, ungated GELU, GQA, RoPE",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "starcoder2",
+  "model_type": "starcoder2",
+  "shape": "small",
+  "sens": 0.03654872285204758,
+  "stepped": {
+   "rel": 0.03418183214657204,
+   "worst": 0.03856679205511491,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.03506009129341106,
+   "worst": 0.04014170024277405,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": "starcoder2",
+  "represents": "LayerNorm with bias, ungated GELU, GQA, RoPE",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "vaultgemma",
+  "model_type": "vaultgemma",
+  "shape": "big",
+  "sens": 0.030463791355205497,
+  "stepped": {
+   "rel": 0.027717125388178238,
+   "worst": 0.028429346794982987,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.02783972916773632,
+   "worst": 0.02845986035403928,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "Gemma shape",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "vaultgemma",
+  "model_type": "vaultgemma",
+  "shape": "small",
+  "sens": 0.03020588101980793,
+  "stepped": {
+   "rel": 0.02664691297609577,
+   "worst": 0.027617855588896914,
+   "top1": "2/4"
+  },
+  "batched": {
+   "rel": 0.02628494404456503,
+   "worst": 0.027667870601146186,
+   "top1": "2/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "Gemma shape",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "xglm",
+  "model_type": "xglm",
+  "shape": "big",
+  "sens": 0.026743101922680042,
+  "stepped": {
+   "rel": 0.02469717008349627,
+   "worst": 0.02530578230020104,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.024710206292582977,
+   "worst": 0.025343210040364304,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "sinusoidal positions",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ },
+ {
+  "label": "xglm",
+  "model_type": "xglm",
+  "shape": "small",
+  "sens": 0.02667804504631583,
+  "stepped": {
+   "rel": 0.024204189856987,
+   "worst": 0.024344429973540516,
+   "top1": "4/4"
+  },
+  "batched": {
+   "rel": 0.024363987990742197,
+   "worst": 0.02452459578715734,
+   "top1": "4/4"
+  },
+  "pass": true,
+  "roster": null,
+  "represents": "sinusoidal positions",
+  "stamp": {
+   "transformers": "5.17.0",
+   "engine": "2c3075c0b975a9c6",
+   "builder": "2c7c34b87b8f1107"
+  }
+ }
+]

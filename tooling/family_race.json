@@ -1,0 +1,462 @@
+[
+ {
+  "label": "qwen2",
+  "model_type": "qwen2",
+  "t": "2026-09-29 20:54",
+  "params_m": 193.1,
+  "alloc": "output=6,attn_v=6@0;3;6;7,ffn_down=6@0;3;6;7",
+  "sheep_build_s": 162,
+  "bytes": {
+   "sheep": 129076374,
+   "llama": 127024320
+  },
+  "quality": {
+   "kld_sheep": 0.026855726623010723,
+   "kld_llama": 0.02672897255013971,
+   "top1_sheep": 0.58994708994709,
+   "top1_llama": 0.5687830687830688,
+   "positions": 756,
+   "kld_diff_ci": [
+    -7.531118984653115e-05,
+    0.00032846143230999493
+   ],
+   "won": false,
+   "lost": false
+  },
+  "cpu_pp": {
+   "ratio": 1.132,
+   "ci": [
+    1.039,
+    1.516
+   ],
+   "verdict": "WON"
+  },
+  "cpu_tg": {
+   "ratio": 1.049,
+   "ci": [
+    1.03,
+    1.103
+   ],
+   "verdict": "WON"
+  },
+  "gpu_pp": {
+   "ratio": 1.691,
+   "ci": [
+    1.638,
+    1.951
+   ],
+   "verdict": "WON"
+  },
+  "gpu_tg": {
+   "ratio": 1.161,
+   "ci": [
+    1.155,
+    1.572
+   ],
+   "verdict": "WON"
+  },
+  "won": {
+   "bytes": false,
+   "quality": false,
+   "cpu": true,
+   "gpu": true
+  },
+  "family_won": false,
+  "roster": "qwen2",
+  "represents": "llama + QKV bias",
+  "minutes": 3.8
+ },
+ {
+  "label": "llama",
+  "model_type": "llama",
+  "t": "2026-09-29 21:46",
+  "params_m": 193.1,
+  "alloc": "output=6,attn_v=6@0;3;6;7,ffn_down=6@0;3;6;7",
+  "sheep_build_s": 917,
+  "bytes": {
+   "sheep": 126001752,
+   "llama": 126974144
+  },
+  "quality": {
+   "kld_sheep": 0.027884478951604643,
+   "kld_llama": 0.02862960608084412,
+   "top1_sheep": 0.5767195767195767,
+   "top1_llama": 0.5357142857142857,
+   "positions": 756,
+   "kld_diff_ci": [
+    -0.0009780317016335838,
+    -0.0005147036513207272
+   ],
+   "won": true,
+   "lost": false
+  },
+  "cpu_pp": {
+   "ratio": 1.213,
+   "ci": [
+    1.06,
+    1.362
+   ],
+   "verdict": "WON"
+  },
+  "cpu_tg": {
+   "ratio": 1.135,
+   "ci": [
+    1.028,
+    1.396
+   ],
+   "verdict": "WON"
+  },
+  "gpu_pp": {
+   "ratio": 1.657,
+   "ci": [
+    1.613,
+    1.703
+   ],
+   "verdict": "WON"
+  },
+  "gpu_tg": {
+   "ratio": 1.167,
+   "ci": [
+    1.033,
+    1.173
+   ],
+   "verdict": "WON"
+  },
+  "won": {
+   "bytes": true,
+   "quality": true,
+   "cpu": true,
+   "gpu": true
+  },
+  "family_won": true,
+  "roster": "llama",
+  "represents": "RMSNorm, halved RoPE, SwiGLU, GQA",
+  "minutes": 16.4
+ },
+ {
+  "label": "qwen3",
+  "model_type": "qwen3",
+  "t": "2026-09-30 08:21",
+  "params_m": 214.1,
+  "alloc": "output=6,attn_v=6@0;3;6;7,ffn_down=6@0;3;6;7",
+  "bytes": {
+   "sheep": 138107103,
+   "llama": 139049984
+  },
+  "quality": {
+   "kld_sheep": 0.028999438390019797,
+   "kld_llama": 0.029159530735394193,
+   "top1_sheep": 0.5634920634920635,
+   "top1_llama": 0.5211640211640212,
+   "positions": 756,
+   "kld_diff_ci": [
+    -0.00038927574902278815,
+    5.342793744226785e-05
+   ],
+   "won": false,
+   "lost": false
+  },
+  "cpu_pp": {
+   "ratio": 1.128,
+   "ci": [
+    1.073,
+    1.25
+   ],
+   "verdict": "WON"
+  },
+  "cpu_tg": {
+   "ratio": 0.996,
+   "ci": [
+    0.975,
+    1.081
+   ],
+   "verdict": "NOT DECIDED"
+  },
+  "gpu_pp": {
+   "ratio": 0.986,
+   "ci": [
+    0.9,
+    1.127
+   ],
+   "verdict": "NOT DECIDED"
+  },
+  "gpu_tg": {
+   "ratio": 1.033,
+   "ci": [
+    0.979,
+    1.073
+   ],
+   "verdict": "NOT DECIDED"
+  },
+  "won": {
+   "bytes": true,
+   "quality": false,
+   "cpu": false,
+   "gpu": false
+  },
+  "family_won": false,
+  "roster": "qwen3",
+  "represents": "llama + Q/K RMSNorm",
+  "minutes": 0.9
+ },
+ {
+  "label": "gpt_neox",
+  "model_type": "gpt_neox",
+  "t": "2026-09-30 08:22",
+  "params_m": 182.7,
+  "alloc": "output=6,attn_v=6@0;3;6;7,ffn_down=6@0;3;6;7",
+  "bytes": {
+   "sheep": 121198044,
+   "llama": 124374144
+  },
+  "quality": {
+   "kld_sheep": 1.4406648983884591,
+   "kld_llama": 1.3895723356187344,
+   "top1_sheep": 0.6970899470899471,
+   "top1_llama": 0.6997354497354498,
+   "positions": 756,
+   "kld_diff_ci": [
+    -0.1777398563439094,
+    0.2737827014521776
+   ],
+   "won": false,
+   "lost": false
+  },
+  "cpu_pp": {
+   "ratio": 1.406,
+   "ci": [
+    1.154,
+    1.476
+   ],
+   "verdict": "WON"
+  },
+  "cpu_tg": {
+   "ratio": 1.128,
+   "ci": [
+    1.031,
+    1.212
+   ],
+   "verdict": "WON"
+  },
+  "gpu_pp": {
+   "ratio": 1.872,
+   "ci": [
+    1.645,
+    1.931
+   ],
+   "verdict": "WON"
+  },
+  "gpu_tg": {
+   "ratio": 1.044,
+   "ci": [
+    0.987,
+    1.108
+   ],
+   "verdict": "NOT DECIDED"
+  },
+  "won": {
+   "bytes": true,
+   "quality": false,
+   "cpu": true,
+   "gpu": false
+  },
+  "family_won": false,
+  "roster": "gpt_neox",
+  "represents": "LayerNorm, partial rotary, parallel residual, GELU",
+  "minutes": 0.6
+ },
+ {
+  "label": "bloom",
+  "model_type": "bloom",
+  "t": "2026-09-30 08:22",
+  "params_m": 203.7,
+  "alloc": "output=6,attn_v=6@0;3;6;7,ffn_down=6@0;3;6;7",
+  "bytes": {
+   "sheep": 134396532,
+   "llama": 137571488
+  },
+  "quality": {
+   "kld_sheep": 0.010851775749343547,
+   "kld_llama": 0.011120983789979225,
+   "top1_sheep": 0.7195767195767195,
+   "top1_llama": 0.7380952380952381,
+   "positions": 756,
+   "kld_diff_ci": [
+    -0.00033690307609473565,
+    -0.00019907964383800248
+   ],
+   "won": true,
+   "lost": false
+  },
+  "cpu_pp": {
+   "ratio": 0.185,
+   "ci": [
+    0.172,
+    0.206
+   ],
+   "verdict": "LOST"
+  },
+  "cpu_tg": {
+   "error": "no result",
+   "tail": "f, p, a.threads)\n  File \"C:\\Users\\earne\\Downloads\\Stallion v2\\sheep\\tooling\\sml_cpu_race_ci.py\", line 41, in sheep_decode\n    m = re.search(r\"generate %d tokens in [0-9.]+s\\s+([0-9.]+) tok/s\" % g, r.stdout)\n  File \"C:\\Users\\earne\\AppData\\Local\\Programs\\Python\\Python310\\lib\\re.py\", line 200, in search\n    return _compile(pattern, flags).search(string)\nTypeError: expected string or bytes-like object"
+  },
+  "gpu_pp": {
+   "ratio": 1.316,
+   "ci": [
+    1.265,
+    1.434
+   ],
+   "verdict": "WON"
+  },
+  "gpu_tg": {
+   "ratio": 0.951,
+   "ci": [
+    0.943,
+    0.962
+   ],
+   "verdict": "LOST"
+  },
+  "won": {
+   "bytes": true,
+   "quality": true,
+   "cpu": false,
+   "gpu": false
+  },
+  "family_won": false,
+  "roster": "bloom",
+  "represents": "ALiBi, LayerNorm, embedding LayerNorm",
+  "minutes": 0.7
+ },
+ {
+  "label": "stablelm",
+  "model_type": "stablelm",
+  "t": "2026-09-30 08:23",
+  "params_m": 193.2,
+  "alloc": "output=6,attn_v=6@0;3;6;7,ffn_down=6@0;3;6;7",
+  "bytes": {
+   "sheep": 126134485,
+   "llama": 127094880
+  },
+  "quality": {
+   "kld_sheep": 0.026182347621898097,
+   "kld_llama": 0.02599713398894483,
+   "top1_sheep": 0.5846560846560847,
+   "top1_llama": 0.582010582010582,
+   "positions": 756,
+   "kld_diff_ci": [
+    -1.9145878196752678e-05,
+    0.00038930216228943445
+   ],
+   "won": false,
+   "lost": false
+  },
+  "cpu_pp": {
+   "ratio": 1.168,
+   "ci": [
+    0.989,
+    1.489
+   ],
+   "verdict": "NOT DECIDED"
+  },
+  "cpu_tg": {
+   "ratio": 1.019,
+   "ci": [
+    0.996,
+    1.045
+   ],
+   "verdict": "NOT DECIDED"
+  },
+  "gpu_pp": {
+   "ratio": 2.181,
+   "ci": [
+    1.953,
+    2.401
+   ],
+   "verdict": "WON"
+  },
+  "gpu_tg": {
+   "ratio": 1.099,
+   "ci": [
+    0.984,
+    1.109
+   ],
+   "verdict": "NOT DECIDED"
+  },
+  "won": {
+   "bytes": true,
+   "quality": false,
+   "cpu": false,
+   "gpu": false
+  },
+  "family_won": false,
+  "roster": "stablelm",
+  "represents": "LayerNorm, 25% rotary, QKV bias, SwiGLU",
+  "minutes": 0.6
+ },
+ {
+  "label": "starcoder2",
+  "model_type": "starcoder2",
+  "t": "2026-09-30 08:24",
+  "params_m": 170.1,
+  "alloc": "output=6,attn_v=6@0;3;6;7,ffn_down=6@0;3;6;7",
+  "bytes": {
+   "sheep": 113284602,
+   "llama": 114275136
+  },
+  "quality": {
+   "kld_sheep": 0.010741676742092204,
+   "kld_llama": 0.010536197300603086,
+   "top1_sheep": 0.6970899470899471,
+   "top1_llama": 0.66005291005291,
+   "positions": 756,
+   "kld_diff_ci": [
+    0.00013891687185611787,
+    0.0002707992514832237
+   ],
+   "won": false,
+   "lost": true
+  },
+  "cpu_pp": {
+   "ratio": 1.112,
+   "ci": [
+    0.967,
+    1.62
+   ],
+   "verdict": "NOT DECIDED"
+  },
+  "cpu_tg": {
+   "ratio": 1.138,
+   "ci": [
+    1.091,
+    1.203
+   ],
+   "verdict": "WON"
+  },
+  "gpu_pp": {
+   "ratio": 2.298,
+   "ci": [
+    2.146,
+    2.501
+   ],
+   "verdict": "WON"
+  },
+  "gpu_tg": {
+   "ratio": 1.128,
+   "ci": [
+    0.966,
+    1.154
+   ],
+   "verdict": "NOT DECIDED"
+  },
+  "won": {
+   "bytes": true,
+   "quality": false,
+   "cpu": false,
+   "gpu": false
+  },
+  "family_won": false,
+  "roster": "starcoder2",
+  "represents": "LayerNorm with bias, ungated GELU, GQA, RoPE",
+  "minutes": 0.6
+ }
+]
