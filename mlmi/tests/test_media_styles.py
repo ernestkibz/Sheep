@@ -66,5 +66,28 @@ class Whisper(unittest.TestCase):
             self.assertIsNone(MS.whisper_snapshot_of("Systran/faster-whisper-large-v3"))
 
 
+class TestRun(unittest.TestCase):
+    """A new model is used only after a test run (2026-10-27)."""
+
+    def test_speech_passes_when_the_model_transcribes(self):
+        from mlmi.backend.tools import media as tm
+
+        class Ok:
+            def transcribe(self, x, **k):
+                return iter([]), None
+        with patch.object(tm, "_whisper", lambda: Ok()):
+            self.assertTrue(MS.test_run("speech_repo", None)[0])
+
+    def test_speech_fails_with_the_reason(self):
+        from mlmi.backend.tools import media as tm
+
+        def broken():
+            raise RuntimeError("model.bin is truncated")
+        with patch.object(tm, "_whisper", broken):
+            ok, why = MS.test_run("speech_repo", None)
+        self.assertFalse(ok)
+        self.assertIn("truncated", why)
+
+
 if __name__ == "__main__":
     unittest.main()

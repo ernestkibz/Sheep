@@ -126,6 +126,33 @@ def install_whisper(repo):
     return snap
 
 
+def test_run(key, state):
+    """(ok, why) after a new model is installed: speech transcribes a second of silence; a picture
+    model draws one small picture through the same worker the person's requests use."""
+    try:
+        if key == "speech_repo":
+            import numpy as np
+            from .tools import media as tm
+            segs, _ = tm._whisper().transcribe(np.zeros(16000, dtype=np.float32), vad_filter=False)
+            list(segs)                                   # the model really ran
+            return True, "it transcribed a test clip"
+        from . import tools as T
+        rel = ".sheep/model-test.png"
+        ctx = T.Ctx(state.ws, "agent")
+        ctx.state = state
+        T.run(state.ws, "make_image", {"prompt": "a red apple on a wooden table", "path": rel,
+                                       "width": 256, "height": 256}, by="agent", ctx=ctx)
+        p = state.ws.path(rel)
+        ok = p.exists() and p.stat().st_size > 2000
+        try:
+            p.unlink()
+        except OSError:
+            pass
+        return (True, "it drew a test picture") if ok else (False, "the test picture came out empty")
+    except Exception as exc:
+        return False, str(exc)[:200]
+
+
 def chosen_base(cfg):
     """The picture/video base: the person's SD 1.5 style when it is here, else Sheep's own SD 1.5."""
     repo = ((cfg or {}).get("media_models") or {}).get("image_style") or ""

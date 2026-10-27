@@ -34,8 +34,10 @@ LEVELS = ("cool", "warm", "hot", "critical")
 # false, then event 41). So heat lines sit at this laptop's real limits (the
 # RTX 3050 Laptop slows itself at 97 C; the chassis zone reads 96-98 C in normal
 # GPU work), and power has its own guard below.
-GPU_AT = (83.0, 88.0, 93.0)
-CPU_AT = (95.0, 99.0, 103.0)
+# Ernest, 2026-10-27: "too rigid; let things run, only pause at 99". Hot is now the same line as
+# critical, so nothing rests or slows below it: warm (88) is shown, nothing more.
+GPU_AT = (88.0, 99.0, 99.0)
+CPU_AT = (97.0, 103.0, 103.0)
 # power: on battery the optional background work waits so the charge goes to the
 # person's own requests; low battery also holds new GPU work
 BATTERY_LOW, BATTERY_CRITICAL = 25, 10
@@ -54,11 +56,11 @@ STUCK_SAMPLES, STUCK_LOAD_SPAN = 24, 25.0
 # The person's own work goes at full speed until the danger line (Ernest, 2026-10-26: no speed
 # lost to llama.cpp, which never waits, but no shutdown mid-work). The RTX 3050 Laptop slows itself
 # at 97 C and this laptop reached 99 C before it cut out, so the line sits just under the card's own.
-DANGER_GPU, DANGER_CPU = 96.0, CPU_AT[2]
+DANGER_GPU, DANGER_CPU = GPU_AT[2], CPU_AT[2]
 # Before the danger line the engine slows smoothly instead (Ernest, 2026-10-27): from PACE_FROM it
 # rests a little after each written token, rising to PACE_MAX_MS at the danger line. Below
 # PACE_FROM nothing changes: this laptop runs 91-93 C in normal load and loses no speed there.
-PACE_FROM_GPU, PACE_FROM_CPU, PACE_MAX_MS = 94.0, DANGER_CPU - 2.0, 24
+PACE_FROM_GPU, PACE_FROM_CPU, PACE_MAX_MS = DANGER_GPU, DANGER_CPU, 24     # no slowdown below the pause line
 # how long a chat step waits for heat to fall before going on anyway (the person is waiting)
 WAIT_CRITICAL_S = 45.0
 _NOWIN = getattr(subprocess, "CREATE_NO_WINDOW", 0)
@@ -220,8 +222,7 @@ class Governor:
         else:
             self._loaded_since = None
         sustained = self._loaded_since is not None and now - self._loaded_since >= LOAD_FOR_S
-        if sustained and lv == 1:
-            lv = 2
+        # a busy CPU no longer counts as hot (2026-10-27): only the readings decide
         hot_now = (gpu is not None and gpu >= DANGER_GPU) or (cpu is not None and cpu >= DANGER_CPU)
         cool_now = (gpu is None or gpu < DANGER_GPU - RELEASE) and (cpu is None or cpu < DANGER_CPU - RELEASE)
         danger = hot_now or (self.danger and not cool_now)

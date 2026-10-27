@@ -1037,6 +1037,14 @@ def make_handler(st):
                     if rec.get("style") or rec.get("speech_repo"):
                         from . import media_styles as _ms
                         from .tools import media as _tm
+                        mm = st.cfg.setdefault("media_models", {})
+                        key = "image_style" if rec.get("style") else "speech_repo"
+                        before = mm.get(key)
+
+                        def _restart():
+                            for w in list(getattr(_tm, "_Worker").ALL):
+                                w.stop()                          # the next picture loads the chosen base
+                            _tm._WHISPER.clear()
                         try:
                             if rec.get("style"):
                                 _ms.install_style(rec["style"])
@@ -1044,15 +1052,24 @@ def make_handler(st):
                                 if not any((_md / "lcm").glob("*.safetensors")):
                                     from .adapters.fetch import fetch as _fetch
                                     _fetch("lcm")                 # the 4-step add-on the style runs with
-                                st.cfg.setdefault("media_models", {})["image_style"] = rec["style"]
-                                for w in list(getattr(_tm, "_Worker").ALL):
-                                    w.stop()                      # the next picture loads the new base
                             else:
                                 _ms.install_whisper(rec["speech_repo"])
-                                st.cfg.setdefault("media_models", {})["speech_repo"] = rec["speech_repo"]
-                                _tm._WHISPER.clear()
+                            mm[key] = rec.get("style") or rec["speech_repo"]
+                            _restart()
+                            # a test run before it is trusted: a broken or incomplete download fails here,
+                            # not on the person's first real request (2026-10-27)
+                            ok, why = _ms.test_run(key, st)
                         except Exception as exc:
-                            return self._send(409, {"error": f"could not install it: {str(exc)[:200]}"})
+                            ok, why = False, f"could not install it: {str(exc)[:200]}"
+                        if not ok:
+                            if before:
+                                mm[key] = before
+                            else:
+                                mm.pop(key, None)
+                            _restart()
+                            st.save()
+                            return self._send(409, {"error": f"{repo_id} did not pass its test run, so the previous "
+                                                             f"model stays in use: {why}"})
                         st.save()
                         return self._send(200, {"accepted": True, "slots": _slots.current(st),
                                                 "message": f"{repo_id} is installed and chosen."})

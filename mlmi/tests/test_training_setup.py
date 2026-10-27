@@ -27,7 +27,7 @@ class CheckerTrainingSetupTests(unittest.TestCase):
         self.assertIn('id="hHeat"', ui)
         start = ui.index('id="hHeat"')
         note = ui[start:ui.index('id="hAdv"', start)]
-        self.assertIn("background checks run in bursts", note)
+        self.assertIn("pause briefly", note)            # 2026-10-27: only at 99 C
         adv = ui[ui.index('id="hAdv"'):ui.index('id="hList"')]
         self.assertIn('id="hCheckerTraining"', adv)
         self.assertNotIn("Chat, image, and video work are never paused", note)

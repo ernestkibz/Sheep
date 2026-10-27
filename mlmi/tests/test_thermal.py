@@ -25,27 +25,36 @@ class LevelTests(unittest.TestCase):
         g = gov()
         g.update(GW - 10, 60, 10, now=0)
         self.assertEqual(g.name, "cool")
-        g.update(GH + 1, 60, 10, now=1)
-        self.assertEqual(g.name, "hot")
-        g.update(GH - R + 1, 60, 10, now=2)      # below hot, above its release: stays hot
-        self.assertEqual(g.name, "hot")
-        g.update(GH - R - 1, 60, 10, now=3)      # below the release: warm
+        g.update(GW + 1, 60, 10, now=1)
         self.assertEqual(g.name, "warm")
-        g.update(GC + 1, 60, 10, now=4)
+        g.update(GC, 60, 10, now=2)
         self.assertEqual(g.name, "critical")
+        g.update(GC - R + 1, 60, 10, now=3)      # below the line, above its release: still critical
+        self.assertEqual(g.name, "critical")
+        g.update(GC - R - 1, 60, 10, now=4)      # below the release: warm
+        self.assertEqual(g.name, "warm")
+
+    def test_nothing_waits_or_slows_below_99(self):
+        # 2026-10-27: "too rigid; let things run, only pause at 99"
+        self.assertEqual(GC, 99.0)
+        g = gov()
+        g.update(GC - 1, 60, 100, now=0)
+        self.assertIsNone(g.background_wait(now=0))
+        self.assertIsNone(g.background_wait(now=500))
+        self.assertIsNone(g.gpu_wait())
+        self.assertIsNone(g.gpu_wait(person=True))
+        self.assertEqual(g.pace_ms(), 0)
+        self.assertEqual(g.pace(), 0.0)
 
     def test_cpu_counts_as_much_as_gpu(self):
         g = gov()
-        g.update(GW - 10, CH + 1, 10, now=0)
-        self.assertEqual(g.name, "hot")
+        g.update(GW - 10, CC + 1, 10, now=0)
+        self.assertEqual(g.name, "critical")
 
-    def test_sustained_load_while_warm_is_hot(self):
+    def test_a_busy_cpu_alone_changes_nothing(self):
         g = gov()
         g.update(GW + 1, 60, 95, now=0)
-        self.assertEqual(g.name, "warm")
         g.update(GW + 1, 60, 95, now=T.LOAD_FOR_S + 1)
-        self.assertEqual(g.name, "hot")
-        g.update(GW + 1, 60, 20, now=T.LOAD_FOR_S + 2)
         self.assertEqual(g.name, "warm")
 
     def test_switched_off_never_paces(self):
@@ -63,41 +72,17 @@ class WaitTests(unittest.TestCase):
         self.assertIsNone(g.background_wait(now=0))
         self.assertEqual(g.pace(), 0.0)
 
-    def test_hot_runs_background_in_bursts_and_never_starves(self):
-        g = gov()
-        g.update(GH + 1, 60, 10, now=0)
-        self.assertIsNone(g.background_wait(now=0))
-        self.assertIsNotNone(g.background_wait(now=T.HOT_RUN_S + 1))
-        self.assertIsNone(g.background_wait(now=T.HOT_RUN_S + T.HOT_REST_S + 1))
-        self.assertIsNone(g.gpu_wait())
-        self.assertEqual(g.pace(), 0.0)
-
     def test_critical_stops_background_and_new_gpu_work(self):
         g = gov()
         g.update(GC + 1, 60, 10, now=0)
         self.assertIsNotNone(g.background_wait(now=0))
         self.assertIsNotNone(g.gpu_wait())
 
-    def test_critical_below_the_danger_line_costs_the_person_nothing(self):
-        # 2026-10-26: chat waited at 93 C, the laptop's normal load heat, and fell behind llama.cpp
+    def test_at_the_line_the_person_s_work_pauses_too(self):
         g = gov()
-        g.update(T.DANGER_GPU - 1, 60, 10, now=0)
-        self.assertEqual(g.name, "critical")
-        self.assertEqual(g.pace(), 0.0)
-        self.assertIsNone(g.gpu_wait(person=True))
-        self.assertIsNotNone(g.gpu_wait())                 # background GPU work still waits
-        self.assertIsNotNone(g.background_wait(now=0))
-
-    def test_pace_is_zero_in_normal_heat_and_rises_smoothly_to_the_danger_line(self):
-        g = gov()
-        for t, want in ((80, 0), (93, 0), (T.PACE_FROM_GPU, 0)):
-            g.update(t, 60, 10, now=0)
-            self.assertEqual(g.pace_ms(), want, t)
-        g.update((T.PACE_FROM_GPU + T.DANGER_GPU) / 2, 60, 10, now=0)
-        mid = g.pace_ms()
-        self.assertTrue(0 < mid < T.PACE_MAX_MS)
         g.update(T.DANGER_GPU + 1, 60, 10, now=0)
         self.assertEqual(g.pace_ms(), T.PACE_MAX_MS)
+        self.assertIsNotNone(g.gpu_wait(person=True))
 
     def test_pace_off_with_the_guard_off(self):
         g = T.Governor(enabled=lambda: False, read=lambda: (None, None, None), read_power=lambda: None)
@@ -178,7 +163,7 @@ class StuckSensorTests(unittest.TestCase):
         for i in range(T.STUCK_SAMPLES):
             g.update(60, CH + 1, 50, now=i * T.PERIOD_S)
         self.assertFalse(g.cpu_stuck)
-        self.assertEqual(g.name, "hot")
+        self.assertEqual(g.name, "critical")          # CH is the pause line since 2026-10-27
 
     def test_a_moving_reading_is_believed_again(self):
         g = gov()

@@ -283,7 +283,7 @@ pre.tail { background:var(--bg); border:1px solid var(--line); border-radius:6px
 .setup-what { min-width:0; display:grid; gap:2px; }
 .setup-what .dim { font-size:12.5px; }
 .setup-opt { font-size:11px; color:var(--faint); border:1px solid var(--line2); border-radius:999px; padding:0 7px; margin-left:6px; }
-.setup-act { display:flex; justify-content:flex-end; }
+.setup-act { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:6px; }
 a.btn { display:inline-flex; align-items:center; padding:6px 12px; border-radius:8px; border:1px solid var(--line2);
   background:var(--panel2); color:var(--ink); text-decoration:none; font-size:13.5px; white-space:nowrap; }
 a.btn:hover { background:var(--hover); }

@@ -651,8 +651,12 @@ const MLMI = (() => {
   function setupButton(a, label, main) {
     if (!a) return "";
     const data = esc(JSON.stringify({ ...a, what: label, main }));
+    // the suggested model, or any model of the person's choice for the same job
+    const slot = { "sd15-lcm": "image", "animatediff-lightning": "video", "whisper-small": "speech_input" }[a.id];
+    const other = a.do === "media" && slot
+      ? `<button class="ghost" data-setup='${esc(JSON.stringify({ do: "slot", slot, label: "Choose another" }))}' title="Pick any Hugging Face model for this job instead">Choose another…</button>` : "";
     return a.do === "link" ? `<a class="btn" href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.label)}</a>`
-      : `<button class="${main ? "primary" : ""}" data-setup='${data}'>${esc(a.label)}</button>`;
+      : `<button class="${main ? "primary" : ""}" data-setup='${data}'>${esc(a.label)}</button>${other}`;
   }
   function setupRows(items) {
     return items.map((i) => `<li class="setup-row ${i.ok ? "ready" : ""}">${setupTag(i.ok)}

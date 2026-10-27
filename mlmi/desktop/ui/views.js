@@ -503,8 +503,8 @@
             <div class="field" style="margin-top:6px"><span class="k">pictures, sound, video</span><span id="hMedia"></span></div>
             <div class="note" id="hMediaWhy"></div>
             <div class="field" style="margin-top:10px"><span class="k">heat guard</span><span class="inrow"><button class="switch" id="hHeat" title="Heat guard on or off"></button><span class="note" id="hHeatNow"></span></span></div>
-            <details class="adv"><summary>On: Sheep slows down when this computer is hot, and saves the battery when it is unplugged</summary>
-              <div class="note">Sheep watches this computer's temperature. Your own work runs at full speed through normal working heat. When the graphics card nears its limit (94 °C), Sheep writes a little slower so the card cools without stopping; only at the danger point (96 °C) does it pause briefly. When it is hot, background checks run in bursts with short rests, and when it is very hot they wait for it to cool. On battery, background checks wait for the charger so the charge goes to your own requests, and when the battery is low new GPU work waits too, so a power cut does not run the laptop flat while Sheep works.</div></details>
+            <details class="adv"><summary>On: Sheep pauses only at 99 °C, so this computer does not shut down mid-work</summary>
+              <div class="note">Sheep watches this computer's temperature and runs everything at full speed. Only when the graphics card reaches 99 °C (or the processor sensor 103 °C) does it pause briefly to let it cool, then carry on. On battery, background checks wait for the charger so the charge goes to your own requests, and when the battery is low new GPU work waits too, so a power cut does not run the laptop flat while Sheep works.</div></details>
             <div style="margin-top:10px"><div class="caps">What Sheep is set up for</div>
               <div class="note">Only a chat model is needed. Everything else is an optional extra: add it when you want that feature.</div>
               <ul id="hSetupList"></ul></div>
