@@ -95,6 +95,9 @@ from .media import (  # noqa: F401
     transcription_paths,
     _unique_workspace_path,
     explicit_media_plan,
+    VISUAL_INSTRUCTION,
+    scene_from_request,
+    clean_visual,
     video_wants_narration,
     extract_requested_narration,
     VIDEO_IMAGE_EXTS,
@@ -979,7 +982,19 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                                  if selected_video_images else "A short scene unfolds in gentle motion.")
             if narration_is_explicit and (len(narration) > 220 or "```" in narration):
                 raise ToolError("the requested narration is too long for one voice clip; shorten the spoken line and retry")
-            media_calls = explicit_media_plan(ws, asked, selected_video_images, narration)
+            # the scene for the video model, written by the chat model; the trimmed request if it cannot
+            visual = ""
+            if re.search(AI_VIDEO, cue, re.I) or re.search(PHOTO_ANIMATION, cue, re.I):
+                emit({"type": "thinking", "route": "local", "what": "Writing the scene for the video model"})
+                fallback = scene_from_request(asked)
+                try:
+                    msg, _ = local.chat([{"role": "system", "content": VISUAL_INSTRUCTION},
+                                         {"role": "user", "content": asked}], None, max_tokens=120,
+                                        **base_kw(cache=False))
+                    visual = clean_visual(msg.get("content"), fallback)
+                except LLMError:
+                    visual = fallback
+            media_calls = explicit_media_plan(ws, asked, selected_video_images, narration, visual)
             if not media_calls:
                 raise ToolError("this media request could not be routed safely")
         except (ToolError, LLMError) as e:
@@ -1023,6 +1038,9 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                     audio_warnings.append(f"could not verify the audio track in {args['out']} because ffprobe is unavailable")
         outputs = ", ".join(sorted(rc.made))
         note = ""
+        scene_used = next((a.get("prompt") for n, a in media_calls if n == "make_video"), "")
+        if scene_used:
+            note += f" Scene given to the video model: \"{scene_used}\"."
         if wants_narration:
             if verified_audio and all(verified_audio) and not audio_warnings:
                 note += " The rendered video audio tracks were verified."

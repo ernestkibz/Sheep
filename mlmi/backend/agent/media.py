@@ -94,7 +94,43 @@ def _unique_workspace_path(ws, requested):
     raise ToolError("could not find an unused output name for this media job")
 
 
-def explicit_media_plan(ws, text, selected_images, narration=""):
+# The video model draws what it is told: it was handed the person's own words, trimmed by a
+# regex ("a 2-second text-to-video clip of a red kite ... with a short", 2026-10-11). The chat
+# model now writes the scene as a picture is described: subject, setting, light, camera, style.
+VISUAL_INSTRUCTION = (
+    "Rewrite the request as a prompt for an image or video generator. Describe only what is seen: "
+    "the subject, what it does, the setting, the light, the camera view and the style, in one or two "
+    "sentences, at most 60 words. Leave out words about making a video, seconds, voice-over, music, "
+    "files or apps. Do not invent people, brands or text on screen that the request does not mention. "
+    "Return only the prompt.")
+META = re.compile(r"\b(?:\d{1,2}[- ]?seconds?\b(?:\s+long)?|text[- ]to[- ]video|video clip|a video of|video of|clip of|"
+                  r"voice[- ]?over|narrat\w*|mp4|sheep studio)\b", re.I)
+
+
+def scene_from_request(text):
+    """The person's words without the asking: the fallback when no model writes the scene."""
+    scene = re.sub(r"^\s*(?:please\s+)?(?:sheep[, :]\s*)?(?:make|create|generate|produce)\s+", "", str(text or ""), flags=re.I)
+    scene = re.sub(r"[,;]?\s+(?:and\s+)?(?:with\s+)?(?:brief\s+)?(?:a\s+)?(?:voice[- ]?over|narrat\w*|spoken description)\b.*$",
+                   "", scene, flags=re.I)
+    scene = re.sub(r"\b(?:a|an)\s+(?:\d{1,2}[- ]?second\s+)?(?:video\s+)?clip\s+of\s+", "", scene, flags=re.I)
+    scene = re.sub(r"\s+", " ", META.sub(" ", scene))
+    scene = re.sub(r"[,;]?\s+(?:with|and)(?:\s+an?)?(?:\s+(?:short|brief|quick))?\s*$", "", scene, flags=re.I)
+    scene = re.sub(r"^(?:(?:an?|the)\s+)+(?=(?:an?|the)\s)", "", scene.strip(), flags=re.I)
+    return scene.strip(" .,!;\n")
+
+
+def clean_visual(written, fallback):
+    """The model's scene, kept only when it reads as one: a few sentences of description,
+    no code, no meta words left. Otherwise the trimmed request."""
+    v = re.sub(r"^\s*(?:prompt\s*:\s*)?[\"'`]+|[\"'`]+\s*$", "", str(written or "").strip(), flags=re.I)
+    v = re.sub(r"\s+", " ", META.sub("", v)).strip(" .,;:")
+    words = re.findall(r"\b[\w'-]+\b", v)
+    if "```" in v or not 5 <= len(words) <= 80 or re.search(r"\b(?:I can|I cannot|sorry|as an AI)\b", v, re.I):
+        return fallback
+    return v
+
+
+def explicit_media_plan(ws, text, selected_images, narration="", visual=""):
     """Build a bounded tool sequence for an explicit video/montage request.
 
     The LLM still writes requested narration. Sheep owns the mechanical routing:
@@ -146,9 +182,7 @@ def explicit_media_plan(ws, text, selected_images, narration=""):
 
     if photo_animation or text_video:
         raw_video = _unique_workspace_path(ws, f"media/{stem}-source.mp4")
-        scene = re.sub(r"^\s*(?:please\s+)?(?:sheep[, :]\s*)?(?:make|create|generate|produce)\s+", "", t, flags=re.I)
-        scene = re.sub(r"[,;]?\s+(?:and\s+)?(?:with\s+)?(?:brief\s+)?(?:a\s+)?(?:voice[- ]?over|narrat\w*|spoken description)\b.*$",
-                       "", scene, flags=re.I).strip(" .,!;\n")
+        scene = visual or scene_from_request(t)
         if photo_animation:
             scene = ("A gentle, natural photo-guided animation with subtle camera movement; "
                      "preserve the selected photos' subjects and composition. " + scene).strip()
