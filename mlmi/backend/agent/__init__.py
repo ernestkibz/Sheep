@@ -205,7 +205,9 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
         # unready AMD runtime stopped picture requests whose model was ready)
         missing = [i for i in items if not i["ok"] and not i.get("speedup")]
         if (tool not in names and not able(state, [tool])[0]) or missing:
-            show = [i for i in items if not i["ok"]] or [{"label": f"a {kind} model", "ok": False, "need":
+            # what this request needs is not optional here, whatever it is in Settings
+            show = [{**i, "optional": False, "need": "Sheep needs this to do what you asked. It installs once."}
+                    if not i.get("speedup") else i for i in items if not i["ok"]] or [{"label": f"a {kind} model", "ok": False, "need":
                     f"Sheep needs a {kind} model for this.", "action": {"do": "slot", "slot": "chat", "label": "Add a model"}}]
             names_ = ", ".join(i["label"] for i in show if not i.get("speedup"))
             emit({"type": "text", "route": "local", "text":
