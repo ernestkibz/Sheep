@@ -14,7 +14,7 @@
     ["sheep", "Models in one place", "Settings › Models picks the model for chat, pictures, video and speech. Add any model: Sheep fits it to this computer and checks it before use."],
     ["check", "Fix buttons in chat", "If something is missing, the chat says what and shows a button to get it, then Try again. Choose another… picks a different model."],
     ["play", "Videos and ads", "Ask for a clip, or attach a video and ask what happens in it. Studio crops, splits, fades and turns photos into an ad."],
-    ["gauge", "Heat", "Sheep runs at full speed and pauses only if the graphics card reaches 99 °C, then carries on."],
+    ["gauge", "Heat", "Sheep runs at full speed and pauses only if the graphics card reaches 95 °C, then carries on."],
     ["mic", "Speak instead of typing", "Mic: press, speak, press again; your words appear in the box. Talk: a spoken conversation, where Sheep listens, answers aloud, and listens again. Works with any chat model."],
   ];
   const QUICK_PARTS = [

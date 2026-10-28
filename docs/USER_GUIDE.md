@@ -119,7 +119,7 @@ card. It is published privately first, with the original's licence.
 A new model first answers a short exam; Sheep is usable as soon as it passes (**Model ready**). Then check
 questions with known answers (**Answers checked**) and real jobs in Sheep's apps, each checked by opening what
 the model made (**Apps checked**). These run in the background, step aside whenever you ask something, and
-wait only when the graphics card reaches 99 °C or the computer runs on battery. A model that already passed on this computer, unchanged, skips
+wait only when the graphics card reaches 95 °C or the computer runs on battery. A model that already passed on this computer, unchanged, skips
 the checks it passed. **Settings › Activity** shows every check, row by row.
 
 Every reply is watched for faults: empty replies, loops, leaked markers, broken JSON or code. If a model
@@ -155,7 +155,7 @@ Intel graphics. Choose where text models run:
 A choice this computer cannot run is greyed out, with the reason on hover. If a graphics card fails, the reply
 finishes on the processor and Settings says why.
 
-The **heat guard** lets everything run at full speed and pauses only when the graphics card reaches 99 °C
+The **heat guard** lets everything run at full speed and pauses only when the graphics card reaches 95 °C
 (the processor sensor 103 °C), so the computer does not shut down in the middle of your work. On battery,
 background checks wait for the charger. After a new model is added, Sheep times it on each device here
 (speed trial) and tries a few engine settings (engine tune), keeping one only if the answer stays word

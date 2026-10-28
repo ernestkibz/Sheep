@@ -125,7 +125,7 @@ const MLMI = (() => {
     S.rbOpen = expanded;
   }
   const readinessNames = { startup: "Model ready", canaries: "Answers checked", orientation: "Apps checked" };
-  const readinessStates = { "not started": "Not started", queued: "Starts in a moment", running: "In progress", passed: "Done", failed: "Needs a retry", blocked: "Unavailable", deferred: "Waiting for a quiet moment", "waiting for chat": "Paused while you chat", "waiting for quick exam": "Starts in a moment", "blocked by canary failures": "Waiting for an earlier check", "waiting for GPU": "Waiting for the GPU", "waiting for temperature": "Paused: the graphics card is at 99 °C; it carries on when it cools", "waiting for model load": "Waiting for model load" };
+  const readinessStates = { "not started": "Not started", queued: "Starts in a moment", running: "In progress", passed: "Done", failed: "Needs a retry", blocked: "Unavailable", deferred: "Waiting for a quiet moment", "waiting for chat": "Paused while you chat", "waiting for quick exam": "Starts in a moment", "blocked by canary failures": "Waiting for an earlier check", "waiting for GPU": "Waiting for the GPU", "waiting for temperature": "Paused: the graphics card is at 95 °C; it carries on when it cools", "waiting for model load": "Waiting for model load" };
   const readinessStages = { "probing this machine": "Checking this computer", planning: "Choosing a device", "starting the engine": "Starting the model", "retrying one app task": "Retrying one app task" };
   async function refresh() {
     try { S.state = await api("/api/state"); } catch (e) {

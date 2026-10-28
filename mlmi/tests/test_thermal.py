@@ -34,9 +34,9 @@ class LevelTests(unittest.TestCase):
         g.update(GC - R - 1, 60, 10, now=4)      # below the release: warm
         self.assertEqual(g.name, "warm")
 
-    def test_nothing_waits_or_slows_below_99(self):
+    def test_nothing_waits_or_slows_below_95(self):
         # 2026-10-27: "too rigid; let things run, only pause at 99"
-        self.assertEqual(GC, 99.0)
+        self.assertEqual(GC, 95.0)          # 2026-10-28: lowered to 95 after a hot shutdown
         g = gov()
         g.update(GC - 1, 60, 100, now=0)
         self.assertIsNone(g.background_wait(now=0))

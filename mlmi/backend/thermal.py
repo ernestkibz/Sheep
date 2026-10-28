@@ -36,7 +36,7 @@ LEVELS = ("cool", "warm", "hot", "critical")
 # GPU work), and power has its own guard below.
 # Ernest, 2026-10-27: "too rigid; let things run, only pause at 99". Hot is now the same line as
 # critical, so nothing rests or slows below it: warm (88) is shown, nothing more.
-GPU_AT = (88.0, 99.0, 99.0)
+GPU_AT = (88.0, 95.0, 95.0)   # Ernest, 2026-10-28: 95 after a hot shutdown at 13:52 with no pause logged
 CPU_AT = (97.0, 103.0, 103.0)
 # power: on battery the optional background work waits so the charge goes to the
 # person's own requests; low battery also holds new GPU work

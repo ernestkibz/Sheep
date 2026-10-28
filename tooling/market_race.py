@@ -179,7 +179,7 @@ class Sheep(Http):
     def start(self):
         self.file = SSF
         exe = ROOT / "sml" / "sml-server.exe"
-        dev = {"cpu": "cpu", "gpu": "gpu"}[self.device]
+        dev = {"cpu": "cpu", "gpu": "gpu", "auto": "gpu"}[self.device]
         self.proc = subprocess.Popen([str(exe), SSF, "--port", str(self.port), "--ctx", str(CTX), "--slots", "1",
                                       "--threads", os.environ.get("SHEEP_THREADS", str(THREADS)), "--device", dev,
                                       "--orchestrator", os.environ.get("SHEEP_ORCH", "off")],
@@ -200,8 +200,8 @@ class LlamaCpp(Http):
         self.file = GGUF
         exe = SERVER_CUDA if self.device == "gpu" else SERVER_CPU
         args = [exe, "-m", GGUF, "--port", str(self.port), "-c", str(CTX), "-np", "1", "-t", str(THREADS), "--jinja"]
-        args += ["-ngl", "99"] if self.device == "gpu" else ["-ngl", "0", "-dev", "none"]
-        env = dict(os.environ, **({} if self.device == "gpu" else {"CUDA_VISIBLE_DEVICES": "-1"}))
+        args += {"gpu": ["-ngl", "99"], "auto": [], "cpu": ["-ngl", "0", "-dev", "none"]}[self.device]
+        env = dict(os.environ, **({"CUDA_VISIBLE_DEVICES": "-1"} if self.device == "cpu" else {}))
         self.proc = subprocess.Popen(args, cwd=os.path.dirname(exe), env=env,
                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         wait_http(self.url + "/health", self.proc)
@@ -227,13 +227,14 @@ class Ollama(Http):
     def start(self):
         self.file = GGUF
         env = dict(os.environ, OLLAMA_HOST=f"127.0.0.1:{self.port}", OLLAMA_KEEP_ALIVE="30m", OLLAMA_MODELS=OLLAMA_MODELS,
-                   **({} if self.device == "gpu" else {"CUDA_VISIBLE_DEVICES": "-1"}))
+                   **({"CUDA_VISIBLE_DEVICES": "-1"} if self.device == "cpu" else {}))
         self.proc = subprocess.Popen([OLLAMA, "serve"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         wait_http(self.url + "/api/version", self.proc)
         self.native([{"role": "user", "content": "hi"}], 1)      # load the model now: load time belongs to start
 
     def options(self, max_tokens, temperature):
-        return {"num_ctx": CTX, "num_thread": THREADS, "num_gpu": 99 if self.device == "gpu" else 0,
+        gpu = {"gpu": {"num_gpu": 99}, "cpu": {"num_gpu": 0}, "auto": {}}[self.device]
+        return {"num_ctx": CTX, "num_thread": THREADS, **gpu,
                 "num_predict": max_tokens, "temperature": temperature, "seed": 1}
 
     def native(self, messages, max_tokens, temperature=0):

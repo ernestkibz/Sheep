@@ -507,8 +507,8 @@
             <div class="field" style="margin-top:6px"><span class="k">pictures, sound, video</span><span id="hMedia"></span></div>
             <div class="note" id="hMediaWhy"></div>
             <div class="field" style="margin-top:10px"><span class="k">heat guard</span><span class="inrow"><button class="switch" id="hHeat" title="Heat guard on or off"></button><span class="note" id="hHeatNow"></span></span></div>
-            <details class="adv"><summary>On: Sheep pauses only at 99 °C, so this computer does not shut down mid-work</summary>
-              <div class="note">Sheep watches this computer's temperature and runs everything at full speed. Only when the graphics card reaches 99 °C (or the processor sensor 103 °C) does it pause briefly to let it cool, then carry on. On battery, background checks wait for the charger so the charge goes to your own requests, and when the battery is low new GPU work waits too, so a power cut does not run the laptop flat while Sheep works.</div></details>
+            <details class="adv"><summary>On: Sheep pauses only at 95 °C, so this computer does not shut down mid-work</summary>
+              <div class="note">Sheep watches this computer's temperature and runs everything at full speed. Only when the graphics card reaches 95 °C (or the processor sensor 103 °C) does it pause briefly to let it cool, then carry on. On battery, background checks wait for the charger so the charge goes to your own requests, and when the battery is low new GPU work waits too, so a power cut does not run the laptop flat while Sheep works.</div></details>
             <div style="margin-top:10px"><div class="caps">What Sheep is set up for</div>
               <div class="note">Only a chat model is needed. Everything else is an optional extra: add it when you want that feature.</div>
               <ul id="hSetupList"></ul></div>

@@ -336,11 +336,13 @@ def hardware(out):
             slack = {"%": 0.5, "MB": 50, "W": 0.3}[unit]     # a few MB or a tenth of a watt is noise
             lead = [e for e, _, v in vals if v <= best * 1.02 + slack]
             if len(lead) == len(vals):
-                who, word, c = "tie", "Tie", TIE
+                who, word, c = "tie", "All about the same", TIE
             elif "Sheep" in lead:
-                who, word, c = "Sheep", "✓ Sheep uses least" + (" (tie)" if len(lead) > 1 else ""), WIN
+                who, word, c = "Sheep", "✓ Sheep uses the least" + (" (tied)" if len(lead) > 1 else ""), WIN
             else:
-                who, word, c = lead[0], f"{' and '.join(lead)} use{'s' if len(lead) == 1 else ''} least", LOSS
+                who, word, c = lead[0], f"Lowest: {' and '.join(lead)}", MUTED
+            if k == "peak_vram_mb" and dev == "gpu" and who != "Sheep":
+                word = word + " · Sheep fills spare card memory for speed"
             wins.append(who)
             ax.text(0, i * 4.2 + 2.85, word, va="center", fontsize=10.5, color=c, fontweight="bold")
             ax.text(-top * 0.03, i * 4.2 + 1, dev.upper(), va="center", ha="right", fontsize=11, color=INK,
@@ -352,7 +354,7 @@ def hardware(out):
         clean(ax)
         ax.set_title(t, loc="left", fontsize=12, color=INK, fontweight="bold")
     score(fig, [("Sheep uses least", wins.count("Sheep"), WIN),
-                ("another uses less", sum(w not in ("Sheep", "tie") for w in wins), LOSS),
+                ("another uses less", sum(w not in ("Sheep", "tie") for w in wins), MUTED),
                 ("tie", wins.count("tie"), TIE)], len(wins))
     fig.legend(handles=[plt.Rectangle((0, 0), 1, 1, color=c) for _, c in engines], labels=[e for e, _ in engines],
                loc="lower left", ncol=3, frameon=False, bbox_to_anchor=(0.015, 0.0))

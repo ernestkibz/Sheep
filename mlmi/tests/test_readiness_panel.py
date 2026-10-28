@@ -76,7 +76,7 @@ class ReadinessPanelTests(unittest.TestCase):
         self.assertIn("const hasCompletedWork = validNumber(c.done) && Number(c.done) > 0;", self.app)
         self.assertIn('const moving = c.state === "running" || String(c.state || "").startsWith("waiting for ");', self.app)
         # the heat guard reads CPU and GPU, so the label names neither (2026-10-12)
-        self.assertIn('"waiting for temperature": "Paused: the graphics card is at 99 °C; it carries on when it cools"', self.app)
+        self.assertIn('"waiting for temperature": "Paused: the graphics card is at 95 °C; it carries on when it cools"', self.app)
 
     def test_no_model_status_is_neutral_and_steady(self):
         self.assertIn("--status-neutral:#f4f4f4", self.css)
