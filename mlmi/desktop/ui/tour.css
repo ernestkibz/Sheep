@@ -10,14 +10,14 @@
 #tour .tour-ring { position:absolute; left:0; top:0; border-radius:10px; pointer-events:none; opacity:0;
   border:2px solid #f4f4f4; box-shadow:0 0 0 4px rgba(244,244,244,.16); transition:opacity .25s; will-change:transform; }
 
-#tour .tour-actor { position:absolute; left:0; top:0; width:260px; height:270px; transform-origin:0 0;
+#tour .tour-actor { z-index:2; position:absolute; left:0; top:0; width:260px; height:270px; transform-origin:0 0;
   pointer-events:auto; cursor:pointer; will-change:transform; filter:drop-shadow(0 6px 14px rgba(0,0,0,.35)); }
 #tour .ts-svg { width:260px; height:270px; overflow:visible; display:block; }
 #tour .ts-fleece circle { fill:#f4f4f4; }
 #tour .ts-ink { fill:#050505; stroke:#f4f4f4; stroke-width:2; stroke-linejoin:round; }
 #tour .ts-eye circle { fill:#fff; }
-#tour .ts-limb-e { stroke:#f4f4f4; stroke-width:21; stroke-linecap:round; }
-#tour .ts-limb-i { stroke:#050505; stroke-width:13; stroke-linecap:round; }
+#tour .ts-limb-e { fill:none; stroke:#f4f4f4; stroke-width:19; stroke-linecap:round; }
+#tour .ts-limb-i { fill:none; stroke:#050505; stroke-width:11; stroke-linecap:round; }
 #tour .ts-board-r { fill:#f4f4f4; stroke:#050505; stroke-width:4; }
 #tour .ts-board-l { stroke:#050505; stroke-width:3; stroke-linecap:round; }
 #tour .ts-crook path, #tour .ts-crook line { fill:none; stroke-linecap:round; stroke-linejoin:round; }
@@ -25,7 +25,7 @@
 #tour .ts-crook-ink { stroke:#050505; stroke-width:2; }
 #tour .ts-shadow { fill:#000; opacity:.55; filter:blur(3px); }
 
-#tour .tour-bubble { position:absolute; left:0; top:0; width:min(400px, calc(100vw - 24px)); pointer-events:auto;
+#tour .tour-bubble { z-index:1; position:absolute; left:0; top:0; width:min(400px, calc(100vw - 24px)); pointer-events:auto;
   will-change:transform; background:var(--panel, #161616); color:var(--ink, #eee); border:1px solid var(--line, #2a2a2a);
   border-radius:18px; padding:14px 16px 12px; box-shadow:0 22px 60px rgba(0,0,0,.55); }
 #tour .tb-top { display:flex; align-items:center; justify-content:space-between; }

@@ -39,8 +39,7 @@
         <line class="ts-crook-edge" x1="-8" y1="0" x2="34" y2="0"/><line class="ts-crook-ink" x1="-8" y1="0" x2="34" y2="0"/>
         <g transform="translate(34 0)"><path class="ts-crook-edge" d="${HOOK}"/><path class="ts-crook-ink" d="${HOOK}"/></g></g></g>
       <g class="ts-arm">
-        <line class="ts-limb-e ts-ua"/><line class="ts-limb-i ts-ua"/><line class="ts-limb-e ts-fa"/><line class="ts-limb-i ts-fa"/>
-        <circle class="ts-ink ts-hand" r="8.5"/></g>
+        <path class="ts-limb-e ts-armp"/><path class="ts-limb-i ts-armp"/></g>
       <g class="ts-ear"><g transform="${L}"><ellipse class="ts-ink" cx="40.5" cy="0" rx="4" ry="2.4" transform="rotate(25 40.5 0)"/>
         <ellipse class="ts-ink" cx="28.5" cy="-2" rx="4" ry="2.4" transform="rotate(-25 28.5 -2)"/></g></g>
       <g transform="${L}"><ellipse class="ts-ink" cx="34" cy="6" rx="8" ry="9.5"/></g>
@@ -231,9 +230,8 @@
     actor = root.querySelector(".tour-actor");
     bubble = root.querySelector(".tour-bubble");
     svg = actor.querySelector("svg");
-    for (const k of ["legL", "legR", "upper", "crook", "eye", "ear", "shadow", "hand"]) parts[k] = svg.querySelector(".ts-" + k);
-    parts.ua = svg.querySelectorAll(".ts-ua");
-    parts.fa = svg.querySelectorAll(".ts-fa");
+    for (const k of ["legL", "legR", "upper", "crook", "eye", "ear", "shadow"]) parts[k] = svg.querySelector(".ts-" + k);
+    parts.armp = svg.querySelectorAll(".ts-armp");
     ring = root.querySelector(".tour-ring");
     root.querySelector(".tb-next").onclick = () => (i < STOPS.length - 1 ? show(i + 1) : close());
     root.querySelector(".tb-back").onclick = () => i > 0 && show(i - 1);
@@ -314,7 +312,9 @@
     const gs = goal.spot;
     if (gs && (gs.width > W * 0.45 || gs.height > H * 0.55)) return { x: W - bw - 24, y: H - bh - 24 };   // a big page: out of its rows' way
     const front = goal.spot ? -goal.face : goal.face;
-    let bx = front < 0 ? st.x - 120 * k - bw - 6 : st.x + 120 * k + 6;
+    // the board stands a crook's length away, so the arm reaches out to it instead of folding
+    const gap = goal.spot ? 120 * k : (UPPER + FORE + CROOK - 40) * k;
+    let bx = front < 0 ? st.x - gap - bw : st.x + gap;
     if (bx < 10 || bx + bw > W - 10) bx = front < 0 ? st.x + 120 * k + 6 : st.x - 120 * k - bw - 6;
     bx = clamp(bx, 10, W - bw - 10);
     const by = clamp(headY - 30, 10, H - bh - 10);
@@ -365,7 +365,7 @@
         looking = P;
       } else {                                                 // no part: the board, touched near its title
         const br = bubble.getBoundingClientRect(), since2 = st.t - st.arrived, each = since2 % 2.2;
-        const L = local({ x: goal.face < 0 ? br.right - 10 : br.left + 10, y: br.top + 60 + Math.floor(since2 / 2.2) % 3 * 50 });
+        const L = local({ x: goal.face < 0 ? br.right + 2 : br.left - 2, y: br.top + 60 + Math.floor(since2 / 2.2) % 3 * 50 });
         const d = Math.hypot(L.x - SHOULDER.x, L.y - SHOULDER.y) || 1;
         const push = each < 0.9 ? Math.sin(each * 17) * 7 * Math.exp(-each * 3.5) : 0;
         T = { x: L.x + (L.x - SHOULDER.x) / d * push, y: L.y + (L.y - SHOULDER.y) / d * push };
@@ -378,14 +378,16 @@
     // the elbow bends below that line; the crook runs from the hand to the target
     {
       const dx = st.tx - SHOULDER.x, dy = st.ty - SHOULDER.y, D = Math.hypot(dx, dy) || 1, ux = dx / D, uy = dy / D;
-      const c = clamp(D - CROOK, 14, UPPER + FORE - 2);
+      const c = clamp(D - CROOK, 44, UPPER + FORE - 2);        // the arm stays out, never folded
       const hx = SHOULDER.x + ux * c, hy = SHOULDER.y + uy * c;
       const bend = Math.acos(clamp((UPPER * UPPER + c * c - FORE * FORE) / (2 * UPPER * c), -1, 1));
       const base = Math.atan2(uy, ux), side = ux >= 0 ? 1 : -1;
       const ex = SHOULDER.x + UPPER * Math.cos(base + bend * side), ey = SHOULDER.y + UPPER * Math.sin(base + bend * side);
-      for (const l of parts.ua) { l.setAttribute("x1", SHOULDER.x); l.setAttribute("y1", SHOULDER.y); l.setAttribute("x2", ex.toFixed(1)); l.setAttribute("y2", ey.toFixed(1)); }
-      for (const l of parts.fa) { l.setAttribute("x1", ex.toFixed(1)); l.setAttribute("y1", ey.toFixed(1)); l.setAttribute("x2", hx.toFixed(1)); l.setAttribute("y2", hy.toFixed(1)); }
-      parts.hand.setAttribute("cx", hx.toFixed(1)); parts.hand.setAttribute("cy", hy.toFixed(1));
+      // one smooth limb, shoulder to hand, bent softly through the elbow: no joints drawn
+      // a straight limb with a slight sag below its line
+      const mx = (SHOULDER.x + hx) / 2 - uy * 5 * side, my = (SHOULDER.y + hy) / 2 + Math.abs(ux) * 5;
+      const dpath = `M${SHOULDER.x} ${SHOULDER.y} Q${mx.toFixed(1)} ${my.toFixed(1)} ${hx.toFixed(1)} ${hy.toFixed(1)}`;
+      for (const l of parts.armp) l.setAttribute("d", dpath);
       const ca = Math.atan2(st.ty - hy, st.tx - hx) * 180 / Math.PI;
       parts.crook.setAttribute("transform", `translate(${hx.toFixed(1)} ${hy.toFixed(1)}) rotate(${ca.toFixed(2)})`);
       st.reach = D;
