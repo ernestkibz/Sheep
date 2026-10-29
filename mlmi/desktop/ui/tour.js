@@ -1,39 +1,45 @@
-// The tour: a teacher sheep walks to each part of Sheep, points at it, and says what it is, how to use it,
-// and its limits -- on THIS computer (its own graphics cards, processor and memory, read from /api/hardware)
-// and for the model plugged in now (where it runs, how much it remembers, what is still missing). Opened
-// from the Guide; never by itself. Arrow keys move, Esc leaves.
+// The tour: Sheep's own logo, stood up on its two legs with a shepherd's crook, walks to each part of the
+// app, turns to it and touches it with the crook, and says what it is, how to use it and its limits -- on
+// THIS computer (its own graphics cards, processor and heat, from /api/hardware and /api/state) and for the
+// model plugged in now. Every frame is computed here: critically damped springs move the sheep, the
+// spotlight and the bubble; the walk cycle (legs, bob, lean) follows the distance actually travelled; the
+// crook's angle is solved from the shoulder to the point it touches; the eyes follow the cursor; a click
+// makes it hop. Opened from the Guide; never by itself. Arrow keys move, Esc leaves.
 "use strict";
 
 (() => {
   const { $, esc, api, S } = MLMI;
 
-  // ---------------------------------------------------------------- the teacher (vector, animated by CSS)
-  const SHEEP = `<svg class="ts-svg" viewBox="0 0 140 130" aria-hidden="true">
-    <g class="ts-legs">
-      <rect class="ts-leg l1" x="48" y="86" width="7" height="26" rx="3.5"/>
-      <rect class="ts-leg l2" x="62" y="88" width="7" height="24" rx="3.5"/>
-      <rect class="ts-leg l1" x="80" y="88" width="7" height="24" rx="3.5"/>
-      <rect class="ts-leg l2" x="94" y="86" width="7" height="26" rx="3.5"/>
-    </g>
-    <g class="ts-body">
-      <g class="ts-wool">
-        <circle cx="74" cy="66" r="30"/><circle cx="50" cy="60" r="17"/><circle cx="62" cy="44" r="17"/>
-        <circle cx="84" cy="41" r="18"/><circle cx="102" cy="55" r="17"/><circle cx="104" cy="76" r="15"/>
-        <circle cx="86" cy="90" r="15"/><circle cx="62" cy="88" r="15"/><circle cx="47" cy="76" r="14"/>
-      </g>
-      <g class="ts-arm"><path d="M58 80 L18 86" /><circle cx="15" cy="86" r="4"/></g>
-      <g class="ts-head">
-        <ellipse class="ts-ear" cx="16" cy="52" rx="9" ry="5" transform="rotate(-25 16 52)"/>
-        <ellipse class="ts-ear" cx="46" cy="47" rx="9" ry="5" transform="rotate(25 46 47)"/>
-        <ellipse class="ts-face" cx="31" cy="62" rx="16" ry="19"/>
-        <g class="ts-eyes"><circle cx="25" cy="58" r="4.2" class="ts-eye"/><circle cx="37" cy="58" r="4.2" class="ts-eye"/>
-          <circle cx="26" cy="59" r="1.9" class="ts-pupil"/><circle cx="38" cy="59" r="1.9" class="ts-pupil"/></g>
-        <path class="ts-mouth" d="M26 71 Q31 75 36 71"/>
-        <g class="ts-cap"><path d="M8 38 L31 29 L54 38 L31 47 Z"/><rect x="24" y="40" width="14" height="7" rx="2"/>
-          <path class="ts-tassel" d="M50 39 L52 52"/><circle class="ts-tassel-end" cx="52" cy="54" r="2.4"/></g>
-      </g>
+  // ---------------------------------------------------------------- the teacher: the logo, stood up
+  // The logo's own shapes (brand/sheep-mark.svg): the six-circle cloud of wool, the head with its eye cut
+  // out, the ear, the two rounded legs. Local frame: facing right, feet at (115, 250).
+  const S_ = 0.42;                                     // the logo's 512 grid down to this body
+  const CLOUD = "M122,196 a74,74 0 1,0 148,0 a74,74 0 1,0 -148,0 Z M196,164 a82,82 0 1,0 164,0 a82,82 0 1,0 -164,0 Z " +
+                "M284,206 a72,72 0 1,0 144,0 a72,72 0 1,0 -144,0 Z M108,278 a78,78 0 1,0 156,0 a78,78 0 1,0 -156,0 Z " +
+                "M184,290 a88,88 0 1,0 176,0 a88,88 0 1,0 -176,0 Z M278,282 a74,74 0 1,0 148,0 a74,74 0 1,0 -148,0 Z";
+  // The app's own logo (icons.js): a fleece of seven circles, a black face with two ears and two white eyes,
+  // two black legs, every black part edged in white. Mirrored to face right and stood up: the head on top of
+  // the fleece, a black arm holding a black crook edged in white. Drawn on the logo's 64 grid, x4.
+  const L = "translate(-5 18) scale(4)";
+  const SHEEP = `<svg class="ts-svg" viewBox="0 0 260 270" aria-hidden="true">
+    <ellipse class="ts-shadow" cx="116" cy="251" rx="46" ry="6.5"/>
+    <g class="ts-crook"><g transform="scale(4)"><path class="ts-crook-edge" d="M2 0 L55 0 C61 0 63.5 -6.2 60.5 -9.8 C58 -12.6 53.4 -11 54.4 -7.2"/>
+      <path class="ts-crook-ink" d="M2 0 L55 0 C61 0 63.5 -6.2 60.5 -9.8 C58 -12.6 53.4 -11 54.4 -7.2"/></g></g>
+    <g class="ts-legL"><g transform="${L}"><rect class="ts-ink" x="21.5" y="42" width="4.5" height="16" rx="2"/></g></g>
+    <g class="ts-legR"><g transform="${L}"><rect class="ts-ink" x="34.5" y="42" width="4.5" height="16" rx="2"/></g></g>
+    <g class="ts-upper">
+      <g transform="${L}" class="ts-fleece"><circle cx="42" cy="28" r="10"/><circle cx="30" cy="22" r="11"/><circle cx="19" cy="29" r="10"/>
+        <circle cx="36" cy="38" r="10"/><circle cx="23" cy="39" r="10"/><circle cx="46" cy="37" r="7"/><circle cx="14" cy="38" r="7"/></g>
+      <g class="ts-paw"><g transform="scale(4)"><rect class="ts-ink" x="-1.5" y="-2.25" width="10" height="4.5" rx="2.2"/></g></g>
+      <g class="ts-ear"><g transform="${L}"><ellipse class="ts-ink" cx="47.5" cy="5" rx="4" ry="2.4" transform="rotate(25 47.5 5)"/>
+        <ellipse class="ts-ink" cx="35.5" cy="3" rx="4" ry="2.4" transform="rotate(-25 35.5 3)"/></g></g>
+      <g transform="${L}"><ellipse class="ts-ink" cx="41" cy="11" rx="8" ry="9.5"/></g>
+      <g class="ts-eye"><g transform="${L}"><circle cx="38" cy="10" r="1.6"/><circle cx="44" cy="10" r="1.6"/></g></g>
     </g>
   </svg>`;
+  // where things are in the local frame (px of the 260 x 270 drawing): logo grid x4, shifted
+  const FEET = { x: 116, y: 250 }, SHOULDER = { x: 187, y: 138 }, HIPS = [{ x: 90, y: 186 }, { x: 142, y: 186 }];
+  const HEAD = { x: 159, y: 62 }, EYE = { x: 159, y: 58 }, REACH = 240;   // the crook's hook from the shoulder
 
   // ---------------------------------------------------------------- what this computer and this model are
   const gb = (b) => (b ? (b > 1e6 ? b / 2 ** 30 : b) : 0);
@@ -144,23 +150,23 @@
       say: () => "Every conversation is kept on this computer, searchable.",
       how: () => "New chat starts fresh; search finds old ones.",
       limit: () => "Chats stay on this computer; nothing is synced." },
-    { title: "Settings › Basics", at: "#setBody", prep: settings("basics"),
+    { title: "Settings › Basics", at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("basics"),
       say: () => "How Sheep runs, as three plain choices: fastest, balanced, or quiet and cool. Theme and web answers live here too.",
       how: () => "Pick one; Sheep sets the details.",
       limit: () => "Quiet keeps memory free for other apps and runs slower." },
-    { title: "Settings › Models", at: "#setBody", prep: settings("models"),
+    { title: "Settings › Models", at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("models"),
       say: (c) => `One model for each job: chat, checker, pictures, video, photo guidance and speech.${c.missing.length ? ` Still missing here: ${c.missing.join(", ")}.` : " Every job has a model."}`,
       how: () => "Add any model by its Hugging Face name, a folder or a .gguf file. Sheep fits it to this computer, builds it and checks it. You set nothing.",
       limit: (c) => `What fits depends on memory: ${hardwareLine(c)} A model bigger than the card is split with the processor and writes more slowly.` },
-    { title: "Settings › Accounts", at: "#setBody", prep: settings("accounts"),
+    { title: "Settings › Accounts", at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("accounts"),
       say: () => "Keys for Nebius (NVIDIA Nemotron) and Tavily (web search), and Hugging Face for gated models.",
       how: () => "Paste a key and Save. Keys stay on this computer.",
       limit: () => "Without a Tavily key, web answers use a keyless public search." },
-    { title: "Settings › Activity", at: "#setBody", prep: settings("activity"),
+    { title: "Settings › Activity", at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("activity"),
       say: () => "Everything Sheep did and why: where each model runs, every check it ran on a model, every repair.",
       how: () => "Open a row for its full report: what was asked, the tools used, the reply, the files made.",
       limit: () => "Checks run in the background and give way to you." },
-    { title: "Settings › Advanced", at: "#setBody", prep: settings("advanced"),
+    { title: "Settings › Advanced", at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("advanced"),
       say: (c) => `The engineer's room: this computer's devices, the checker, files and what was sent out. ${hardwareLine(c)}`,
       how: () => "Most people never need it; Auto chooses for you.",
       limit: (c) => heatLine(c) },
@@ -174,32 +180,50 @@
       limit: () => "" },
   ];
 
-  // ---------------------------------------------------------------- the stage
-  let root, spot, dock, bubble, i = 0, ctx = null, typing = 0, moving = 0;
+  // ---------------------------------------------------------------- the stage, frame by frame
+  const SCALE = 0.6;                                    // the drawing on screen
   const reduce = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  // a critically damped spring: no overshoot, no wobble, arrives in about 4 / w seconds
+  function spring(o, key, target, w, dt) {
+    const v = o[key + "V"] || 0, x = o[key];
+    const a = w * w * (target - x) - 2 * w * v;
+    o[key + "V"] = v + a * dt;
+    o[key] = x + o[key + "V"] * dt;
+  }
+
+  let root, spot, actor, bubble, svg, parts = {}, i = 0, ctx = null, typing = 0, raf = 0, last = 0;
+  const st = { ear: 0, earT: 0, x: 0, y: 0, face: 1, phase: 0, arm: -78, tap: 0, hop: 0, hopV: 0, blink: 0, nextBlink: 2,
+               ex: 0, ey: 0, sx: 0, sy: 0, sw: 0, sh: 0, bx: 0, by: 0, t: 0, arrived: 0, said: true };
+  const goal = { x: 0, y: 0, face: 1, point: null, spot: null, bubble: null };
+  const mouse = { x: -1, y: -1 };
 
   function build() {
     root = document.createElement("div");
     root.id = "tour";
     root.innerHTML = `<div class="tour-block"></div><div class="tour-spot"></div>
-      <div class="tour-dock"><div class="tour-sheep">${SHEEP}</div>
-        <div class="tour-bubble" role="dialog" aria-live="polite">
-          <div class="tb-top"><span class="tb-step"></span><button class="ghost tb-x" aria-label="Leave the tour">×</button></div>
-          <h3 class="tb-title"></h3><p class="tb-say"></p>
-          <div class="tb-row tb-how"><b>How</b><span></span></div>
-          <div class="tb-row tb-limit"><b>Limits</b><span></span></div>
-          <div class="tb-bar"><i></i></div>
-          <div class="tb-nav"><button class="ghost tb-back">Back</button><span class="grow"></span><button class="tb-next">Next</button></div>
-        </div></div>`;
+      <div class="tour-actor" title="Click me">${SHEEP}</div>
+      <div class="tour-bubble" role="dialog" aria-live="polite">
+        <div class="tb-top"><span class="tb-step"></span><button class="ghost tb-x" aria-label="Leave the tour">×</button></div>
+        <h3 class="tb-title"></h3><p class="tb-say"></p>
+        <div class="tb-row tb-how"><b>How</b><span></span></div>
+        <div class="tb-row tb-limit"><b>Limits</b><span></span></div>
+        <div class="tb-bar"><i></i></div>
+        <div class="tb-nav"><button class="ghost tb-back">Back</button><span class="grow"></span><button class="tb-next">Next</button></div>
+      </div>`;
     document.body.appendChild(root);
     spot = root.querySelector(".tour-spot");
-    dock = root.querySelector(".tour-dock");
+    actor = root.querySelector(".tour-actor");
     bubble = root.querySelector(".tour-bubble");
+    svg = actor.querySelector("svg");
+    for (const k of ["legL", "legR", "upper", "crook", "paw", "eye", "ear", "shadow"]) parts[k] = svg.querySelector(".ts-" + k);
     root.querySelector(".tb-next").onclick = () => (i < STOPS.length - 1 ? show(i + 1) : close());
     root.querySelector(".tb-back").onclick = () => i > 0 && show(i - 1);
     root.querySelector(".tb-x").onclick = close;
     root.querySelector(".tour-block").onclick = () => finishTyping();
-    window.addEventListener("resize", place);
+    actor.onclick = () => { if (!st.hop) st.hopV = -520; finishTyping(); };
+    window.addEventListener("resize", () => aim(true));
+    window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
   }
 
   function key(e) {
@@ -209,79 +233,150 @@
     else if (e.key === "ArrowLeft") { e.preventDefault(); root.querySelector(".tb-back").click(); }
   }
 
-  function target() {
-    const s = STOPS[i];
-    const el = s.at && $(s.at);
+  function rectOf(sel) {
+    const el = sel && $(sel);
     if (!el) return null;
     const r = el.getBoundingClientRect();
     return r.width && r.height ? r : null;
   }
 
-  // the spotlight wraps the part; the sheep walks beside it, faces it and points
-  function place() {
-    if (!root) return;
-    const r = target(), W = innerWidth, H = innerHeight, pad = 8;
-    if (r) Object.assign(spot.style, { left: r.left - pad + "px", top: r.top - pad + "px", width: r.width + pad * 2 + "px", height: r.height + pad * 2 + "px", opacity: 1 });
-    else Object.assign(spot.style, { left: W / 2 + "px", top: H / 2 + "px", width: "0px", height: "0px", opacity: 1 });
-    const dw = dock.offsetWidth || 520, dh = dock.offsetHeight || 260, gap = 22;
-    let x, y;
-    if (!r) { x = (W - dw) / 2; y = (H - dh) / 2; }
+  // Where to stand: beside the part, the shoulder about 0.85 of the crook away from the point it touches.
+  // A part too big to stand beside (a settings page) is touched near its title from below-right.
+  function aim(snap) {
+    const W = innerWidth, H = innerHeight, spotR = rectOf(STOPS[i].at), r = rectOf(STOPS[i].point) || spotR, k = SCALE;
+    const aw = 260 * k, ah = 270 * k, reach = REACH * k, sh = { x: (SHOULDER.x - FEET.x) * k, y: (SHOULDER.y - FEET.y) * k };
+    let fx, fy, face = 1, P = null;
+    if (!r) { fx = W * 0.5 - 170; fy = H * 0.5 + 150; }
     else {
+      const big = r.width > W * 0.45 || r.height > H * 0.55;
       const cy = r.top + r.height / 2;
-      const room = { right: W - r.right, left: r.left, below: H - r.bottom, above: r.top };
-      if (room.right >= dw + gap) { x = r.right + gap; y = cy - dh / 2; }
-      else if (room.left >= dw + gap) { x = r.left - gap - dw; y = cy - dh / 2; }
-      else if (room.below >= dh + gap) { x = r.left + r.width / 2 - dw / 2; y = r.bottom + gap; }
-      else if (room.above >= dh + gap) { x = r.left + r.width / 2 - dw / 2; y = r.top - gap - dh; }
-      else { x = W - dw - 24; y = H - dh - 24; }        // a big part (a settings page): the corner
+      if (big) { P = { x: r.left + 48, y: r.top + 56 }; face = -1; fx = r.left + 330; fy = r.top + 330; }
+      else if (r.right + aw + 30 < W) { P = { x: r.right, y: cy }; face = -1; }
+      else if (r.left - aw - 30 > 0) { P = { x: r.left, y: cy }; face = 1; }
+      else { P = { x: r.left + r.width / 2, y: r.top }; face = r.left + r.width / 2 > W / 2 ? 1 : -1; }
+      if (!big) {
+        const s = { x: P.x - face * reach * 0.8, y: P.y + reach * 0.38 };     // the shoulder's spot
+        fx = s.x - face * sh.x; fy = s.y - sh.y;
+      }
     }
-    x = Math.max(12, Math.min(W - dw - 12, x));
-    y = Math.max(12, Math.min(H - dh - 12, y));
-    const was = dock.getBoundingClientRect();
-    dock.style.left = x + "px";
-    dock.style.top = y + "px";
-    // walk while moving; then face the part and point at it. The drawing faces left: f = 1 (the part is
-    // to the right) mirrors it, and puts the sheep on the bubble's right, the side nearest the part.
-    const f = r && r.left + r.width / 2 > x + dw / 2 ? 1 : -1;
-    dock.classList.toggle("rev", f > 0);
-    dock.style.setProperty("--flip", f > 0 ? -1 : 1);
-    if (r) {
-      const sx = f > 0 ? x + dw - 80 : x + 50, sy = y + dh - 50;
-      const ahead = Math.max(20, Math.abs(r.left + r.width / 2 - sx)), dy = r.top + r.height / 2 - sy;
-      const ang = Math.max(-60, Math.min(60, Math.atan2(dy, ahead) * 180 / Math.PI));
-      dock.style.setProperty("--point", -ang + "deg");
-      dock.classList.add("pointing");
-    } else dock.classList.remove("pointing");
-    if (Math.abs(was.left - x) + Math.abs(was.top - y) > 8 && !reduce()) {
-      dock.classList.add("walking");
-      clearTimeout(moving);
-      moving = setTimeout(() => dock.classList.remove("walking"), 950);
-    }
+    fx = clamp(fx, aw * 0.45 + 8, W - aw * 0.45 - 8);
+    fy = clamp(fy, ah - 30, H - 6);
+    Object.assign(goal, { x: fx, y: fy, face, point: P, spot: spotR });
+    if (snap || reduce()) { st.x = fx; st.y = fy; st.face = face; }
+  }
+
+  // the bubble sits behind the sheep (the side away from the part), at its head, kept on screen
+  function bubbleGoal() {
+    const W = innerWidth, H = innerHeight, bw = bubble.offsetWidth || 400, bh = bubble.offsetHeight || 240;
+    const k = SCALE, headY = st.y + (HEAD.y - FEET.y) * k;
+    let bx = goal.face > 0 ? st.x - 120 * k - bw - 6 : st.x + 120 * k + 6;
+    if (bx < 10 || bx + bw > W - 10) bx = goal.face > 0 ? st.x + 120 * k + 6 : st.x - 120 * k - bw - 6;
+    bx = clamp(bx, 10, W - bw - 10);
+    const by = clamp(headY - 30, 10, H - bh - 10);
+    return { x: bx, y: by };
+  }
+
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    const dt = Math.min(0.033, (now - (last || now)) / 1000) || 0.016;
+    last = now;
+    st.t += dt;
+    const k = SCALE;
+    // move: a spring to the standing spot; the walk cycle runs on the distance covered
+    const ox = st.x, oy = st.y;
+    spring(st, "x", goal.x, 4.2, dt); spring(st, "y", goal.y, 4.2, dt);
+    const dist = Math.hypot(st.x - ox, st.y - oy), speed = dist / dt;
+    const walk = clamp(speed / 260, 0, 1);
+    st.phase += dist / (46 * k) * Math.PI;
+    const far = Math.hypot(goal.x - st.x, goal.y - st.y);
+    // turn to the way it walks, then to the part; scaleX passes through 0, a turn, not a flip
+    const faceT = far > 40 ? Math.sign(goal.x - st.x) || goal.face : goal.face;
+    st.face += (faceT - st.face) * Math.min(1, dt * 9);
+    // the crook: upright and swinging while walking; once there, aimed at the point and tapped twice
+    let armT = -78 + Math.sin(st.phase) * 7 * walk;
+    if (far < 6) {
+      if (!st.arrived) { st.arrived = st.t; if (!st.said) say(); }
+      const P = goal.point;
+      if (P) {
+        const sx = st.x + (SHOULDER.x - FEET.x) * k * goal.face, sy = st.y + (SHOULDER.y - FEET.y) * k + st.hop;
+        const ang = Math.atan2(P.y - sy, Math.abs(P.x - sx) + 1) * 180 / Math.PI;
+        const since = st.t - st.arrived;
+        armT = clamp(ang, -80, 70) + (since < 1.1 ? Math.sin(since * 17) * 9 * Math.exp(-since * 3.2) : 0);
+      } else armT = -78 + Math.sin(st.t * 3) * 6;          // no part: a slow wave of the crook
+    } else st.arrived = 0;
+    spring(st, "arm", armT, 11, dt);
+    // a hop when clicked
+    if (st.hopV || st.hop) { st.hopV += 2100 * dt; st.hop += st.hopV * dt; if (st.hop > 0) { st.hop = 0; st.hopV = 0; } }
+    // eyes: blink now and then, look at the cursor
+    if (st.t > st.nextBlink) { st.blink = 0.14; st.nextBlink = st.t + 2.5 + Math.random() * 3; }
+    st.blink = Math.max(0, st.blink - dt);
+    const hx = st.x + (HEAD.x - FEET.x) * k * st.face, hy = st.y + (HEAD.y - FEET.y) * k;
+    const lx = mouse.x < 0 ? 0 : clamp((mouse.x - hx) / 120, -1, 1), ly = mouse.y < 0 ? 0 : clamp((mouse.y - hy) / 120, -1, 1);
+    st.ex += (lx * 2.2 * Math.sign(st.face || 1) - st.ex) * Math.min(1, dt * 8);
+    st.ey += (ly * 2.2 - st.ey) * Math.min(1, dt * 8);
+    // pose
+    const legA = Math.sin(st.phase) * 26 * walk;
+    const bob = -Math.abs(Math.sin(st.phase)) * 7 * walk * k + (1 - walk) * Math.sin(st.t * 2.1) * 1.1;
+    const lean = clamp((st.xV || 0) / 70, -9, 9) * Math.sign(st.face || 1);
+    parts.legL.setAttribute("transform", `rotate(${legA} ${HIPS[0].x} ${HIPS[0].y})`);
+    parts.legR.setAttribute("transform", `rotate(${-legA} ${HIPS[1].x} ${HIPS[1].y})`);
+    // squash on each footfall, stretch between: the wool settles onto the legs
+    const sq = 0.045 * walk * (1 - Math.abs(Math.sin(st.phase))) - (st.hopV < 0 ? 0.05 : 0);
+    parts.upper.setAttribute("transform", `translate(0 ${bob / k}) rotate(${lean} ${FEET.x} ${FEET.y}) ` +
+      `translate(${FEET.x} 186) scale(${1 + sq * 0.6} ${1 - sq}) translate(${-FEET.x} -186)`);
+    const arm = `translate(${SHOULDER.x} ${SHOULDER.y}) rotate(${st.arm})`;
+    parts.crook.setAttribute("transform", arm);
+    parts.paw.setAttribute("transform", arm);
+    // the ear trails the head: it flops with each step and settles
+    st.earT = -Math.sin(st.phase * 2) * 12 * walk + Math.sin(st.t * 1.7) * 2;
+    spring(st, "ear", st.earT, 14, dt);
+    parts.ear.setAttribute("transform", `rotate(${st.ear} 159 34)`);
+    parts.eye.setAttribute("transform", `translate(${st.ex} ${st.ey}) translate(${EYE.x} ${EYE.y}) scale(1 ${st.blink > 0 ? 0.1 : 1}) translate(${-EYE.x} ${-EYE.y})`);
+    // the shadow stays on the ground and shrinks as the sheep leaves it
+    const lift = clamp(-st.hop / 90, 0, 1);
+    parts.shadow.setAttribute("transform", `translate(0 ${-st.hop / k}) translate(116 251) scale(${1 - lift * 0.45}) translate(-116 -251)`);
+    parts.shadow.setAttribute("opacity", String(0.55 - lift * 0.35));
+    const f = Math.abs(st.face) < 0.06 ? 0.06 * Math.sign(st.face || 1) : st.face;
+    actor.style.transform = `translate(${st.x - FEET.x * k}px, ${st.y - FEET.y * k + st.hop}px) scale(${f * k}, ${k})`;
+    // the spotlight and the bubble trail on their own springs
+    const r = goal.spot, pad = 9;
+    const tgt = r ? [r.left - pad, r.top - pad, r.width + pad * 2, r.height + pad * 2] : [innerWidth / 2, innerHeight / 2, 0, 0];
+    spring(st, "sx", tgt[0], 6, dt); spring(st, "sy", tgt[1], 6, dt); spring(st, "sw", tgt[2], 6, dt); spring(st, "sh", tgt[3], 6, dt);
+    spot.style.transform = `translate(${st.sx}px, ${st.sy}px)`;
+    spot.style.width = Math.max(0, st.sw) + "px";
+    spot.style.height = Math.max(0, st.sh) + "px";
+    const b = bubbleGoal();
+    spring(st, "bx", b.x, 5, dt); spring(st, "by", b.y, 5, dt);
+    bubble.style.transform = `translate(${st.bx}px, ${st.by}px)`;
   }
 
   function typeInto(el, text) {
     clearInterval(typing);
+    el.dataset.full = text;
     if (reduce()) { el.textContent = text; return; }
     el.textContent = "";
-    dock.classList.add("talking");
-    let k = 0;
+    let n = 0;
     typing = setInterval(() => {
-      k = Math.min(text.length, k + 3);
-      el.textContent = text.slice(0, k);
-      if (k >= text.length) { clearInterval(typing); dock.classList.remove("talking"); }
-    }, 16);
-    el.dataset.full = text;
+      n = Math.min(text.length, n + 2);
+      el.textContent = text.slice(0, n);
+      if (n >= text.length) clearInterval(typing);
+    }, 14);
   }
   function finishTyping() {
     const el = root && root.querySelector(".tb-say");
-    if (el && el.dataset.full) { clearInterval(typing); el.textContent = el.dataset.full; dock.classList.remove("talking"); }
+    if (!st.said) say();
+    if (el && el.dataset.full) { clearInterval(typing); el.textContent = el.dataset.full; }
+  }
+  function say() {
+    st.said = true;
+    typeInto(root.querySelector(".tb-say"), STOPS[i].say(ctx));
   }
 
   async function show(n) {
     i = n;
     const s = STOPS[i];
     try { s.prep && s.prep(); } catch (_) {}
-    await new Promise((r) => setTimeout(r, 260));          // let a page open before it is measured
+    await new Promise((r) => setTimeout(r, 240));          // let a page open before it is measured
     root.querySelector(".tb-step").textContent = `${i + 1} of ${STOPS.length}`;
     root.querySelector(".tb-title").textContent = s.title;
     const how = s.how ? s.how(ctx) : "", lim = s.limit ? s.limit(ctx) : "";
@@ -292,9 +387,10 @@
     root.querySelector(".tb-bar i").style.width = ((i + 1) / STOPS.length) * 100 + "%";
     root.querySelector(".tb-back").disabled = i === 0;
     root.querySelector(".tb-next").textContent = i === STOPS.length - 1 ? "Done" : "Next";
-    bubble.classList.remove("pop"); void bubble.offsetWidth; bubble.classList.add("pop");
-    place();
-    typeInto(root.querySelector(".tb-say"), s.say(ctx));
+    root.querySelector(".tb-say").textContent = "";
+    st.said = false; st.arrived = 0;
+    aim(false);
+    setTimeout(() => { if (!st.said && STOPS[i] === s) say(); }, 1600);   // a long walk still talks
   }
 
   async function open() {
@@ -302,13 +398,19 @@
     if (!root) build();
     root.hidden = false;
     document.addEventListener("keydown", key);
-    root.classList.add("in");
     ctx = await context();
+    i = 0;
+    aim(true);
+    st.y = innerHeight + 200;                               // it walks in from below the window
+    st.sx = innerWidth / 2; st.sy = innerHeight / 2; st.sw = st.sh = 0;
+    const b = bubbleGoal(); st.bx = b.x; st.by = b.y + 40;
+    cancelAnimationFrame(raf); last = 0; raf = requestAnimationFrame(frame);
     show(0);
   }
   function close() {
     if (!root) return;
     clearInterval(typing);
+    cancelAnimationFrame(raf);
     root.hidden = true;
     document.removeEventListener("keydown", key);
     MLMI.go("home");

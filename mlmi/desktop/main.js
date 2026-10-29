@@ -142,6 +142,21 @@ async function shots(dir) {
     const [name, js] = v.split(":");
     await win.webContents.executeJavaScript(`location.hash = ${JSON.stringify(name)}`);
     await wait(Number(process.env.MLMI_WAIT || 2600));
+    // MLMI_REC_MS=N records each view as frames (DIR/rec/<n>.png, as fast as the page paints) for N ms
+    // after its script runs: motion is checked by eye, frame by frame, or joined into an MP4
+    if (process.env.MLMI_REC_MS) {
+      if (js) await win.webContents.executeJavaScript(js).catch(() => {});
+      const rec = path.join(dir, "rec");
+      fs.mkdirSync(rec, { recursive: true });
+      const t0 = Date.now();
+      shots.n = shots.n || 0;
+      while (Date.now() - t0 < Number(process.env.MLMI_REC_MS)) {
+        const f = await win.webContents.capturePage();
+        fs.writeFileSync(path.join(rec, `${String(shots.n++).padStart(5, "0")}.png`), f.toPNG());
+      }
+      fs.appendFileSync(path.join(rec, "times.txt"), `${name} ${shots.n} ${Date.now() - t0}\n`);
+      continue;
+    }
     if (js) { await win.webContents.executeJavaScript(js).catch(() => {}); await wait(1400); }
     if (process.env.MLMI_JS) { await win.webContents.executeJavaScript(process.env.MLMI_JS).catch(() => {}); await wait(Number(process.env.MLMI_JS_WAIT || 1200)); }
     const img = await win.webContents.capturePage();

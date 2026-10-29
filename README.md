@@ -89,7 +89,7 @@ race logs.
 | [Sheep vs Ollama](mlmi/media/bench/sheep_vs_ollama.png) | The same four, against Ollama |
 | [SML vs GGML](mlmi/media/bench/sml_vs_ggml.png) | The engines alone: 8-round ABBA races with 95% ranges, and as whole servers |
 | [SSF vs GGUF](mlmi/media/bench/ssf_vs_gguf.png) | The files: closeness to the original model, same next word, size, on three models |
-| [Hardware used](mlmi/media/bench/hardware.png) | Memory, graphics memory, CPU busy and graphics-card power for the same work |
+| [Hardware put to work](mlmi/media/bench/hardware.png) | How much of the card each engine uses, how busy it keeps it, and words written per watt |
 | [Features](mlmi/media/bench/features.png) | What each does besides running a model |
 | [Too big for the card](mlmi/media/bench/big_model.png) | Qwen2.5-7B on the 4 GB card, split by each engine its own way |
 

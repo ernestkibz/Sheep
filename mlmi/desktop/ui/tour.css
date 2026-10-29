@@ -1,77 +1,40 @@
-/* The tour (tour.js): a spotlight on one part of Sheep, and a teacher sheep beside it with a speech bubble.
-   The sheep walks (legs swing, body bobs) while the dock glides to the next part, then faces it, points with
-   its arm and talks (mouth, typed words). Every motion stops under prefers-reduced-motion. */
+/* The tour (tour.js). Every movement is computed per frame in tour.js: these rules only draw. The teacher is
+   the logo (white wool, head with the eye cut out) holding a shepherd's crook; the spotlight dims the app
+   around one part; the bubble carries the words. */
 #tour { position:fixed; inset:0; z-index:9000; pointer-events:none; }
 #tour[hidden] { display:none; }
 #tour .tour-block { position:absolute; inset:0; pointer-events:auto; background:transparent; }
-#tour .tour-spot { position:absolute; border-radius:14px; pointer-events:none;
-  box-shadow:0 0 0 9999px rgba(8, 8, 8, .66), 0 0 0 2px color-mix(in srgb, var(--hot, #5ee08a) 85%, white);
-  transition:left .75s cubic-bezier(.65,0,.35,1), top .75s cubic-bezier(.65,0,.35,1),
-             width .75s cubic-bezier(.65,0,.35,1), height .75s cubic-bezier(.65,0,.35,1); }
-#tour .tour-spot::after { content:""; position:absolute; inset:-6px; border-radius:18px;
-  border:2px solid color-mix(in srgb, var(--hot, #5ee08a) 60%, transparent); animation:tourPulse 2s ease-out infinite; }
-@keyframes tourPulse { from { opacity:.9; transform:scale(1); } to { opacity:0; transform:scale(1.06); } }
+#tour .tour-spot { position:absolute; left:0; top:0; border-radius:14px; pointer-events:none; will-change:transform;
+  box-shadow:0 0 0 9999px rgba(8, 8, 8, .7), 0 0 0 2px rgba(255,255,255,.85), 0 0 34px 6px rgba(255,255,255,.18); }
 
-#tour .tour-dock { position:absolute; left:50%; top:50%; width:min(560px, calc(100vw - 24px)); display:flex;
-  align-items:flex-end; gap:6px; pointer-events:auto;
-  transition:left .9s cubic-bezier(.65,0,.35,1), top .9s cubic-bezier(.65,0,.35,1); }
-#tour .tour-dock.rev { flex-direction:row-reverse; }
-#tour .tour-sheep { flex:none; width:132px; height:122px; transform:scaleX(var(--flip, 1));
-  transition:transform .35s ease; filter:drop-shadow(0 10px 18px rgba(0,0,0,.35)); }
-#tour .ts-svg { width:100%; height:100%; overflow:visible; }
-#tour .ts-wool circle { fill:#f6f3ec; stroke:#e2ddd2; stroke-width:1.2; }
-#tour .ts-face { fill:#2c2833; }
-#tour .ts-ear { fill:#3a3442; }
-#tour .ts-eye { fill:#fff; }
-#tour .ts-pupil { fill:#16131a; }
-#tour .ts-mouth { fill:none; stroke:#f3b8b8; stroke-width:2.2; stroke-linecap:round; transform-origin:31px 72px; }
-#tour .ts-cap path:first-child, #tour .ts-cap rect { fill:#1f1d1d; }
-#tour .ts-tassel { stroke:var(--hot, #f2c14e); stroke-width:2; }
-#tour .ts-tassel-end { fill:var(--hot, #f2c14e); }
-#tour .ts-leg { fill:#2c2833; transform-box:fill-box; transform-origin:50% 0; }
-#tour .ts-arm path { stroke:#e7e1d4; stroke-width:7; stroke-linecap:round; }
-#tour .ts-arm circle { fill:#2c2833; }
-#tour .ts-arm { transform-origin:58px 80px; transform:rotate(-25deg); transition:transform .45s cubic-bezier(.3,1.4,.5,1); }
-#tour .pointing .ts-arm { transform:rotate(var(--point, 0deg)); }
-#tour .ts-eyes { transform-origin:31px 58px; animation:tourBlink 4.2s infinite; }
-@keyframes tourBlink { 0%, 94%, 100% { transform:scaleY(1); } 97% { transform:scaleY(.1); } }
-#tour .ts-body { animation:tourBreath 3.2s ease-in-out infinite; transform-origin:70px 110px; }
-@keyframes tourBreath { 50% { transform:translateY(-1.5px) scale(1.01); } }
-#tour .walking .ts-body { animation:tourBob .32s ease-in-out infinite; }
-#tour .walking .l1 { animation:tourStep .32s ease-in-out infinite; }
-#tour .walking .l2 { animation:tourStep .32s ease-in-out infinite reverse; }
-@keyframes tourBob { 50% { transform:translateY(-4px); } }
-@keyframes tourStep { 0% { transform:rotate(18deg); } 50% { transform:rotate(-18deg); } 100% { transform:rotate(18deg); } }
-#tour .talking .ts-mouth { animation:tourTalk .18s ease-in-out infinite alternate; }
-@keyframes tourTalk { to { transform:scaleY(2.2); } }
-#tour .ts-tassel, #tour .ts-tassel-end { transform-origin:50px 39px; animation:tourSwing 2.6s ease-in-out infinite; }
-@keyframes tourSwing { 50% { transform:rotate(8deg); } }
+#tour .tour-actor { position:absolute; left:0; top:0; width:260px; height:270px; transform-origin:0 0;
+  pointer-events:auto; cursor:pointer; will-change:transform; filter:drop-shadow(0 6px 14px rgba(0,0,0,.35)); }
+#tour .ts-svg { width:260px; height:270px; overflow:visible; display:block; }
+#tour .ts-fleece circle { fill:#f4f4f4; }
+#tour .ts-ink { fill:#050505; stroke:#f4f4f4; stroke-width:2; stroke-linejoin:round; }
+#tour .ts-eye circle { fill:#fff; }
+#tour .ts-crook path { fill:none; stroke-linecap:round; stroke-linejoin:round; }
+#tour .ts-crook-edge { stroke:#f4f4f4; stroke-width:4.2; }
+#tour .ts-crook-ink { stroke:#050505; stroke-width:2; }
+#tour .ts-shadow { fill:#000; opacity:.55; filter:blur(3px); }
 
-#tour .tour-bubble { position:relative; flex:1; min-width:0; background:var(--panel, #17171c); color:var(--ink, #eee);
-  border:1px solid var(--line, #2a2a33); border-radius:18px; padding:14px 16px 12px; margin-bottom:34px;
-  box-shadow:0 18px 50px rgba(0,0,0,.45); }
-#tour .tour-bubble::before { content:""; position:absolute; bottom:22px; left:-8px; width:14px; height:14px;
-  background:inherit; border-left:1px solid var(--line, #2a2a33); border-bottom:1px solid var(--line, #2a2a33); transform:rotate(45deg); }
-#tour .rev .tour-bubble::before { left:auto; right:-8px; transform:rotate(-135deg); }
-#tour .tour-bubble.pop { animation:tourPop .42s cubic-bezier(.3,1.4,.5,1); }
-@keyframes tourPop { from { opacity:0; transform:translateY(8px) scale(.96); } to { opacity:1; transform:none; } }
+#tour .tour-bubble { position:absolute; left:0; top:0; width:min(400px, calc(100vw - 24px)); pointer-events:auto;
+  will-change:transform; background:var(--panel, #161616); color:var(--ink, #eee); border:1px solid var(--line, #2a2a2a);
+  border-radius:18px; padding:14px 16px 12px; box-shadow:0 22px 60px rgba(0,0,0,.55); }
 #tour .tb-top { display:flex; align-items:center; justify-content:space-between; }
 #tour .tb-step { font-size:11.5px; color:var(--dim, #999); letter-spacing:.04em; }
 #tour .tb-x { border:0; background:transparent; color:var(--dim, #999); font-size:18px; line-height:1; padding:2px 6px; border-radius:8px; }
 #tour .tb-x:hover { color:var(--ink, #eee); background:var(--hover, rgba(255,255,255,.06)); }
 #tour .tb-title { margin:4px 0 6px; font-size:17px; font-weight:700; letter-spacing:.005em; }
-#tour .tb-say { margin:0 0 10px; font-size:14px; line-height:1.5; min-height:3em; }
+#tour .tb-say { margin:0 0 10px; font-size:14px; line-height:1.5; min-height:4.5em; }
 #tour .tb-row { display:flex; gap:8px; font-size:12.5px; line-height:1.45; color:var(--dim, #aaa); margin:4px 0; }
 #tour .tb-row[hidden] { display:none; }
 #tour .tb-row b { flex:none; width:46px; color:var(--ink, #eee); font-weight:600; }
-#tour .tb-limit b { color:color-mix(in srgb, #f2c14e 80%, var(--ink, #eee)); }
-#tour .tb-bar { height:3px; border-radius:2px; background:var(--line, #2a2a33); margin:12px 0 10px; overflow:hidden; }
-#tour .tb-bar i { display:block; height:100%; background:var(--hot, #5ee08a); transition:width .6s cubic-bezier(.65,0,.35,1); }
+#tour .tb-limit b { color:#e8c46a; }
+#tour .tb-bar { height:3px; border-radius:2px; background:var(--line, #2a2a2a); margin:12px 0 10px; overflow:hidden; }
+#tour .tb-bar i { display:block; height:100%; background:#f7f6f2; transition:width .6s cubic-bezier(.65,0,.35,1); }
 #tour .tb-nav { display:flex; align-items:center; gap:8px; }
 #tour .tb-nav .grow { flex:1; }
 #tour .tb-next { border:0; border-radius:10px; padding:7px 16px; font-weight:600; background:var(--ink, #eee); color:var(--bg, #111); }
 #tour .tb-back[disabled] { opacity:.35; }
-@media (prefers-reduced-motion: reduce) {
-  #tour *, #tour .tour-spot, #tour .tour-dock { animation:none !important; transition:none !important; }
-}
-@media (max-width: 640px) { #tour .tour-sheep { width:92px; height:86px; } }
+@media (prefers-reduced-motion: reduce) { #tour .tb-bar i { transition:none; } }
