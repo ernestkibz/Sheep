@@ -5,11 +5,11 @@
 #tour[hidden] { display:none; }
 #tour .tour-block { position:absolute; inset:0; pointer-events:auto; background:transparent; }
 #tour .tour-spot { position:absolute; border-radius:14px; pointer-events:none;
-  box-shadow:0 0 0 9999px rgba(6, 7, 12, .66), 0 0 0 2px color-mix(in srgb, var(--hot, #7c9cff) 85%, white);
+  box-shadow:0 0 0 9999px rgba(8, 8, 8, .66), 0 0 0 2px color-mix(in srgb, var(--hot, #5ee08a) 85%, white);
   transition:left .75s cubic-bezier(.65,0,.35,1), top .75s cubic-bezier(.65,0,.35,1),
              width .75s cubic-bezier(.65,0,.35,1), height .75s cubic-bezier(.65,0,.35,1); }
 #tour .tour-spot::after { content:""; position:absolute; inset:-6px; border-radius:18px;
-  border:2px solid color-mix(in srgb, var(--hot, #7c9cff) 60%, transparent); animation:tourPulse 2s ease-out infinite; }
+  border:2px solid color-mix(in srgb, var(--hot, #5ee08a) 60%, transparent); animation:tourPulse 2s ease-out infinite; }
 @keyframes tourPulse { from { opacity:.9; transform:scale(1); } to { opacity:0; transform:scale(1.06); } }
 
 #tour .tour-dock { position:absolute; left:50%; top:50%; width:min(560px, calc(100vw - 24px)); display:flex;
@@ -25,7 +25,7 @@
 #tour .ts-eye { fill:#fff; }
 #tour .ts-pupil { fill:#16131a; }
 #tour .ts-mouth { fill:none; stroke:#f3b8b8; stroke-width:2.2; stroke-linecap:round; transform-origin:31px 72px; }
-#tour .ts-cap path:first-child, #tour .ts-cap rect { fill:#1e1b24; }
+#tour .ts-cap path:first-child, #tour .ts-cap rect { fill:#1f1d1d; }
 #tour .ts-tassel { stroke:var(--hot, #f2c14e); stroke-width:2; }
 #tour .ts-tassel-end { fill:var(--hot, #f2c14e); }
 #tour .ts-leg { fill:#2c2833; transform-box:fill-box; transform-origin:50% 0; }
@@ -66,7 +66,7 @@
 #tour .tb-row b { flex:none; width:46px; color:var(--ink, #eee); font-weight:600; }
 #tour .tb-limit b { color:color-mix(in srgb, #f2c14e 80%, var(--ink, #eee)); }
 #tour .tb-bar { height:3px; border-radius:2px; background:var(--line, #2a2a33); margin:12px 0 10px; overflow:hidden; }
-#tour .tb-bar i { display:block; height:100%; background:var(--hot, #7c9cff); transition:width .6s cubic-bezier(.65,0,.35,1); }
+#tour .tb-bar i { display:block; height:100%; background:var(--hot, #5ee08a); transition:width .6s cubic-bezier(.65,0,.35,1); }
 #tour .tb-nav { display:flex; align-items:center; gap:8px; }
 #tour .tb-nav .grow { flex:1; }
 #tour .tb-next { border:0; border-radius:10px; padding:7px 16px; font-weight:600; background:var(--ink, #eee); color:var(--bg, #111); }
