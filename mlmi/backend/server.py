@@ -781,7 +781,9 @@ def make_handler(st):
                             words = (f"Already quantized ({keep['tag']}). Sheep packs it into SSF as it is, at its own "
                                      "width, and does not shrink it again." +
                                      (f" To choose a level, add its original, {orig}." if orig else
-                                      " To choose a level, add the original model it was made from."))
+                                      " To choose a level, add the original model it was made from.") +
+                                     (" Its file name does not say its level, so Sheep treats it as 4-bit: rename it with its "
+                                      "level (for example model-Q8_0.gguf) and press Check again." if keep["tag"] == "GGUF quantized" else ""))
                         return self._send(200, {"gguf": fname, "convert": words, "info": {"src": src}, "as_is": keep,
                                                 "levels": [{"id": x["id"], "name": x["name"], "what": x["what"]}
                                                            for x in LEVELS]})

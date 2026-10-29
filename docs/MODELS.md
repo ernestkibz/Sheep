@@ -34,7 +34,7 @@ finish the download.
 |---|---|
 | An original Hugging Face checkpoint (safetensors or PyTorch .bin) | Builds it |
 | An F16, BF16 or F32 GGUF; Meta's raw .pth | Converts it, then builds at any level |
-| An already-quantized GGUF (Q2 to Q8, IQ), GPTQ or AWQ copy | Packs it into SSF as it is, at its own width (Q4_K_M at 4/6-bit, Q8_0 at 8-bit); the other levels are locked, and the original is named for anyone who wants to choose one |
+| An already-quantized GGUF (Q2 to Q8, IQ), GPTQ or AWQ copy | Packs it into SSF as it is, at its own width (Q4_K_M at 4/6-bit, Q8_0 at 8-bit); the other levels are locked, and the original is named for anyone who wants to choose one. The level is read from the file name, so keep it in the name (model-Q8_0.gguf); a GGUF whose name gives none is treated as 4-bit |
 | An EXL2, MLX, ONNX or bitsandbytes copy | Refused with the name of its original, which Sheep builds at any level |
 | A ready Sheep file (.ssf) on a Hugging Face page | Downloads it; no build |
 | An architecture the engine has not met | Fits it, or runs it in compatibility mode |
