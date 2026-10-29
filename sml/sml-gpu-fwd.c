@@ -215,6 +215,20 @@ static int (*g_mid_fn)(float * rows, int pos0, int n) = 0;
 static sml_ctx CS;
 static const float * g_split_lg;    // the last split forward's logits (host)
 static float * g_rows_h;            // a split prompt's residual rows, on the host
+// A split model reads its prompts on the card for EVERY layer (2026-10-28). The CPU's
+// layers used to read their share of a prompt on the CPU: 57 tok/s on Qwen2.5-7B against
+// Ollama's 149, which carries those layers' weights across the bus for a prompt. Here a
+// CPU layer is copied into one staging layer on the card (SL), with its cache rows so
+// far, runs the same batched kernels as a card layer, and its new cache rows go back to
+// the CPU's cache, where the CPU reads them when it writes the answer. Writing does not
+// change: each new token still runs the CPU's layers on the CPU. SML_STREAM=0: off.
+static int g_pstream = 1, g_stream_ok = 0, g_in_stream = 0;
+static gl SL;                       // the staging layer's tensors, on the card
+static gl * LS;                     // each CPU layer's own small vectors; tensors are SL's
+static CUdeviceptr KS, VS;          // one layer's K and V cache rows (f32), staged
+static float * g_kv_h;              // host rows for the cache's fp16 <-> f32
+static double g_st_copy, g_st_run, g_st_t, g_st_card;   // SML_STREAM_STATS: where a streamed prompt's time goes
+static uint8_t ** g_s8h, ** g_m8h;  // a v9 file's 6-bit group fields as bytes, per CPU tensor
 static void host_embed(int tok, int pos, float * out);
 // Per-layer attention (Gemma 2/3, Cohere2, SmolLM3, GPT-Neo, EXAONE 4), read per
 // layer exactly as sml-run.c does: the layer's window, whether rotary applies at
@@ -991,7 +1005,7 @@ static void mvb(int kb, const gt * t, CUdeviceptr y, int yst, CUdeviceptr bias, 
         static int nkept = 0;
         CUdeviceptr w8 = W8, s8 = S8;
         int fresh = 1;
-        if (g_tcm3 == 2) {
+        if (g_tcm3 == 2 && !g_in_stream) {
             int i = 0;
             while (i < nkept && kept[i].c4 != t->c4) i++;
             if (!g_vram_at_keep) g_vram_at_keep = g_vram;
@@ -1024,7 +1038,7 @@ static void mvb(int kb, const gt * t, CUdeviceptr y, int yst, CUdeviceptr bias, 
             else          launch2(kb, KF_TCM4, cdiv(rows, 64), cdiv(nb, 64), 128, c);
             return;
         }
-        if (fresh && w8 == W8 && g_joseph && j_ok && !g_prof) {
+        if (fresh && w8 == W8 && g_joseph && j_ok && !g_prof && !g_in_stream) {
             if (!j_learned) {
                 if (j_n < 512) j_order[j_n++] = t;      // learning: in line, as before
             } else if (j_order[j_pos] != t) {
@@ -1262,9 +1276,116 @@ static void moe_prefill(const gl * y, const sml_layer * s, int nb) {
 // Read a prompt on the GPU: PB tokens per weight read, then the final norm and
 // the head for the last token only. Leaves LOG holding the next-token logits
 // and the KV cache filled for positions 0..n-1.
+// One CPU layer's tensor into the staging tensor's buffers: what up_tensor uploads, copied
+// over. Only a tensor of the staging one's shape and kind fits; stream_setup checks.
+static int tensor_fits(const gt * d, const sml_rec * r) {
+    return r && r->layout == SML_LAYOUT_FLAT && (int) r->rows == d->rows && (int) r->cols == d->n;
+}
+static void refill(const gt * d, const sml_rec * r, int ti) {
+    const size_t rows = (size_t) d->rows, n = (size_t) d->n;
+    const size_t ng = n / SML_GROUP, nscale = (size_t) SML_NSCALE(d->n);
+    if (d->six) {
+        CU.MemcpyHtoD(d->c2, sml_ptr(&M, r->codes_off[0]), rows * (n / 128) * 32);
+        CU.MemcpyHtoD(d->c4, sml_ptr(&M, r->codes_off[1]), rows * n / 2);
+    } else {
+        CU.MemcpyHtoD(d->c4, sml_ptr(&M, r->codes_off[0]), rows * n / 2);
+    }
+    CU.MemcpyHtoD(d->sd, sml_ptr(&M, r->sd_off), rows * nscale * 2);
+    if (sml_kernel_scale6_get()) {
+        if (!g_s8h[ti]) {           // re-biased once, as up_tensor does it
+            const uint8_t * s6 = (const uint8_t *) sml_ptr(&M, r->sq_off);
+            const uint8_t * m6 = d->have_min ? (const uint8_t *) sml_ptr(&M, r->mq_off) : NULL;
+            const size_t g6 = (size_t) SML_SCALE6_BYTES(ng);
+            g_s8h[ti] = malloc(rows * ng);
+            if (m6) g_m8h[ti] = malloc(rows * ng);
+            for (size_t row = 0; row < rows; row++)
+                for (size_t g = 0; g < ng; g++) {
+                    g_s8h[ti][row * ng + g] = (uint8_t) sml_scale6_at(s6 + row * g6, (int) g);
+                    if (m6) g_m8h[ti][row * ng + g] = (uint8_t) (sml_scale6_at(m6 + row * g6, (int) g)
+                                                               + (sml_kernel_minneg_get() ? 64 : 96));
+                }
+        }
+        CU.MemcpyHtoD(d->sq, g_s8h[ti], rows * ng);
+        if (d->have_min) {
+            CU.MemcpyHtoD(d->md, sml_ptr(&M, r->md_off), rows * nscale * 2);
+            CU.MemcpyHtoD(d->mq, g_m8h[ti], rows * ng);
+        }
+    } else {
+        CU.MemcpyHtoD(d->sq, sml_ptr(&M, r->sq_off), rows * ng);
+        if (d->have_min) {
+            CU.MemcpyHtoD(d->md, sml_ptr(&M, r->md_off), rows * nscale * 2);
+            CU.MemcpyHtoD(d->mq, sml_ptr(&M, r->mq_off), rows * ng);
+        }
+    }
+    CU.MemcpyHtoD(d->perm, sml_ptr(&M, r->perm_off), n * 4);
+}
+
+// CPU layer l onto the card for a chunk at position p: its tensors, and its cache rows 0..p-1
+static const gl * stream_in(int l, int p) {
+    const sml_layer * s = &C.layers[l];
+    const sml_rec * rs[7] = { s->q, s->k, s->v, s->o, s->gate, s->up, s->down };
+    const gl * g = &LS[l - NL];
+    const gt * ds[7] = { &g->q, &g->k, &g->v, &g->o, &g->gate, &g->up, &g->down };
+    CU.CtxSynchronize();            // the last layer's kernels are done with the buffers
+    const double t0 = now_s();
+    if (l == NL) g_st_card += t0 - g_st_t;  // the card layers' share of the chunk
+    else g_st_run += t0 - g_st_t;
+    for (int i = 0; i < 7; i++) if (rs[i]) refill(ds[i], rs[i], (l - NL) * 7 + i);
+    g_st_copy += now_s() - t0;
+    g_st_t = now_s();
+    g_hperm = 0;
+    if (p > 0) {
+        const size_t rows = (size_t) p * kvd;
+        const uint16_t * kh = CS.k_cache + (size_t) l * CS.n_ctx * kvd;
+        const uint16_t * vh = CS.v_cache + (size_t) l * CS.n_ctx * kvd;
+        for (size_t i = 0; i < rows; i++) g_kv_h[i] = sml_f16_to_f32(kh[i]);
+        CU.MemcpyHtoD(KS, g_kv_h, rows * 4);
+        for (size_t i = 0; i < rows; i++) g_kv_h[i] = sml_f16_to_f32(vh[i]);
+        CU.MemcpyHtoD(VS, g_kv_h, rows * 4);
+    }
+    g_in_stream = 1;
+    return &LS[l - NL];
+}
+
+// fp32 -> fp16, round to nearest even: what the CPU engine stores its cache as (sml-run.c)
+static uint16_t kv_f16(float f) {
+    uint32_t x;
+    memcpy(&x, &f, sizeof x);
+    const uint32_t sign = (x >> 16) & 0x8000u, rawe = (x >> 23) & 0xffu;
+    uint32_t man = x & 0x7fffffu;
+    if (rawe == 0xff) return (uint16_t) (sign | 0x7c00u | (man ? 0x200u : 0u));
+    const int32_t exp = (int32_t) rawe - 127 + 15;
+    if (exp >= 31) return (uint16_t) (sign | 0x7c00u);
+    if (exp <= 0) {
+        if (exp < -10) return (uint16_t) sign;
+        man |= 0x800000u;
+        const uint32_t sh = (uint32_t) (14 - exp);
+        uint32_t sub = man >> sh;
+        const uint32_t rem = man & ((1u << sh) - 1u), half = 1u << (sh - 1);
+        if (rem > half || (rem == half && (sub & 1u))) sub++;
+        return (uint16_t) (sign | sub);
+    }
+    uint32_t h = ((uint32_t) exp << 10) | (man >> 13);
+    const uint32_t rem = man & 0x1fffu;
+    if (rem > 0x1000u || (rem == 0x1000u && (h & 1u))) h++;
+    return (uint16_t) (sign | h);
+}
+
+// ...and its new cache rows p..p+nb-1 back to the CPU's cache, where writing reads them
+static void stream_out(int l, int p, int nb) {
+    const size_t off = (size_t) p * kvd, rows = (size_t) nb * kvd;
+    uint16_t * kh = CS.k_cache + (size_t) l * CS.n_ctx * kvd + off;
+    uint16_t * vh = CS.v_cache + (size_t) l * CS.n_ctx * kvd + off;
+    CU.MemcpyDtoH(g_kv_h, KS + (CUdeviceptr) (off * 4), rows * 4);
+    for (size_t i = 0; i < rows; i++) kh[i] = kv_f16(g_kv_h[i]);
+    CU.MemcpyDtoH(g_kv_h, VS + (CUdeviceptr) (off * 4), rows * 4);
+    for (size_t i = 0; i < rows; i++) vh[i] = kv_f16(g_kv_h[i]);
+}
+
 static void gpu_prefill(const int * ids, int pos0, int n) {
     const int wide = g_wide;
     const double t_pf = now_s();
+    g_st_t = t_pf;
     if (ruth_on() && j_learned) {
         const char * fx = getenv("SML_RUTH_FRAC");
         if (g_frac_fixed >= 0.0) g_ruth_f = g_frac_fixed;
@@ -1276,7 +1397,9 @@ static void gpu_prefill(const int * ids, int pos0, int n) {
         }
     }
     int last_nb = 1;
+    const int streaming = g_cpu_split && g_stream_ok && !(g_mid_fn && g_mid_n > 0);
     for (int p0 = 0; p0 < n; p0 += PB) {
+        if (streaming && g_st_t > 0.0) { CU.CtxSynchronize(); if (p0 > 0) g_st_run += now_s() - g_st_t; g_st_t = now_s(); }
         const int nb = n - p0 < PB ? n - p0 : PB;
         last_nb = nb;
         CU.MemcpyHtoD(DTOKS, ids + p0, (size_t) nb * 4);
@@ -1294,8 +1417,9 @@ static void gpu_prefill(const int * ids, int pos0, int n) {
             launch2(KB_EMBED, KF_EMBEDB, cdiv(n_embd, 256), (unsigned) nb, 256, a);
             embed_out(XBAT, nb, 0, pos0 + p0);
         }
-        for (int l = 0; l < NL; l++) {
-            const gl * y = &L[l];
+        const int nlp = streaming ? NL_ALL : NL;
+        for (int l = 0; l < nlp; l++) {
+            const gl * y = l < NL ? &L[l] : stream_in(l, pos0 + p0);
             normq2b(y->an, y->anb, &y->q, l == 0 ? 0 : 1, nb);
             mvb(KB_MV3, &y->q, QBB, n_head * hd, y->qb, nb);
             mvb(KB_MV3, &y->k, KBB, kvd, y->kb, nb);
@@ -1303,8 +1427,8 @@ static void gpu_prefill(const int * ids, int pos0, int n) {
             clamp_qkv(QBB, n_head * hd, KBB, kvd, VBB, kvd, nb);
             if (!g_qk_late) qknorm(y, QBB, n_head * hd, KBB, kvd, nb);
             {
-                CUdeviceptr kl = KC + (CUdeviceptr)((size_t) l * n_ctx * kvd * 4);
-                CUdeviceptr vl = VC + (CUdeviceptr)((size_t) l * n_ctx * kvd * 4);
+                CUdeviceptr kl = l < NL ? KC + (CUdeviceptr)((size_t) l * n_ctx * kvd * 4) : KS;
+                CUdeviceptr vl = l < NL ? VC + (CUdeviceptr)((size_t) l * n_ctx * kvd * 4) : VS;
                 int qst = n_head * hd, kst = kvd, vst = kvd;
                 int nh = n_head, nk = n_kv, hh = hd, hf = l_half(l), il = interleaved, p = pos0 + p0;
                 CUdeviceptr rc = l_rc(l), rs = l_rs(l);
@@ -1377,6 +1501,7 @@ static void gpu_prefill(const int * ids, int pos0, int n) {
             quantw2b(HBB, &y->down, nb);
             mvb(KB_QDMV, &y->down, HB2B, wide, y->db, nb);
             branch_out(HB2B, wide, y->pf, nb);
+            if (l >= NL) { stream_out(l, pos0 + p0, nb); g_in_stream = 0; }
         }
         if (g_cpu_split) {
             // the chunk's last GPU branch joins its rows, and the rows cross
@@ -1413,6 +1538,15 @@ static void gpu_prefill(const int * ids, int pos0, int n) {
     if (g_cpu_split) {
         // a middle stage (another GPU, sml_gpu_set_middle) runs the next layers on
         // the hidden rows; the CPU continues after them
+        if (streaming) {
+            // every layer ran here: the CPU only norms the last row and reads the head
+            g_split_lg = sml_forward_from(&CS, g_rows_h + (size_t) (n - 1) * n_embd, pos0 + n - 1, NL_ALL, 0);
+            if (getenv("SML_STREAM_STATS"))
+                printf("  stream: %d tokens in %.2f s: bus %.2f s, card layers %.2f s, streamed layers %.2f s\n",
+                       n, now_s() - t_pf, g_st_copy, g_st_card, g_st_run), fflush(stdout);
+            g_st_copy = g_st_run = g_st_card = 0.0;
+            return;
+        }
         int L0 = NL;
         if (g_mid_fn && g_mid_n > 0) {
             if (!g_mid_fn(g_rows_h, pos0, n)) GPU_DIE();
@@ -1897,9 +2031,18 @@ static int gpu_setup(const char * path, int want_ctx, int threads) {
         if (g_layers_force > 0) k = g_layers_force;
         else if (getenv("SML_GPU_LAYERS")) k = atoi(getenv("SML_GPU_LAYERS"));
         else if (fr && all + head + reserve > fr) {
+            // room for the staging layer that reads the CPU's layers' prompts on the card:
+            // one layer fewer here, prompts 77 -> 133 tok/s on Qwen2.5-7B, writing unchanged
+            size_t stage = 0;
+            int dense = !(getenv("SML_STREAM") && !atoi(getenv("SML_STREAM")));
+            for (int l = 0; l < NL && l < 1024; l++) {
+                if (C.layers[l].n_exp) dense = 0;
+                if (per[l] > stage) stage = per[l];
+            }
+            if (!dense) stage = 0;
             size_t used = 0;
             k = 0;
-            while (k < NL && used + per[k] + reserve <= fr) used += per[k++];
+            while (k < NL && used + per[k] + reserve + stage <= fr) used += per[k++];
         }
         if (k < 1) k = 1;
         if (k < NL) {
@@ -1983,6 +2126,102 @@ static int gpu_setup(const char * path, int want_ctx, int threads) {
         L[l].anb = up_f(s->attn_norm_b, n_embd);
         L[l].fn  = s->ffn_norm ? up_f((const float *) sml_ptr(&M, s->ffn_norm->off), n_embd) : 0;
         L[l].fnb = up_f(s->ffn_norm_b, n_embd);
+    }
+    if (g_cpu_split && NL_ALL > NL) {
+        if (getenv("SML_STREAM")) g_pstream = atoi(getenv("SML_STREAM"));
+        int ok = g_pstream && kvd > 0;
+        for (int l = NL; l < NL_ALL && ok; l++) {
+            const sml_layer * s = &C.layers[l];
+            ok = !s->n_exp && s->q && s->k && s->v && s->o && s->up && s->down
+                 && (!s->gate) == (!C.layers[NL].gate);
+        }
+        // Staging buffers as big as the biggest of each tensor's parts across the CPU's layers:
+        // Sheep gives some layers' tensors 6 bits (a second code plane) and others 4.
+        const int nc = NL_ALL - NL;
+        size_t sz[7][7];                    // [tensor][c2, c4, sd, sq, md, mq, perm]
+        int rows_[7], cols_[7];
+        memset(sz, 0, sizeof sz);
+        for (int i = 0; i < 7 && ok; i++) {
+            rows_[i] = cols_[i] = 0;
+            for (int l = NL; l < NL_ALL && ok; l++) {
+                const sml_layer * s = &C.layers[l];
+                const sml_rec * rs[7] = { s->q, s->k, s->v, s->o, s->gate, s->up, s->down };
+                const sml_rec * r = rs[i];
+                if (!r) continue;
+                if (r->layout != SML_LAYOUT_FLAT || (rows_[i] && ((int) r->rows != rows_[i] || (int) r->cols != cols_[i]))) {
+                    ok = 0;
+                    break;
+                }
+                rows_[i] = (int) r->rows; cols_[i] = (int) r->cols;
+                const size_t rr = r->rows, n = r->cols, ng = n / SML_GROUP, nscale = (size_t) SML_NSCALE(r->cols);
+                const size_t part[7] = { r->nbits == 6 ? rr * (n / 128) * 32 : 0, rr * n / 2, rr * nscale * 2, rr * ng,
+                                         r->mq_n ? rr * nscale * 2 : 0, r->mq_n ? rr * ng : 0, n * 4 };
+                for (int k = 0; k < 7; k++) if (part[k] > sz[i][k]) sz[i][k] = part[k];
+            }
+        }
+        size_t need = (size_t) 2 * n_ctx * kvd * 4;
+        for (int i = 0; i < 7; i++) for (int k = 0; k < 7; k++) need += sz[i][k];
+        if (ok) {
+            size_t fr = nvml_free_bytes(g_dev), tot = 0;     // as the split measured it
+            if (!fr && CU.MemGetInfo) CU.MemGetInfo(&fr, &tot);
+            const size_t margin = (size_t) (getenv("SML_STREAM_MARGIN_MB") ? atoi(getenv("SML_STREAM_MARGIN_MB")) : 100) << 20;
+            if (fr && fr < need + margin) {
+                printf("  prompts: no room to read the CPU layers on the card (%.2f GB free, %.2f needed)\n",
+                       fr / 1e9, (need + margin) / 1e9);
+                ok = 0;
+            }
+        }
+        if (ok) {
+            gt * st[7] = { &SL.q, &SL.k, &SL.v, &SL.o, &SL.gate, &SL.up, &SL.down };
+            for (int i = 0; i < 7; i++) {
+                memset(st[i], 0, sizeof(gt));
+                if (!rows_[i]) continue;
+                st[i]->rows = rows_[i]; st[i]->n = cols_[i];
+                CUdeviceptr * pp[7] = { &st[i]->c2, &st[i]->c4, &st[i]->sd, &st[i]->sq, &st[i]->md, &st[i]->mq, &st[i]->perm };
+                for (int k = 0; k < 7; k++) *pp[k] = sz[i][k] ? dalloc(sz[i][k]) : 0;
+            }
+            LS = calloc((size_t) nc, sizeof(gl));
+            g_s8h = calloc((size_t) nc * 7, sizeof(uint8_t *));
+            g_m8h = calloc((size_t) nc * 7, sizeof(uint8_t *));
+            for (int l = NL; l < NL_ALL && ok; l++) {
+                const sml_layer * s = &C.layers[l];
+                gl * g = &LS[l - NL];
+                const sml_rec * rs[7] = { s->q, s->k, s->v, s->o, s->gate, s->up, s->down };
+                gt * ts[7] = { &g->q, &g->k, &g->v, &g->o, &g->gate, &g->up, &g->down };
+                for (int i = 0; i < 7; i++) {
+                    *ts[i] = *st[i];
+                    if (!rs[i]) continue;
+                    ts[i]->six = rs[i]->nbits == 6;
+                    ts[i]->have_min = rs[i]->mq_n ? 1 : 0;
+                    if (!ts[i]->have_min) { ts[i]->md = ts[i]->sd; ts[i]->mq = ts[i]->sq; }
+                    ts[i]->hperm = (const int32_t *) sml_ptr(&M, rs[i]->perm_off);
+                }
+                if (!ok) break;
+                g->kv_same = same_perm(&g->q, &g->k) && same_perm(&g->q, &g->v);
+                g->gu_same = same_perm(&g->gate, &g->up);
+                g->qn = up_f(s->q_norm, (size_t) s->q_norm_n); g->qnb = up_f(s->q_norm_b, (size_t) s->q_norm_n);
+                g->kn = up_f(s->k_norm, (size_t) s->k_norm_n); g->knb = up_f(s->k_norm_b, (size_t) s->k_norm_n);
+                g->qn_n = s->q_norm_n; g->kn_n = s->k_norm_n;
+                g->pa = up_f(s->attn_post_norm, n_embd); g->pf = up_f(s->ffn_post_norm, n_embd);
+                g->qb = up_f(s->q_bias, (size_t) n_head * hd); g->kb = up_f(s->k_bias, kvd);
+                g->vb = up_f(s->v_bias, kvd); g->ob = up_f(s->o_bias, n_embd);
+                g->gb = up_f(s->gate_bias, n_ff); g->ub = up_f(s->up_bias, n_ff);
+                g->db = up_f(s->down_bias, n_embd);
+                g->an  = s->attn_norm ? up_f((const float *) sml_ptr(&M, s->attn_norm->off), n_embd) : 0;
+                g->anb = up_f(s->attn_norm_b, n_embd);
+                g->fn  = s->ffn_norm ? up_f((const float *) sml_ptr(&M, s->ffn_norm->off), n_embd) : 0;
+                g->fnb = up_f(s->ffn_norm_b, n_embd);
+            }
+            if (ok) {
+                KS = dalloc((size_t) n_ctx * kvd * 4); VS = dalloc((size_t) n_ctx * kvd * 4);
+                g_kv_h = malloc((size_t) n_ctx * kvd * sizeof(float));
+                g_stream_ok = g_kv_h != NULL;
+                // the granary's side copies compete with the staging layer for the card: 97 vs 133 tok/s
+                if (g_stream_ok && !getenv("SML_JOSEPH")) g_joseph = 0;
+                if (g_stream_ok)
+                    printf("  prompts: the CPU's %d layers are read on the card too, one at a time\n", nc);
+            }
+        }
     }
     // a split model keeps its head and embedding on the CPU half
     if (!g_cpu_split) {
