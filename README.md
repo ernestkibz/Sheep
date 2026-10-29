@@ -119,12 +119,10 @@ period opened on 2026-08-26. Every file that came from upstream has since been d
 ## Honest limits
 
 - The desktop app and installer are Windows only. The engine builds on Linux.
-- Nebius is reached through OpenRouter, pinned to Nebius, until Token Factory takes payment from Uganda.
 - The engine's speed wins are measured on one laptop with AVX2; on other CPUs, ARM or Mac, assume llama.cpp is
   faster.
 - Compatibility mode (the maker's own code) is correct but slower than Sheep's engine.
 - Small local models make mistakes; in Sheep + Nebius mode Nemotron checks their work, and every check is shown.
-- The local vision model is tiny (256M): it names colours and simple shapes.
 - Qwen2.5-3B, used in the tests, has a research licence; pick an Apache-2.0 model for real work.
 
 ## Docs
