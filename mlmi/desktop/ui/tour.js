@@ -476,3 +476,8 @@
   }
   MLMI.tour = open;
 })();
+// the sidebar's own way in, beside New chat
+(() => {
+  const wire = () => { const b = document.getElementById("openTour"); if (b) b.onclick = () => MLMI.tour(); };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire); else wire();
+})();
