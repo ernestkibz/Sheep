@@ -7,7 +7,7 @@ big jobs, checks the local model's drafts, and answers while the local model loa
 current facts, with their sources.
 
 Sheep is for people with an ordinary laptop, a slow or costly connection, or work that should stay on their
-own machine. It was built in Uganda, where Nebius Token Factory does not yet take payment from local cards.
+own machine. It was built in Uganda.
 
 ![Sheep, with its guide pointing at the apps](docs/shots/tour.png)
 
