@@ -295,7 +295,7 @@ class Cloud:
             self.sent = self.sent[-200:]
         t0 = time.perf_counter()
         try:
-            r = _post(self.cfg.base + "/chat/completions", body, {"Authorization": "Bearer " + self.cfg.key}, timeout=180)
+            r = _post(self.cfg.base + "/chat/completions", body, {"Authorization": "Bearer " + self.cfg.key}, timeout=60)   # a stalled cloud gives way to the laptop within a minute
         except LLMError as e:
             note_route(self.cfg.base, body, error=str(e))
             raise

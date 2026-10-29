@@ -299,7 +299,7 @@ class Bridge:
         t0 = time.perf_counter()
         meta = {}
         try:
-            with urllib.request.urlopen(req, timeout=120) as r:
+            with urllib.request.urlopen(req, timeout=40) as r:
                 chars, _ = relay(r, write, meta)
         except (urllib.error.URLError, OSError) as e:
             detail = e.read().decode("utf-8", "replace") if isinstance(e, urllib.error.HTTPError) else ""

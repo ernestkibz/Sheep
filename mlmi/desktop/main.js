@@ -104,7 +104,7 @@ async function createWindow() {
     // screenshots and recordings (MLMI_SHOTS) happen off the screen, behind nothing, out of the taskbar
     ...(process.env.MLMI_SHOTS ? { x: -4000, y: 0, skipTaskbar: true, focusable: false } : {}),
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false,
-                      backgroundThrottling: false },
+                      backgroundThrottling: false, offscreen: !!process.env.MLMI_SCRIPT },
   });
   win.loadFile(path.join(__dirname, "ui", "boot.html"));
   // close = sleep in the tray; only Quit (tray menu) stops Sheep
@@ -140,6 +140,30 @@ async function shots(dir) {
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   await new Promise((r) => win.webContents.once("did-finish-load", r));
   await wait(1500);
+  // MLMI_SCRIPT=FILE.json, [{name, js, ms}]: each scene runs its script, then every frame the page paints
+  // for ms is kept (DIR/<name>/<time>.jpg): smooth footage of the real app, joined into video afterwards
+  if (process.env.MLMI_SCRIPT) {
+    const scenes = JSON.parse(fs.readFileSync(process.env.MLMI_SCRIPT, "utf8"));
+    for (const sc of scenes) {
+      const out = path.join(dir, sc.name);
+      fs.mkdirSync(out, { recursive: true });
+      const t0 = Date.now();
+      // off-screen rendering: the page paints at 30 frames a second with no window on the screen
+      const onPaint = (_e, _dirty, img) => {
+        try { fs.writeFileSync(path.join(out, `${String(Date.now() - t0).padStart(7, "0")}.jpg`), img.toJPEG(88)); } catch (_) {}
+      };
+      win.webContents.setFrameRate(30);
+      win.webContents.on("paint", onPaint);
+      if (sc.js) await win.webContents.executeJavaScript(sc.js).catch((e) => process.stdout.write(`[scene ${sc.name}] ${e}\n`));
+      win.webContents.invalidate();
+      await wait(sc.ms);
+      win.webContents.off("paint", onPaint);
+      fs.writeFileSync(path.join(out, "end.txt"), String(Date.now() - t0));
+    }
+    app.isQuitting = true;
+    app.quit();
+    return;
+  }
   for (const v of views) {
     const [name, js] = v.split(":");
     await win.webContents.executeJavaScript(`location.hash = ${JSON.stringify(name)}`);
