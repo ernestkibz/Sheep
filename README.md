@@ -118,7 +118,7 @@ Ollama still reads faster (138) and llama.cpp starts faster; Sheep reads five ti
 
 This repository began on 2026-08-29 as a fork of an MIT-licensed C/C++ inference engine. The submission
 period opened on 2026-08-26. Every file that came from upstream has since been deleted and replaced
-([NOTICE](NOTICE), [PROVENANCE.md](PROVENANCE.md)), and the dated commits record what was built since then.
+([NOTICE](NOTICE), [PROVENANCE.md](PROVENANCE.md)). The published history was tidied and starts on 2026-10-27.
 [docs/DEVELOPMENT_HISTORY.md](docs/DEVELOPMENT_HISTORY.md) walks through every stage.
 
 ## Honest limits
@@ -157,4 +157,6 @@ processor alone works. [docs/BUILDING.md](docs/BUILDING.md) builds the engine an
 
 ## Licence
 
-MIT. See [LICENSE](LICENSE) and [NOTICE](NOTICE): this began as a fork and the attribution stands.
+Copyright (c) 2026 Ernest Kibz. Released under the GNU Affero General Public License v3.0 (AGPL-3.0): see
+[LICENSE](LICENSE) and [NOTICE](NOTICE). Anyone who ships or serves a modified Sheep must publish their source
+under the same licence. For other terms, contact the author.

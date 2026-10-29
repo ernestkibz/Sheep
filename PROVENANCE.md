@@ -147,7 +147,7 @@ sentences):
 | `brand/matmul.svg`, `brand/matmul.png` | **100%** | **their artwork — untracked 2026-09-23** |
 | `.gitignore` | was 90% | **rewritten** for our own build output; what remains is `*.o`, `__pycache__/` and similar, which have one spelling |
 | `.editorconfig` | was 78% | **rewritten**; what remains are the format's own keywords |
-| `LICENSE` | 80%, 11 prose sentences | **correct and required** — it is the MIT text, kept verbatim |
+| `LICENSE` | was 80% | **replaced** with the AGPL-3.0 text on 2026-10-30; no upstream file remains that needs the MIT notice |
 | `README.md`, `METHOD.md`, `RESULTS.md`, `FORMAT.md`, `NOTICE` | 0–2% | **0 shared prose sentences** of their 3,498 |
 | `sml/Makefile`, `tooling/*.sh`, `sml/ui/index.html` | 2–10% | generic shell and markup lines |
 | `brand/sheep-logo.svg`, `brand/sheep-mark.svg` | **0 shared lines** | ours |
