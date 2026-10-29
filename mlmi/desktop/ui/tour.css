@@ -7,13 +7,16 @@
 #tour .tour-spot { position:absolute; left:0; top:0; border-radius:14px; pointer-events:none; will-change:transform;
   box-shadow:0 0 0 9999px rgba(8, 8, 8, .7), 0 0 0 2px rgba(255,255,255,.85), 0 0 34px 6px rgba(255,255,255,.18); }
 
+#tour .tour-ring { position:absolute; left:0; top:0; border-radius:10px; pointer-events:none; opacity:0;
+  border:2px solid #f4f4f4; box-shadow:0 0 0 4px rgba(244,244,244,.16); transition:opacity .25s; will-change:transform; }
+
 #tour .tour-actor { position:absolute; left:0; top:0; width:260px; height:270px; transform-origin:0 0;
   pointer-events:auto; cursor:pointer; will-change:transform; filter:drop-shadow(0 6px 14px rgba(0,0,0,.35)); }
 #tour .ts-svg { width:260px; height:270px; overflow:visible; display:block; }
 #tour .ts-fleece circle { fill:#f4f4f4; }
 #tour .ts-ink { fill:#050505; stroke:#f4f4f4; stroke-width:2; stroke-linejoin:round; }
 #tour .ts-eye circle { fill:#fff; }
-#tour .ts-crook path { fill:none; stroke-linecap:round; stroke-linejoin:round; }
+#tour .ts-crook path, #tour .ts-crook line { fill:none; stroke-linecap:round; stroke-linejoin:round; }
 #tour .ts-crook-edge { stroke:#f4f4f4; stroke-width:4.2; }
 #tour .ts-crook-ink { stroke:#050505; stroke-width:2; }
 #tour .ts-shadow { fill:#000; opacity:.55; filter:blur(3px); }
