@@ -7,7 +7,7 @@ big jobs, checks the local model's drafts, and answers while the local model loa
 current facts, with their sources.
 
 Sheep is for people with an ordinary laptop, a slow or costly connection, or work that should stay on their
-own machine. It was built in Uganda, where Nebius Token Factory itself is not yet open to accounts.
+own machine. It was built in Uganda, where Nebius Token Factory does not yet take payment from local cards.
 
 ![Sheep, with its guide pointing at the apps](docs/shots/tour.png)
 
@@ -48,7 +48,7 @@ set nothing. [docs/MODELS.md](docs/MODELS.md) has every step and every format.
 
 | What | Where it runs | What it does in Sheep |
 |---|---|---|
-| **NVIDIA Nemotron 3 Nano 30B-A3B** | Nebius. Requests go through OpenRouter pinned to the Nebius provider with fallbacks off, because Token Factory does not yet accept accounts from Uganda; Nebius Support confirmed this route in writing ([evidence](docs/evidence/NEBIUS_ROUTING_EVIDENCE.md)) | Plans a multi-step job as exact tool calls that Sheep runs on the computer; checks the local model's draft against the request before Sheep makes the file; answers while the local model loads or is being repaired |
+| **NVIDIA Nemotron 3 Nano 30B-A3B** | Nebius. Requests go through OpenRouter pinned to the Nebius provider with fallbacks off, because Token Factory does not yet take payment from Uganda; Nebius Support confirmed this route in writing ([evidence](docs/evidence/NEBIUS_ROUTING_EVIDENCE.md)) | Plans a multi-step job as exact tool calls that Sheep runs on the computer; checks the local model's draft against the request before Sheep makes the file; answers while the local model loads or is being repaired |
 | **A local model** (Qwen, Llama, Gemma, Phi, Mistral, NVIDIA Nemotron-H and [many more](docs/MODELS.md#architecture-support)) | This computer, in Sheep's own engine (SML + SSF) | Writes the content; Sheep makes the files with its apps' own tools |
 | **Tavily** | Web search API | Current facts for questions, and for decks and documents, which end with their sources |
 
@@ -119,7 +119,7 @@ period opened on 2026-08-26. Every file that came from upstream has since been d
 ## Honest limits
 
 - The desktop app and installer are Windows only. The engine builds on Linux.
-- Nebius is reached through OpenRouter, pinned to Nebius, until Token Factory opens to accounts in Uganda.
+- Nebius is reached through OpenRouter, pinned to Nebius, until Token Factory takes payment from Uganda.
 - The engine's speed wins are measured on one laptop with AVX2; on other CPUs, ARM or Mac, assume llama.cpp is
   faster.
 - Compatibility mode (the maker's own code) is correct but slower than Sheep's engine.
