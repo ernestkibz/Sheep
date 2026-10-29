@@ -22,7 +22,7 @@
   // the fleece, a black arm holding a black crook edged in white. Drawn on the logo's 64 grid, x4.
   const L = "translate(-5 18) scale(4)";
   const FLEECE = "translate(31 48) scale(0.92 1.12) translate(-31 -48)";     // stood up: taller, a little narrower
-  const HOOK = "M0 0 C6 0 8.5 -6.2 5.5 -9.8 C3 -12.6 -1.6 -11 -0.6 -7.2";
+  const HOOK = "M0 0 C4.5 0 7.5 -3 7.5 -7 C7.5 -11 4.5 -13.5 1.2 -13.5 C-2 -13.5 -4 -11.5 -4 -8.8";
   const SHEEP = `<svg class="ts-svg" viewBox="0 0 260 270" aria-hidden="true">
     <ellipse class="ts-shadow" cx="116" cy="251" rx="46" ry="6.5"/>
     <g class="ts-legL"><g transform="${L}"><rect class="ts-ink" x="21.5" y="40" width="4.5" height="18" rx="2"/></g></g>
@@ -30,11 +30,11 @@
     <g class="ts-upper">
       <g transform="${L} ${FLEECE}" class="ts-fleece"><circle cx="42" cy="28" r="10"/><circle cx="30" cy="22" r="11"/><circle cx="19" cy="29" r="10"/>
         <circle cx="36" cy="38" r="10"/><circle cx="23" cy="39" r="10"/><circle cx="46" cy="37" r="7"/><circle cx="14" cy="38" r="7"/></g>
-      <g class="ts-board" transform="rotate(-9 82 168)">
-        <line class="ts-limb-e" x1="96" y1="128" x2="88" y2="166"/><line class="ts-limb-i" x1="96" y1="128" x2="88" y2="166"/>
-        <rect class="ts-board-r" x="60" y="140" width="40" height="52" rx="5"/><rect class="ts-ink" x="72" y="134" width="16" height="10" rx="3"/>
-        <line class="ts-board-l" x1="68" y1="158" x2="92" y2="158"/><line class="ts-board-l" x1="68" y1="167" x2="92" y2="167"/>
-        <line class="ts-board-l" x1="68" y1="176" x2="84" y2="176"/><circle class="ts-ink" cx="88" cy="168" r="7"/></g>
+      <g class="ts-board" transform="rotate(-6 46 168)">
+        <line class="ts-limb-e" x1="82" y1="130" x2="50" y2="162"/><line class="ts-limb-i" x1="82" y1="130" x2="50" y2="162"/>
+        <rect class="ts-board-r" x="14" y="138" width="40" height="52" rx="5"/><rect class="ts-ink" x="26" y="132" width="16" height="10" rx="3"/>
+        <line class="ts-board-l" x1="22" y1="156" x2="46" y2="156"/><line class="ts-board-l" x1="22" y1="165" x2="46" y2="165"/>
+        <line class="ts-board-l" x1="22" y1="174" x2="38" y2="174"/><circle class="ts-ink" cx="50" cy="164" r="7"/></g>
       <g class="ts-crook"><g transform="scale(4)">
         <line class="ts-crook-edge" x1="-8" y1="0" x2="34" y2="0"/><line class="ts-crook-ink" x1="-8" y1="0" x2="34" y2="0"/>
         <g transform="translate(34 0)"><path class="ts-crook-edge" d="${HOOK}"/><path class="ts-crook-ink" d="${HOOK}"/></g></g></g>
@@ -261,14 +261,18 @@
   // Where to stand: beside the part, the shoulder about 0.85 of the crook away from the point it touches.
   // A part too big to stand beside (a settings page) is touched near its title from below-right.
   function aim(snap) {
-    const W = innerWidth, H = innerHeight, spotR = rectOf(STOPS[i].at), r = rectOf(STOPS[i].point) || spotR, k = SCALE;
+    const W = innerWidth, H = innerHeight, spotR = rectOf(STOPS[i].at), k = SCALE;
+    // a page too big to stand beside decides where to stand; a heading in it only says where to point
+    const bigSpot = spotR && (spotR.width > W * 0.45 || spotR.height > H * 0.55);
+    const r = bigSpot ? spotR : (rectOf(STOPS[i].point) || spotR);
     const aw = 260 * k, ah = 270 * k, reach = REACH * k, sh = { x: (SHOULDER.x - FEET.x) * k, y: (SHOULDER.y - FEET.y) * k };
     let fx, fy, face = 1, P = null;
-    if (!r) { fx = W * 0.5 - 170; fy = H * 0.5 + 150; }
+    if (!r) { fx = W * 0.5 + 230; fy = H * 0.5 + 170; face = -1; }     // the board (the bubble) is to its left
     else {
       const big = r.width > W * 0.45 || r.height > H * 0.55;
       const cy = r.top + r.height / 2;
-      if (big) { P = { x: r.left + 48, y: r.top + 56 }; face = -1; fx = r.left + 330; fy = r.top + 330; }
+      // a page too big to stand beside: just left of it, facing in, reaching into its rows
+      if (big) { P = { x: r.left + 60, y: r.top + 120 }; face = 1; fx = Math.max(r.left - 40, aw * 0.5 + 8); fy = Math.min(r.top + 430, H - 6); }
       else if (r.right + aw + 30 < W) { P = { x: r.right, y: cy }; face = -1; }
       else if (r.left - aw - 30 > 0) { P = { x: r.left, y: cy }; face = 1; }
       else { P = { x: r.left + r.width / 2, y: r.top }; face = r.left + r.width / 2 > W / 2 ? 1 : -1; }
@@ -306,8 +310,12 @@
   function bubbleGoal() {
     const W = innerWidth, H = innerHeight, bw = bubble.offsetWidth || 400, bh = bubble.offsetHeight || 240;
     const k = SCALE, headY = st.y + (HEAD.y - FEET.y) * k;
-    let bx = goal.face > 0 ? st.x - 120 * k - bw - 6 : st.x + 120 * k + 6;
-    if (bx < 10 || bx + bw > W - 10) bx = goal.face > 0 ? st.x + 120 * k + 6 : st.x - 120 * k - bw - 6;
+    // beside a part, the bubble sits behind the sheep; with no part, it is the board in front of it
+    const gs = goal.spot;
+    if (gs && (gs.width > W * 0.45 || gs.height > H * 0.55)) return { x: W - bw - 24, y: H - bh - 24 };   // a big page: out of its rows' way
+    const front = goal.spot ? -goal.face : goal.face;
+    let bx = front < 0 ? st.x - 120 * k - bw - 6 : st.x + 120 * k + 6;
+    if (bx < 10 || bx + bw > W - 10) bx = front < 0 ? st.x + 120 * k + 6 : st.x - 120 * k - bw - 6;
     bx = clamp(bx, 10, W - bw - 10);
     const by = clamp(headY - 30, 10, H - bh - 10);
     return { x: bx, y: by };
@@ -355,7 +363,14 @@
         const push = each < 0.9 ? Math.sin(each * 17) * 7 * Math.exp(-each * 3.5) : 0;   // the double tap
         T = { x: L.x + (L.x - SHOULDER.x) / d * push, y: L.y + (L.y - SHOULDER.y) / d * push };
         looking = P;
-      } else T = { x: SHOULDER.x + 60, y: SHOULDER.y - 175 + Math.sin(st.t * 3) * 10 };    // no part: a wave
+      } else {                                                 // no part: the board, touched near its title
+        const br = bubble.getBoundingClientRect(), since2 = st.t - st.arrived, each = since2 % 2.2;
+        const L = local({ x: goal.face < 0 ? br.right - 10 : br.left + 10, y: br.top + 60 + Math.floor(since2 / 2.2) % 3 * 50 });
+        const d = Math.hypot(L.x - SHOULDER.x, L.y - SHOULDER.y) || 1;
+        const push = each < 0.9 ? Math.sin(each * 17) * 7 * Math.exp(-each * 3.5) : 0;
+        T = { x: L.x + (L.x - SHOULDER.x) / d * push, y: L.y + (L.y - SHOULDER.y) / d * push };
+        looking = { x: br.left + br.width / 2, y: br.top + 80 };
+      }
       st.ringT = pr ? [pr.left - 6, pr.top - 6, pr.width + 12, pr.height + 12] : null;
     } else { st.arrived = 0; st.ringT = null; }
     spring(st, "tx", T.x, 10, dt); spring(st, "ty", T.y, 10, dt);
@@ -406,13 +421,12 @@
       return { a: -A + 2 * A * e, lift: Math.sin(Math.PI * u) * Lift };
     };
     const gl = { a: 0, lift: 0 }, gr = { a: 0, lift: 0 };    // the legs stay still (Ernest, 2026-10-29)
-    const bob = -Math.abs(Math.cos(st.phase)) * 6 * walk * k + (1 - walk) * Math.sin(st.t * 2.1) * 1.1;
-    const lean = clamp((st.xV || 0) / 80, -7, 7) * Math.sign(st.face || 1) + Math.sin(st.phase) * 2.2 * walk
-      + clamp(((st.reach || 0) - REACH * 0.7) / 25, 0, 5) * Math.sign(st.face || 1);
+    const bob = Math.sin(st.t * 2.1) * 1.1;
+    const lean = clamp(((st.reach || 0) - REACH * 0.7) / 25, 0, 4) * Math.sign(st.face || 1);
     parts.legL.setAttribute("transform", `translate(0 ${-gl.lift}) rotate(${gl.a} ${HIPS[0].x} ${HIPS[0].y})`);
     parts.legR.setAttribute("transform", `translate(0 ${-gr.lift}) rotate(${gr.a} ${HIPS[1].x} ${HIPS[1].y})`);
     // squash on each footfall, stretch between: the wool settles onto the legs
-    const sq = 0.04 * walk * (1 - Math.abs(Math.cos(st.phase))) - (st.hopV < 0 ? 0.05 : 0);
+    const sq = 0 - (st.hopV < 0 ? 0.05 : 0);
     parts.upper.setAttribute("transform", `translate(0 ${bob / k}) rotate(${lean} ${FEET.x} ${FEET.y}) ` +
       `translate(${FEET.x} 178) scale(${1 + sq * 0.6} ${1 - sq}) translate(${-FEET.x} -178)`);
     // the ear trails the head: it flops with each step and settles
@@ -425,7 +439,7 @@
     parts.shadow.setAttribute("transform", `translate(0 ${-st.hop / k}) translate(116 251) scale(${1 - lift * 0.45}) translate(-116 -251)`);
     parts.shadow.setAttribute("opacity", String(0.55 - lift * 0.35));
     const f = Math.abs(st.face) < 0.06 ? 0.06 * Math.sign(st.face || 1) : st.face;
-    actor.style.transform = `translate(${st.x - FEET.x * k}px, ${st.y - FEET.y * k + st.hop}px) scale(${f * k}, ${k})`;
+    actor.style.transform = `translate(${st.x - f * FEET.x * k}px, ${st.y - FEET.y * k + st.hop}px) scale(${f * k}, ${k})`;
     // the spotlight and the bubble trail on their own springs
     const r = goal.spot, pad = 9;
     const tgt = r ? [r.left - pad, r.top - pad, r.width + pad * 2, r.height + pad * 2] : [innerWidth / 2, innerHeight / 2, 0, 0];
@@ -502,7 +516,8 @@
     ctx = await context();
     i = 0;
     aim(true);
-    st.y = innerHeight + 200;                               // it walks in from below the window
+    st.y = goal.y + 26; st.yV = 0; st.xV = 0;              // it rises softly into place
+    actor.style.opacity = "0"; actor.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 420, fill: "forwards", easing: "ease-out" });
     st.sx = innerWidth / 2; st.sy = innerHeight / 2; st.sw = st.sh = 0;
     const b = bubbleGoal(); st.bx = b.x; st.by = b.y + 40;
     cancelAnimationFrame(raf); last = 0; raf = requestAnimationFrame(frame);
