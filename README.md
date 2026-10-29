@@ -42,6 +42,10 @@ it, or runs in compatibility mode with the maker's own code. The level is chosen
 the model is placed on the graphics card, the processor or both, and it is checked before you rely on it. You
 set nothing. [docs/MODELS.md](docs/MODELS.md) has every step and every format.
 
+**Checked on the 300 most-downloaded text models on Hugging Face:** 188 run natively in Sheep's engine, fitted
+with no settings (30 of them compressed copies traced back to their originals); 36 are gated by their makers; the
+rest use maths the engine does not have yet and run in compatibility mode. `tooling/model_sweep.py` re-runs it.
+
 ![Settings › Models: one model for each job](docs/shots/models.png)
 
 ## How Sheep uses Nebius, NVIDIA Nemotron and Tavily
