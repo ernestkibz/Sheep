@@ -70,7 +70,10 @@ Copy-Item "$REPO\mlmi\__init__.py" "$stage\app\mlmi\__init__.py"
 Copy-Item -Recurse "$REPO\mlmi\herders\*" "$stage\app\mlmi\herders"
 Copy-Item -Recurse "$REPO\tooling\*" "$stage\app\tooling"
 Copy-Item "$REPO\pyproject.toml" "$stage\app\pyproject.toml"
-Copy-Item "$REPO\README.md","$REPO\LICENSE" "$stage\app"
+Copy-Item "$REPO\README.md","$REPO\LICENSE","$REPO\NOTICE" "$stage\app"
+# the Guide's footer sends people to docs\USER_GUIDE.md: it ships, with the manual
+New-Item -ItemType Directory -Force "$stage\app\docs" | Out-Null
+Copy-Item "$REPO\docs\USER_GUIDE.md","$REPO\docs\Sheep-Manual.pdf" "$stage\app\docs"
 
 # ---------- Engine ----------
 Write-Host "Copying engine binaries..."
