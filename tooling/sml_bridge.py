@@ -96,6 +96,9 @@ def pin_route(base, body):
     """Add the Nebius pin to a chat body bound for OpenRouter."""
     if "openrouter" in base.lower():
         body["provider"] = dict(OPENROUTER_PIN)
+        # Nemotron thinks before it answers (362 of 396 tokens on one plan): a short think is most of the
+        # wait saved, and the plans stay right. NEBIUS_REASONING=medium or high gives it more room.
+        body.setdefault("reasoning", {"effort": os.environ.get("NEBIUS_REASONING", "low")})
     return body
 
 
