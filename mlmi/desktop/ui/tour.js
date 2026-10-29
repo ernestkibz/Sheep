@@ -113,11 +113,11 @@
       say: () => "Type what you need: a question, a document, a budget, a deck, a picture or a video. Sheep does the work and the file opens beside the chat.",
       how: () => "Press Enter to send. Shift+Enter starts a new line. Try “powerpoint about the history of coffee”, then “pptx”.",
       limit: (c) => sizeLimit(c) },
-    { title: "Sheep or Sheep + Nebius", at: "#modeSeg", prep: home,
+    { title: "Sheep or Sheep + Nebius", gain: () => "Quality: Nemotron plans each step and checks the local model's draft, so files come out right more often. Speed: a long plan comes back in seconds. Privacy: Sheep mode keeps everything here.", at: "#modeSeg", prep: home,
       say: (c) => `In Sheep mode nothing leaves this computer. Sheep + Nebius lets NVIDIA Nemotron plan long jobs, check drafts and stand in while a model loads.${c.st.cloud && c.st.cloud.ready ? ` Connected: ${c.st.cloud.model} (${c.st.cloud.provider}).` : " It is not connected yet: add a key in Settings › Accounts."}`,
       how: () => "Click either half. Your choice is kept.",
       limit: () => "The cloud needs internet and a key; every request that leaves is listed in Settings › Advanced › Sent out." },
-    { title: "Attach anything", at: "#attachBtn", prep: home,
+    { title: "Attach anything", gain: () => "Quality: answers come from your own files, not the model's memory.", at: "#attachBtn", prep: home,
       say: () => "Documents, sheets, slides, PDFs, pictures, recordings and videos. Sheep reads them first: a video is watched, frame by frame, with what is said and when.",
       how: () => "Click the clip, or drop files on the chat. Then ask about them: “what happens in this video?”",
       limit: (c) => c.missing.length ? `Some readers are not installed yet (${c.missing.slice(0, 3).join(", ")}); the chat will show a button to get them.` : "Pictures are read by a small local vision model: it names things and colours, not fine detail." },
@@ -125,7 +125,7 @@
       say: () => "The microphone turns your speech into text in the box. The wave button next to it starts a spoken conversation: Sheep listens, answers aloud, and listens again.",
       how: () => "Press, speak, press again.",
       limit: () => "Speech is recognised on this computer by Whisper; the first use downloads it. Voices are the ones Windows has." },
-    { title: "The model in charge", at: "#modelPick", prep: home,
+    { title: "The model in charge", gain: () => 'Speed: a model that fits the graphics card writes several times faster than on the processor; Sheep times both and keeps the faster. Quality: a bigger model answers better and writes slower.', at: "#modelPick", prep: home,
       say: (c) => `${whereItRuns(c)} ${memoryLine(c)}`,
       how: () => "Click to switch to another model you have added.",
       limit: (c) => sizeLimit(c) },
@@ -133,11 +133,11 @@
       say: () => "Green: ready. Amber: starting, checking or repairing. Red: something needs you, with the reason.",
       how: () => "Click it for what Sheep is doing right now.",
       limit: (c) => heatLine(c) },
-    { title: "Sheep's apps", at: "#side .tiles", prep: home,
+    { title: "Sheep's apps", gain: () => "Speed and exactness: the model writes the words and Sheep's own tools make the file, so a deck or a budget takes seconds and every total adds up.", at: "#side .tiles", prep: home,
       say: () => "Words for documents, Sheets for workbooks, Slides for decks, Studio for video, Text for notes and code. Each saves Sheep's own file and exports to Word, Excel, PowerPoint, PDF or MP4.",
       how: () => "Open one here, or just ask in the chat: the model uses the same tools a click does, with one shared undo.",
       limit: () => "Exports keep text, tables, charts and pictures; exotic Office features (macros, tracked changes) are not made." },
-    { title: "Studio: videos and ads", at: '.tile[data-app="studio"]', prep: home,
+    { title: "Studio: videos and ads", gain: () => 'Quality: titles, logos and ads are drawn exactly, frame by frame, with no AI guessing. Speed: drawn videos need no AI model and render on any computer.', at: '.tile[data-app="studio"]', prep: home,
       say: (c) => `Titles, logo intros, slideshows and ads are drawn exactly, frame by frame. Crop, split, fade, pan and zoom on photos, music under a voice-over.${c.engineCard ? ` AI video clips run on ${cardName(c.engineCard)}.` : " AI video clips need a graphics card; drawn videos work on any computer."}`,
       how: () => "“Make a 15-second ad from these photos with the headline Fresh Coffee”, or open Studio and edit the timeline.",
       limit: () => "AI clips are short (a few seconds) and 512 px on a 4 GB card; their quality follows the video model you plug in." },
@@ -153,23 +153,24 @@
       say: () => "Every conversation is kept on this computer, searchable.",
       how: () => "New chat starts fresh; search finds old ones.",
       limit: () => "Chats stay on this computer; nothing is synced." },
-    { title: "Settings › Basics", at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("basics"),
+    { title: "Settings › Basics", gain: () => "Speed: Fastest fills the card's spare memory with ready-made weights. Quality is the same in every choice; Quiet runs cooler and leaves memory for other apps.", at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("basics"),
       say: () => "How Sheep runs, as three plain choices: fastest, balanced, or quiet and cool. Theme and web answers live here too.",
       how: () => "Pick one; Sheep sets the details.",
       limit: () => "Quiet keeps memory free for other apps and runs slower." },
     { title: "Settings › Models", at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("models"),
-      say: (c) => `One model for each job: chat, checker, pictures, video, photo guidance and speech.${c.missing.length ? ` Still missing here: ${c.missing.join(", ")}.` : " Every job has a model."}`,
+      say: (c) => `One model for each job.${c.missing.length ? ` Still missing here: ${c.missing.join(", ")}.` : ""} Chat: any Hugging Face model, a folder, or a .gguf file; a GGUF, GPTQ, AWQ, EXL2 or MLX copy is traced back to its original and rebuilt from that; a family Sheep's engine has not met is fitted to it, or runs in compatibility mode. Pictures: any Stable Diffusion 1.5 model. Video: AnimateDiff on Stable Diffusion 1.5. Speech: any faster-whisper size.`,
+      gain: () => "Quality: built from the original weights, a Sheep file stays closer to the original model than a standard 4-bit GGUF (12-41% less error in our races). Speed: Sheep sizes it for this computer, places it on the card, the processor or both, and times which is faster.",
       how: () => "Add any model by its Hugging Face name, a folder or a .gguf file. Sheep fits it to this computer, builds it and checks it. You set nothing.",
       limit: (c) => `What fits depends on memory: ${hardwareLine(c)} A model bigger than the card is split with the processor and writes more slowly.` },
     { title: "Settings › Accounts", at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("accounts"),
       say: () => "Keys for Nebius (NVIDIA Nemotron) and Tavily (web search), and Hugging Face for gated models.",
       how: () => "Paste a key and Save. Keys stay on this computer.",
       limit: () => "Without a Tavily key, web answers use a keyless public search." },
-    { title: "Settings › Activity", at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("activity"),
+    { title: "Settings › Activity", gain: () => 'Quality: the checks catch a model that starts giving wrong answers, and Sheep repairs it by itself.', at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("activity"),
       say: () => "Everything Sheep did and why: where each model runs, every check it ran on a model, every repair.",
       how: () => "Open a row for its full report: what was asked, the tools used, the reply, the files made.",
       limit: () => "Checks run in the background and give way to you." },
-    { title: "Settings › Advanced", at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("advanced"),
+    { title: "Settings › Advanced", gain: () => 'Speed: it shows which device helps with what, so you can see why Sheep chose it.', at: "#setBody", point: "#setBody .phead h1, #setBody h1", prep: settings("advanced"),
       say: (c) => `The engineer's room: this computer's devices, the checker, files and what was sent out. ${hardwareLine(c)}`,
       how: () => "Most people never need it; Auto chooses for you.",
       limit: (c) => heatLine(c) },
@@ -210,6 +211,7 @@
         <div class="tb-top"><span class="tb-step"></span><button class="ghost tb-x" aria-label="Leave the tour">×</button></div>
         <h3 class="tb-title"></h3><p class="tb-say"></p>
         <div class="tb-row tb-how"><b>How</b><span></span></div>
+        <div class="tb-row tb-gain"><b>Gains</b><span></span></div>
         <div class="tb-row tb-limit"><b>Limits</b><span></span></div>
         <div class="tb-bar"><i></i></div>
         <div class="tb-nav"><button class="ghost tb-back">Back</button><span class="grow"></span><button class="tb-next">Next</button></div>
@@ -441,6 +443,9 @@
     root.querySelector(".tb-how span").textContent = how;
     root.querySelector(".tb-limit span").textContent = lim;
     root.querySelector(".tb-how").hidden = !how;
+    const gain = s.gain ? s.gain(ctx) : "";
+    root.querySelector(".tb-gain span").textContent = gain;
+    root.querySelector(".tb-gain").hidden = !gain;
     root.querySelector(".tb-limit").hidden = !lim;
     root.querySelector(".tb-bar i").style.width = ((i + 1) / STOPS.length) * 100 + "%";
     root.querySelector(".tb-back").disabled = i === 0;

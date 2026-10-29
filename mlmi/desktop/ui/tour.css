@@ -34,6 +34,7 @@
 #tour .tb-row[hidden] { display:none; }
 #tour .tb-row b { flex:none; width:46px; color:var(--ink, #eee); font-weight:600; }
 #tour .tb-limit b { color:#e8c46a; }
+#tour .tb-gain b { color:#8fd19e; }
 #tour .tb-bar { height:3px; border-radius:2px; background:var(--line, #2a2a2a); margin:12px 0 10px; overflow:hidden; }
 #tour .tb-bar i { display:block; height:100%; background:#f7f6f2; transition:width .6s cubic-bezier(.65,0,.35,1); }
 #tour .tb-nav { display:flex; align-items:center; gap:8px; }
