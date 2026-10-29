@@ -27,7 +27,7 @@ PICTURES = [("How Sheep is built", DOCS / "diagrams" / "sheep-1-how-sheep-is-bui
             ("A model too big for the card", ROOT / "mlmi" / "media" / "bench" / "big_model.png")]
 # the app itself, photographed by tooling/manual_shots.ps1 (Sheep's own MLMI_SHOTS mode)
 SHOTS = ROOT / "docs" / "shots"
-SCREENS = [("Chat, with the start-up card", "home"), ("Quick guide", "guide"), ("Settings › Basics", "basics"),
+SCREENS = [("Chat, with the start-up card", "home"), ("The tour", "tour"), ("Asking the guide", "tour-ask"), ("Quick guide", "guide"), ("Settings › Basics", "basics"),
            ("Settings › Models: one row per job", "models"), ("Settings › Accounts", "accounts"),
            ("Settings › Activity", "activity"), ("Sheep Studio", "studio")]
 CSS = """

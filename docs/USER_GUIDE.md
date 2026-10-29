@@ -15,6 +15,17 @@ web when a question is about now, and shows everything it made on a Work Canvas.
 The card above the message box shows the checks as they run ("Checking app tasks · 3 of 14"). You can chat
 while they run. The **Guide** in the sidebar shows the basics again any time.
 
+## The tour
+
+Click **Take the tour** at the top left. Sheep's own sheep, with a shepherd's crook and a clipboard, walks to
+every part of the app and points at each piece as it names it. Each stop says what the part is, how to use it,
+what it gains in speed or quality, and its limits, for this computer (its own graphics cards, processor and
+heat) and for the model plugged in now. **Next** moves on; **Esc** leaves.
+
+Click the sheep to ask instead: it puts its crook behind its back and a search box opens. Type what you want to
+know (models, GGUF, video, ads, heat, export, Nebius...), pick a topic, and it walks there and explains it.
+Click it again to carry on the tour.
+
 ## Two modes
 
 | Mode | What it means |
