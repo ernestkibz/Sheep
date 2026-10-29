@@ -194,7 +194,7 @@ def big_model(out):
                   f"{s['load_s']:.1f}", f"{r['load_s']:.1f} s")]
     card(out, "big_model.png", "A model too big for the card: Qwen2.5-7B on a 4 GB GPU",
          "4.7 GB at 4 bits; each engine splits it between the card and the processor by itself. Sheep reads every "
-         "layer's prompt on the card (57 → 123 tok/s since 28 Oct).", rows, "the other",
+         "layer's prompt on the card and writes its answer on the processor (writing 5.5 → 6.9 tok/s since 29 Oct).", rows, "the other",
          "tooling/race7b.jsonl · first round of each, back to back at 94-95 °C (the second round hit the card's thermal floor)")
 
 
