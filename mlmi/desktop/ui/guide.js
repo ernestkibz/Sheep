@@ -52,12 +52,14 @@
       document.body.appendChild(m);
       m.addEventListener("click", (e) => {
         if (e.target === m || e.target.closest("#closeGuide")) return close();
+        if (e.target.closest("#startTour")) return MLMI.tour && MLMI.tour();
         const ex = e.target.closest("[data-ex]");
         if (ex) { close(); $("#askText").value = ex.dataset.ex; $("#askText").focus(); $("#askText").dispatchEvent(new Event("input")); }
       });
     }
     m.innerHTML = `<div class="sheet guide"><button class="ghost ico close" id="closeGuide" title="Close">${icon("x")}</button>
-      <div class="g-head"><span class="logo">${icon("sheep")}</span><div><h1>Quick guide</h1><span class="sub">Sheep runs AI on this computer. Ask, and it does the work.</span></div></div>
+      <div class="g-head"><span class="logo">${icon("sheep")}</span><div><h1>Quick guide</h1><span class="sub">Sheep runs AI on this computer. Ask, and it does the work.</span></div>
+        <button class="g-tour" id="startTour">${icon("play")}<span>Take the tour</span></button></div>
       <div class="g-grid">${PARTS.map(([ic, t, d]) => `<div class="g-card"><span class="g-ic">${icon(ic)}</span><div><b>${esc(t)}</b><p>${esc(d)}</p></div></div>`).join("")}</div>
       <div class="g-ex"><div class="caps">Try one</div>${EXAMPLES.map((x) => `<button data-ex="${esc(x)}">${icon("up")}<span>${esc(x)}</span></button>`).join("")}</div>
       <div class="g-foot dim">The full user guide is in the Sheep folder: docs/USER_GUIDE.md</div></div>`;

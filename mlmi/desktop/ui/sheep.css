@@ -155,3 +155,10 @@ details.plan pre { margin:0; padding:8px 12px 12px; font-family:var(--mono); fon
 #readyBar .rb-hint { margin:8px 0 0; }
 @media (prefers-reduced-motion: reduce) { #readyBar.busy .rb-ring, #readyBar.busy .rb-bar::after { animation:none; } }
 @media (max-width: 560px) { #readyBar #rbPct { display:none; } }
+
+/* the Guide's way into the tour (tour.js) */
+.guide .g-head { align-items:center; }
+.guide .g-tour { margin-left:auto; display:inline-flex; align-items:center; gap:8px; border:0; border-radius:12px;
+  padding:9px 16px; margin-right:44px; font-weight:600; background:var(--ink); color:var(--bg); cursor:pointer; }
+.guide .g-tour svg { width:16px; height:16px; }
+.guide .g-tour:hover { filter:brightness(1.08); }
