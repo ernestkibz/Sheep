@@ -10,9 +10,10 @@ from mlmi.backend import hf_source, model_slots  # noqa: E402
 
 
 class FileChoice(unittest.TestCase):
-    def test_eight_bit_first_then_sixteen(self):
+    def test_sixteen_bit_first_then_eight(self):
         names = ["m-q4_k_m.gguf", "m-q8_0.gguf", "m-f16.gguf", "README.md"]
-        self.assertEqual(hf_source.gguf_file(names), "m-q8_0.gguf")
+        self.assertEqual(hf_source.gguf_file(names), "m-f16.gguf")
+        self.assertEqual(hf_source.gguf_file(["m-q4_k_m.gguf", "m-q8_0.gguf"]), "m-q8_0.gguf")
         self.assertEqual(hf_source.gguf_file(["m-f16.gguf", "m-Q4_K_M.gguf"]), "m-f16.gguf")
 
     def test_split_files_and_folders_skipped(self):

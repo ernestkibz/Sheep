@@ -89,7 +89,8 @@ def _bases(card):
 
 # Which file of a GGUF page to convert when there is no original: the closest to the original
 # weights that is not needlessly large (8-bit first, then 6, then 16, then 5 and 4).
-GGUF_PREF = (r"q8_0", r"q6_k", r"(?:^|[-_.])(?:f16|bf16)(?:[-_.]|$)", r"q5_k_m", r"q4_k_m")
+# closest to the original first: an F16/BF16 file is the original itself, offered every level
+GGUF_PREF = (r"(?:^|[-_.])(?:f16|bf16)(?:[-_.]|$)", r"q8_0", r"q6_k", r"q5_k_m", r"q4_k_m")
 
 
 def gguf_file(names):
