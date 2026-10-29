@@ -11,9 +11,17 @@ own machine. It was built in Uganda, where Nebius Token Factory itself is not ye
 
 ![Sheep, with its guide pointing at the apps](docs/shots/tour.png)
 
+## Download
+
+**[Download Sheep for Windows (Sheep-Setup.exe)](https://github.com/ernestkibz/Sheep/releases/latest/download/Sheep-Setup.exe)**
+· Windows 10 or 11, 64-bit · about 100 MB · [all releases](https://github.com/ernestkibz/Sheep/releases)
+
+Run it and follow the steps; Sheep opens when it is done. The first start downloads what it needs (Python
+and the app's packages, once). No NVIDIA card is needed: Sheep uses the processor when there is none.
+
 ## For judges: try it in two minutes
 
-1. On Windows 10 or 11 (64-bit), download `Sheep-Setup.exe` from this repository's **Releases** page and
+1. On Windows 10 or 11 (64-bit), download [Sheep-Setup.exe](https://github.com/ernestkibz/Sheep/releases/latest/download/Sheep-Setup.exe) and
    install it. No NVIDIA GPU is needed; Sheep uses the processor when there is none.
 2. Open **Settings › Accounts**, paste the judges' keys from the Devpost
    testing instructions, and press **Save**.

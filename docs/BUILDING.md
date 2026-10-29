@@ -41,12 +41,12 @@ from inside the app, with their progress shown.
 ## The installer
 
 ```
-powershell -File submission/BUILD_INSTALLER.ps1
+powershell -File installer/BUILD_INSTALLER.ps1
 ```
 
 It checks the engine binaries are newer than their sources, gathers the backend, the desktop app and the
 engine into `build\Sheep\`, and, with Inno Setup 6 installed, makes `Sheep-Setup.exe` from
-`submission/sheep.iss`. On a computer with no Python, the launcher fetches Python 3.12 from python.org into
+`installer/sheep.iss`. On a computer with no Python, the launcher fetches Python 3.12 from python.org into
 `%LOCALAPPDATA%\Sheep\python` once, then makes a private environment for Sheep.
 
 No model is bundled. On first run the person adds one (or starts with Nemotron on Nebius), and Sheep builds it

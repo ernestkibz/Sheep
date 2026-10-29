@@ -1,6 +1,6 @@
 """The agent loop: a model, the tools it has earned, and the workspace.
 
-Like Claude Code with VS Code: the model calls a tool, reads what happened,
+Like a coding assistant in an editor: the model calls a tool, reads what happened,
 and carries on until the job is done or it is stopped. Every step is an event
 the interface draws live -- the call, its result, the file that changed, where
 the step ran -- and nothing irreversible happens without the person's say:

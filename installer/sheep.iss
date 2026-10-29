@@ -1,5 +1,5 @@
 ; Inno Setup script for Sheep
-; Run BUILD_INSTALLER.ps1 first, then:  iscc submission\sheep.iss
+; Run BUILD_INSTALLER.ps1 first, then:  iscc installer\sheep.iss
 ;
 ; The 3B .ssf downloads on first run, not in the installer.
 

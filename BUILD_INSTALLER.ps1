@@ -18,10 +18,10 @@ if (!$InnoSetupPath -or !(Test-Path (Join-Path $InnoSetupPath "ISCC.exe"))) {
 }
 
 Write-Host "Staging the canonical desktop layout..." -ForegroundColor Cyan
-& (Join-Path $repo "submission\BUILD_INSTALLER.ps1")
+& (Join-Path $repo "installer\BUILD_INSTALLER.ps1")
 
 $output = Join-Path $repo "build\Sheep"
-$iss = Join-Path $repo "submission\sheep.iss"
+$iss = Join-Path $repo "installer\sheep.iss"
 Write-Host "Compiling the canonical Inno Setup script..." -ForegroundColor Cyan
 & (Join-Path $InnoSetupPath "ISCC.exe") "/O$output" $iss
 if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed to compile the installer." }

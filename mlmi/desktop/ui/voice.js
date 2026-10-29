@@ -1,7 +1,7 @@
 // Voice for every chat model: the model never needs to be a voice model.
 //
 //   Mic (dictation)  press, speak, press again: Whisper writes your words into the
-//                    message box, ready to send (as ChatGPT's dictation does).
+//                    message box, ready to send (as dictation in other chat apps does).
 //   Talk (live)      a spoken conversation: Sheep listens, notices when you stop
 //                    talking, sends your words to the chat model, speaks the answer
 //                    with this computer's voices, and listens again.
