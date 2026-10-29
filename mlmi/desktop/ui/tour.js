@@ -69,7 +69,8 @@
       const sc = await api("/api/setup_check");
       c.missing = (sc.items || []).filter((i) => !i.ok && !i.optional).map((i) => i.label);
     } catch (_) {}
-    c.model = ($("#modelName") && $("#modelName").textContent.trim()) || (c.st.model && c.st.model.name) || "your model";
+    c.noModel = !(c.st.model && c.st.model.path);
+    c.model = c.noModel ? "No model yet" : (($("#modelName") && $("#modelName").textContent.trim()) || (c.st.model && c.st.model.name) || "your model");
     c.engineCard = c.cards.find((a) => a.runs.some((r) => /CUDA/.test(r)));
     c.otherCards = c.cards.filter((a) => a !== c.engineCard);
     c.heat = c.st.orch && c.st.orch.heat;
@@ -114,7 +115,7 @@
   const home = () => { MLMI.go("home"); };
   const STOPS = [
     { title: "Hello! I'm your guide", at: null, prep: home,
-      say: (c) => `Sheep runs AI on this computer and makes real files. Here is what I found: ${hardwareLine(c)}`,
+      say: (c) => `Sheep runs AI on this computer and makes real files. Here is what I found: ${hardwareLine(c)}${c.noModel ? " There is no chat model yet: we will add one at Settings › Models, and Sheep fits it to this computer." : ""}`,
       how: () => "Use the arrows or Next. Esc leaves; you can come back from the Guide.",
       limit: () => "Everything I tell you is about this computer and the model plugged in now." },
     { title: "Ask in plain words", at: "#composer .box", prep: home,
@@ -134,7 +135,7 @@
       how: () => "Press, speak, press again.",
       limit: () => "Speech is recognised on this computer by Whisper; the first use downloads it. Voices are the ones Windows has." },
     { title: "The model in charge", gain: () => 'Speed: a model that fits the graphics card writes several times faster than on the processor; Sheep times both and keeps the faster. Quality: a bigger model answers better and writes slower.', at: "#modelPick", prep: home,
-      say: (c) => `${whereItRuns(c)} ${memoryLine(c)}`,
+      say: (c) => c.noModel ? "No chat model is plugged in yet. Add one at Settings › Models: a Hugging Face name, a folder or a .gguf file." : `${whereItRuns(c)} ${memoryLine(c)}`,
       how: () => "Click to switch to another model you have added.",
       limit: (c) => sizeLimit(c) },
     { title: "The status lamp", at: "#status", prep: home,
@@ -192,6 +193,77 @@
       limit: () => "" },
   ];
 
+  // ---------------------------------------------------------------- the library: every part, down to the small ones
+  // Each topic says where it lives, what it is, how to use it, what it gains in speed or quality, and its limits.
+  // The tour's own stops are in it too, so the search finds everything the tour says.
+  const T_ = (title, where, at, prep, say, how, gain, limit, keys) =>
+    ({ title, where, at, prep, say: typeof say === "function" ? say : () => say, how: () => how, gain: () => gain, limit: typeof limit === "function" ? limit : () => limit, keys });
+  const KB = [
+    ...STOPS.filter((x) => x.at).map((x) => ({ ...x, where: "In the tour", keys: "" })),
+    T_("Adding a model", "Settings › Models › Add any model", "#setBody", settings("models"),
+      "Type a Hugging Face name, a folder or a .gguf file and press Check, then Build. Sheep finds the original weights, picks a size for this computer, builds a Sheep file, places it on the card, the processor or both, and checks it before you use it.",
+      "Check reads the page only; nothing downloads until you press Build.", "Built from the original weights, quality stays closer to the original than a ready-made 4-bit copy.",
+      "A model has to fit in memory: about its size in GB at 4 bits, plus room to think.", "add model install download hugging face build quantize"),
+    T_("GGUF, GPTQ, AWQ, EXL2 and MLX files", "Settings › Models", "#setBody", settings("models"),
+      "A ready-made copy is traced back to the original it was made from, and Sheep builds from that. A fine-tune that exists only as a GGUF is converted first.",
+      "Paste the page or pick the .gguf file.", "Building from the original avoids rounding twice.", "A GGUF with no original keeps that file's quality.", "gguf gptq awq exl2 mlx llama.cpp ollama format convert"),
+    T_("Families Sheep has not met", "Settings › Models", "#setBody", settings("models"),
+      "Sheep fits an unfamiliar model family to its own engine by reading its configuration. If that cannot work yet, the model runs in compatibility mode with its maker's own code.",
+      "Nothing to set: it happens when you build.", "Most new models run on Sheep's fast engine with no update.", "Compatibility mode is correct but slower.", "architecture family new unsupported compatibility autofit fit"),
+    T_("Choose another", "Settings › Models, and the chat", "#setBody", settings("models"),
+      "Every job (chat, checker, pictures, video, photo guidance, speech) has one model. Choose another swaps it; the chat offers it too when a job is missing a model.",
+      "Click Choose another… beside the job.", "", "", "switch change replace slot job"),
+    T_("Fix buttons and Try again", "In the chat", "#composer .box", home,
+      "If a request needs something that is not installed, the chat says what, with a button to get it. After it is installed, Try again sends your request again.",
+      "Click the button in the reply.", "No dead ends: every missing piece has a way to fix it.", "Downloads need internet the first time.", "missing error fix install try again button"),
+    T_("Exports", "Words, Sheets, Slides, Studio", "#side .tiles", home,
+      "Words exports .docx, .md and .pdf; Sheets .xlsx, .csv and .pdf; Slides .pptx and .pdf; Studio .mp4. Ask for it in the chat (\u201cpptx\u201d) or use the app's menu.",
+      "Type the format name after a file is made.", "", "Macros and tracked changes are not made.", "export docx xlsx pptx pdf mp4 word excel powerpoint"),
+    T_("Watching a video", "Attach, then ask", "#attachBtn", home,
+      "Attach a video and ask about it: Sheep looks at its key frames and listens to its sound, and answers with what is seen and said, and when.",
+      "Click the clip, choose the video, ask \u201cwhat happens in this video?\u201d", "Answers come from the video itself.", "Frames are read by the local picture model: broad strokes, not fine detail.", "video watch understand clip timeline frames"),
+    T_("Ads from photos", "Studio, or the chat", '.tile[data-app="studio"]', home,
+      "Attach photos and ask for an ad: Sheep makes a 15 to 30 second video with pan and zoom on each photo, your headline and tagline, an end card, and music under a voice-over if you give them.",
+      "\u201cMake a 15-second ad from these photos with the headline Fresh Coffee\u201d", "Drawn exactly, frame by frame: no AI guessing.", "Music is yours to supply.", "ad advert commercial photos slideshow headline"),
+    T_("Crop, split and fades", "Studio's inspector", '.tile[data-app="studio"]', home,
+      "In Studio, any clip or picture can be cropped, split at the playhead, faded in and out, and panned and zoomed.",
+      "Open Studio, select a layer, use the inspector on the right.", "", "", "crop split fade pan zoom edit timeline"),
+    T_("AI pictures and clips", "Settings › Models › Pictures, Video", "#setBody", settings("models"),
+      "Pictures use any Stable Diffusion 1.5 model; video clips use AnimateDiff on Stable Diffusion 1.5. The chat model writes the scene for them.",
+      "Ask for a picture or a short clip in the chat.", "The scene is written for the model, so a plain request comes out better.", (c) => c.engineCard ? `Clips run on ${cardName(c.engineCard)}: short and 512 px on a 4 GB card.` : "AI clips need a graphics card.", "image picture video clip stable diffusion animatediff generate"),
+    T_("Speech in and out", "The mic and wave buttons", "#micBtn", home,
+      "The mic turns your voice into text with Whisper, on this computer; the wave button starts a spoken conversation. Any faster-whisper size works.",
+      "Press, speak, press again.", "Private: speech never leaves the computer.", "The first use downloads Whisper.", "voice speech mic microphone whisper talk dictate"),
+    T_("Web answers with sources", "Settings › Basics", "#setBody", settings("basics"),
+      "Questions about now (news, prices, scores) are searched on the web first, and the answer lists its sources. Decks about the latest anything end with a Sources slide.",
+      "On by default; switch it off in Basics.", "Current facts instead of the model's old memory.", "Without a Tavily key a keyless public search is used.", "web search internet tavily sources news latest"),
+    T_("Sheep + Nebius (NVIDIA Nemotron)", "The switch under the message box", "#modeSeg", home,
+      "Nemotron on Nebius plans long jobs as exact steps, checks the local model's drafts before a file is made, and answers while a local model loads.",
+      "Add the key in Settings › Accounts, then choose Sheep + Nebius.", "Better first drafts and long plans in seconds.", "Needs internet and a key; every call is listed in Sent out.", "nebius nemotron cloud nvidia key planner"),
+    T_("Sent out", "Settings › Advanced", "#setBody", settings("advanced"),
+      "Every request that left this computer, with who answered it and their id for the call.",
+      "Open Advanced › Sent out.", "Nothing is hidden.", "", "privacy sent cloud log requests"),
+    T_("The heat guard", "Settings › Basics", "#setBody", settings("basics"),
+      (c) => `Sheep runs at full speed and pauses its work if the graphics card reaches 95 °C, then carries on when it cools. ${heatLine(c)}`,
+      "On by default.", "No lost work from a laptop that shuts itself down.", "A pause can slow a long job on a hot day.", "heat temperature hot thermal pause shutdown"),
+    T_("Presets: Fastest, Balanced, Quiet", "Settings › Basics", "#setBody", settings("basics"),
+      "Fastest fills the card's spare memory with ready-made weights; Balanced is the default; Quiet keeps memory free for other apps and runs cooler.",
+      "Pick one.", "Fastest reads prompts quickest; quality is the same in all three.", "Quiet is slower.", "preset fast quiet balanced speed memory"),
+    T_("The checks", "Settings › Activity", "#setBody", settings("activity"),
+      "A new model answers check questions with known answers, then does real jobs in the apps, each checked by opening what it made. A model that starts to go wrong is repaired.",
+      "Watch them in the start-up card, or Activity.", "You can trust the model you are given.", "Checks run in the background and give way to you.", "check exam canary test quality verify repair"),
+    T_("The start-up card", "Above the message box", "#readyBar", home,
+      "One bar with the time left while Sheep gets ready; click it for each check.", "Click the bar for details.", "You can chat while it runs.", "", "loading startup ready progress card"),
+    T_("Exact maths", "In the chat", "#composer .box", home,
+      "A sum in your message is worked out exactly by Sheep before the model answers, and the model is given the right number.",
+      "Just ask: \u201cwhat is 37 times 89?\u201d", "No arithmetic slips from a small model.", "", "math maths calculate arithmetic exact"),
+    T_("Where the model runs", "Automatic", "#modelPick", home,
+      (c) => c.noModel ? "No model yet." : whereItRuns(c),
+      "Nothing to set: Sheep times the card, the processor and both, and keeps the fastest.", "The fastest place on this computer, measured, not guessed.",
+      (c) => `A model bigger than the card is split with the processor. ${hardwareLine(c)}`, "gpu cpu hybrid device speed split offload"),
+    T_("Undo", "Top right", "#undoBtn", home, "Every change, yours or the model's, can be undone.", "Ctrl+Z, Ctrl+Y.", "", "", "undo redo history"),
+  ];
+
   // ---------------------------------------------------------------- the stage, frame by frame
   const SCALE = 0.66;                                    // the drawing on screen
   const reduce = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -204,9 +276,9 @@
     o[key] = x + o[key + "V"] * dt;
   }
 
-  let typedN = 0, sayLen = 0, said = [];
+  let typedN = 0, sayLen = 0, said = [], cur = null, asking = null, sheathed = false;
   let root, spot, ring, actor, bubble, svg, parts = {}, subs = [], i = 0, ctx = null, typing = 0, raf = 0, last = 0;
-  const st = { tx: 230, ty: -40, sub: -1, reach: 0, rx: 0, ry: 0, rw: 0, rh: 0, ringT: null, ear: 0, earT: 0, x: 0, y: 0, face: 1, phase: 0, arm: -78, tap: 0, hop: 0, hopV: 0, blink: 0, nextBlink: 2,
+  const st = { sth: 0, sthV: 0, tx: 230, ty: -40, sub: -1, reach: 0, rx: 0, ry: 0, rw: 0, rh: 0, ringT: null, ear: 0, earT: 0, x: 0, y: 0, face: 1, phase: 0, arm: -78, tap: 0, hop: 0, hopV: 0, blink: 0, nextBlink: 2,
                ex: 0, ey: 0, sx: 0, sy: 0, sw: 0, sh: 0, bx: 0, by: 0, t: 0, arrived: 0, said: true };
   const goal = { x: 0, y: 0, face: 1, point: null, spot: null, bubble: null };
   const mouse = { x: -1, y: -1 };
@@ -223,6 +295,8 @@
         <div class="tb-row tb-gain"><b>Gains</b><span></span></div>
         <div class="tb-row tb-limit"><b>Limits</b><span></span></div>
         <div class="tb-bar"><i></i></div>
+        <div class="tb-ask" hidden><input class="tb-q" type="search" placeholder="What would you like to know? (models, video, heat, GGUF...)" aria-label="Ask the guide">
+          <div class="tb-hits"></div></div>
         <div class="tb-nav"><button class="ghost tb-back">Back</button><span class="grow"></span><button class="tb-next">Next</button></div>
       </div>`;
     document.body.appendChild(root);
@@ -233,11 +307,20 @@
     for (const k of ["legL", "legR", "upper", "crook", "eye", "ear", "shadow"]) parts[k] = svg.querySelector(".ts-" + k);
     parts.armp = svg.querySelectorAll(".ts-armp");
     ring = root.querySelector(".tour-ring");
-    root.querySelector(".tb-next").onclick = () => (i < STOPS.length - 1 ? show(i + 1) : close());
+    root.querySelector(".tb-next").onclick = () => (asking ? show(i) : i < STOPS.length - 1 ? show(i + 1) : close());
     root.querySelector(".tb-back").onclick = () => i > 0 && show(i - 1);
     root.querySelector(".tb-x").onclick = close;
     root.querySelector(".tour-block").onclick = () => finishTyping();
-    actor.onclick = () => { if (!st.hop) st.hopV = -520; finishTyping(); };
+    actor.onclick = () => toggleAsk();
+    const q = root.querySelector(".tb-q");
+    q.oninput = () => listTopics(q.value);
+    q.onkeydown = (e) => { if (e.key === "Enter") { const f = root.querySelector(".tb-hit"); if (f) f.click(); } e.stopPropagation(); };
+    root.querySelector(".tb-hits").onclick = (e) => {
+      const b = e.target.closest("[data-k]");
+      if (!b) return;
+      toggleAsk(false);
+      show(i, KB[Number(b.dataset.k)]);
+    };
     window.addEventListener("resize", () => aim(true));
     window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
   }
@@ -259,10 +342,10 @@
   // Where to stand: beside the part, the shoulder about 0.85 of the crook away from the point it touches.
   // A part too big to stand beside (a settings page) is touched near its title from below-right.
   function aim(snap) {
-    const W = innerWidth, H = innerHeight, spotR = rectOf(STOPS[i].at), k = SCALE;
+    const W = innerWidth, H = innerHeight, spotR = rectOf(cur.at), k = SCALE;
     // a page too big to stand beside decides where to stand; a heading in it only says where to point
     const bigSpot = spotR && (spotR.width > W * 0.45 || spotR.height > H * 0.55);
-    const r = bigSpot ? spotR : (rectOf(STOPS[i].point) || spotR);
+    const r = bigSpot ? spotR : (rectOf(cur.point) || spotR);
     const aw = 260 * k, ah = 270 * k, reach = REACH * k, sh = { x: (SHOULDER.x - FEET.x) * k, y: (SHOULDER.y - FEET.y) * k };
     let fx, fy, face = 1, P = null;
     if (!r) { fx = W * 0.5 + 230; fy = H * 0.5 + 170; face = -1; }     // the board (the bubble) is to its left
@@ -313,7 +396,7 @@
     if (gs && (gs.width > W * 0.45 || gs.height > H * 0.55)) return { x: W - bw - 24, y: H - bh - 24 };   // a big page: out of its rows' way
     const front = goal.spot ? -goal.face : goal.face;
     // the board stands a crook's length away, so the arm reaches out to it instead of folding
-    const gap = goal.spot ? 120 * k : (UPPER + FORE + CROOK - 40) * k;
+    const gap = goal.spot ? 120 * k : (UPPER + FORE + CROOK - 110) * k;
     let bx = front < 0 ? st.x - gap - bw : st.x + gap;
     if (bx < 10 || bx + bw > W - 10) bx = front < 0 ? st.x + 120 * k + 6 : st.x - 120 * k - bw - 6;
     bx = clamp(bx, 10, W - bw - 10);
@@ -373,6 +456,7 @@
       }
       st.ringT = pr ? [pr.left - 6, pr.top - 6, pr.width + 12, pr.height + 12] : null;
     } else { st.arrived = 0; st.ringT = null; }
+    if (sheathed) { T = { x: SHOULDER.x - 20, y: SHOULDER.y + CROOK + 60 }; looking = mouse.x < 0 ? null : mouse; }
     spring(st, "tx", T.x, 10, dt); spring(st, "ty", T.y, 10, dt);
     // two-bone IK: the hand stands one crook-length short of the target on the line from the shoulder;
     // the elbow bends below that line; the crook runs from the hand to the target
@@ -389,7 +473,15 @@
       const dpath = `M${SHOULDER.x} ${SHOULDER.y} Q${mx.toFixed(1)} ${my.toFixed(1)} ${hx.toFixed(1)} ${hy.toFixed(1)}`;
       for (const l of parts.armp) l.setAttribute("d", dpath);
       const ca = Math.atan2(st.ty - hy, st.tx - hx) * 180 / Math.PI;
-      parts.crook.setAttribute("transform", `translate(${hx.toFixed(1)} ${hy.toFixed(1)}) rotate(${ca.toFixed(2)})`);
+      spring(st, "sth", sheathed ? 1 : 0, 9, dt);           // 0 in the hand, 1 across the back
+      const w = clamp(st.sth, 0, 1);
+      const bx = hx + (150 - hx) * w, by = hy + (215 - hy) * w, ba = ca + (-62 - ca) * w;
+      parts.crook.setAttribute("transform", `translate(${bx.toFixed(1)} ${by.toFixed(1)}) rotate(${ba.toFixed(2)})`);
+      if ((w > 0.5) !== !!parts.crook._back) {           // across the back it goes behind the fleece
+        parts.crook._back = w > 0.5;
+        const fleece = svg.querySelector(".ts-fleece");
+        if (parts.crook._back) parts.upper.insertBefore(parts.crook, fleece); else parts.upper.insertBefore(parts.crook, svg.querySelector(".ts-arm"));
+      }
       st.reach = D;
     }
     // a ring follows the crook from part to part
@@ -454,6 +546,25 @@
     bubble.style.transform = `translate(${st.bx}px, ${st.by}px)`;
   }
 
+  // Ask mode: the crook goes behind the back like a sheathed sword and a search bar slides out of the board
+  function toggleAsk(on) {
+    sheathed = on === undefined ? !sheathed : on;
+    const box = root.querySelector(".tb-ask");
+    box.hidden = !sheathed;
+    root.classList.toggle("asking", sheathed);
+    if (sheathed) { const q = root.querySelector(".tb-q"); q.value = ""; listTopics(""); setTimeout(() => q.focus(), 60); }
+  }
+  function listTopics(text) {
+    const words = text.toLowerCase().split(/\s+/).filter(Boolean);
+    const score = (t) => words.reduce((n, w) => n + (t.title.toLowerCase().includes(w) ? 3 : 0) + ((t.keys || "").includes(w) ? 2 : 0)
+      + (t.say(ctx).toLowerCase().includes(w) ? 1 : 0), 0);
+    const hits = KB.map((t, n) => ({ t, n, s: words.length ? score(t) : 1 })).filter((x) => x.s > 0)
+      .sort((a, b) => b.s - a.s).slice(0, 7);
+    root.querySelector(".tb-hits").innerHTML = hits.length
+      ? hits.map((x, j) => `<button class="tb-hit${j ? "" : " first"}" data-k="${x.n}"><b>${esc(x.t.title)}</b><span>${esc(x.t.where || "")}</span></button>`).join("")
+      : `<div class="tb-none">Nothing on that yet. Try: models, video, heat, GGUF, export, Nebius.</div>`;
+  }
+
   function typeInto(el, text) {
     clearInterval(typing);
     el.dataset.full = text;
@@ -475,15 +586,16 @@
   }
   function say() {
     st.said = true;
-    typeInto(root.querySelector(".tb-say"), STOPS[i].say(ctx));
+    typeInto(root.querySelector(".tb-say"), cur.say(ctx));
   }
 
-  async function show(n) {
-    i = n;
-    const s = STOPS[i];
+  async function show(n, topic) {
+    if (topic) asking = topic; else { i = n; asking = null; }
+    const s = topic || STOPS[i];
+    cur = s;
     try { s.prep && s.prep(); } catch (_) {}
     await new Promise((r) => setTimeout(r, 240));          // let a page open before it is measured
-    root.querySelector(".tb-step").textContent = `${i + 1} of ${STOPS.length}`;
+    root.querySelector(".tb-step").textContent = topic ? "You asked" : `${i + 1} of ${STOPS.length}`;
     root.querySelector(".tb-title").textContent = s.title;
     const how = s.how ? s.how(ctx) : "", lim = s.limit ? s.limit(ctx) : "";
     root.querySelector(".tb-how span").textContent = how;
@@ -507,7 +619,7 @@
       return { el, at: label && label.length < 40 ? text.indexOf(label) : -1 };
     }).filter((x) => x.at >= 0).sort((a, b) => a.at - b.at);
     typedN = 0; sayLen = 1e9; st.cur = null;
-    setTimeout(() => { if (!st.said && STOPS[i] === s) say(); }, 1600);   // a long walk still talks
+    setTimeout(() => { if (!st.said && cur === s) say(); }, 1600);   // a long walk still talks
   }
 
   async function open() {
@@ -516,7 +628,7 @@
     root.hidden = false;
     document.addEventListener("keydown", key);
     ctx = await context();
-    i = 0;
+    i = 0; cur = STOPS[0]; asking = null; sheathed = false;
     aim(true);
     st.y = goal.y + 26; st.yV = 0; st.xV = 0;              // it rises softly into place
     actor.style.opacity = "0"; actor.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 420, fill: "forwards", easing: "ease-out" });
@@ -534,6 +646,7 @@
     MLMI.go("home");
   }
   MLMI.tour = open;
+  MLMI._tourState = () => ({ st, goal, sheathed });
 })();
 // the sidebar's own way in, beside New chat
 (() => {

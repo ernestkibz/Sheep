@@ -46,3 +46,17 @@
 #tour .tb-next { border:0; border-radius:10px; padding:7px 16px; font-weight:600; background:var(--ink, #eee); color:var(--bg, #111); }
 #tour .tb-back[disabled] { opacity:.35; }
 @media (prefers-reduced-motion: reduce) { #tour .tb-bar i { transition:none; } }
+
+/* ask mode: the search slides out of the board */
+#tour .tb-ask { margin:10px 0 4px; animation:tbAsk .28s cubic-bezier(.3,1.3,.5,1); }
+@keyframes tbAsk { from { opacity:0; transform:translateY(-6px); } }
+#tour .tb-q { width:100%; box-sizing:border-box; border:1px solid var(--line, #2a2a2a); border-radius:12px; padding:9px 12px;
+  background:var(--bg, #0b0b0b); color:var(--ink, #eee); font-size:13.5px; outline:none; }
+#tour .tb-q:focus { border-color:#f4f4f4; }
+#tour .tb-hits { display:flex; flex-direction:column; gap:2px; margin-top:6px; max-height:230px; overflow:auto; }
+#tour .tb-hit { display:flex; flex-direction:column; align-items:flex-start; gap:1px; border:0; border-radius:10px; padding:7px 10px;
+  background:transparent; color:var(--ink, #eee); text-align:left; cursor:pointer; }
+#tour .tb-hit:hover, #tour .tb-hit.first { background:var(--hover, rgba(255,255,255,.06)); }
+#tour .tb-hit b { font-size:13px; font-weight:600; } #tour .tb-hit span { font-size:11.5px; color:var(--dim, #999); }
+#tour .tb-none { font-size:12.5px; color:var(--dim, #999); padding:6px 4px; }
+#tour.asking .tb-say, #tour.asking .tb-row { opacity:.35; }
