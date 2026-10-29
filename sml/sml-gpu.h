@@ -24,6 +24,8 @@ int sml_gpu_layers(int * of);
 // which of them writes this model's own words (sml-server does it at load) and
 // never goes above what the model was opened able to do.
 void sml_gpu_prompt_mode(int level);
+// a split model writes its answers on the CPU (SML_DECODE=cpu): 1 if on
+int sml_gpu_decode_cpu(int on);
 
 // A middle stage: after the GPU's layers, fn(rows, pos0, n) runs the next
 // `layers` layers on the n hidden rows (n x n_embd floats, in place) on another

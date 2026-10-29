@@ -1677,6 +1677,7 @@ int main(int argc, char ** argv) {
             if (!np_fail) prompt_remember(path, pkey, lvl);
         }
         sml_gpu_prompt_mode(lvl);
+        if (sml_gpu_decode_cpu(1)) printf("  answers: written on the CPU, prompts read on the card\n");
         if (lvl < 2)
             printf("  prompts: %s does not write this model's own words; reading them %s\n",
                    lvl == 1 ? "the tensor-core prompt kernel" : "the batched prompt path",

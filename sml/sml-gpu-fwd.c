@@ -227,7 +227,14 @@ static gl SL;                       // the staging layer's tensors, on the card
 static gl * LS;                     // each CPU layer's own small vectors; tensors are SL's
 static CUdeviceptr KS, VS;          // one layer's K and V cache rows (f32), staged
 static float * g_kv_h;              // host rows for the cache's fp16 <-> f32
-static double g_st_copy, g_st_run, g_st_t, g_st_card;   // SML_STREAM_STATS: where a streamed prompt's time goes
+static double g_st_copy, g_st_run, g_st_t, g_st_card;
+// Read on the card, write on the processor (2026-10-29). A model split between the card and the CPU
+// crosses the bus for every word it writes; writing on the CPU alone does not. So a prompt is read on
+// the card (every layer, streamed), its new cache rows for the card's layers are copied to the CPU's
+// cache, and the answer is written on the CPU. Rows the CPU writes go back to the card before the
+// next prompt is read on it. SML_DECODE=cpu turns it on; the orchestrator times both and chooses.
+static int g_cpu_decode = 0, g_cpu_decode_ready = 0, g_dec_lo = -1, g_dec_hi = -1;
+static float * g_kv_x;              // host rows for the copies, one layer at a time   // SML_STREAM_STATS: where a streamed prompt's time goes
 static uint8_t ** g_s8h, ** g_m8h;  // a v9 file's 6-bit group fields as bytes, per CPU tensor
 static void host_embed(int tok, int pos, float * out);
 // Per-layer attention (Gemma 2/3, Cohere2, SmolLM3, GPT-Neo, EXAONE 4), read per
@@ -1320,6 +1327,32 @@ static void refill(const gt * d, const sml_rec * r, int ti) {
     CU.MemcpyHtoD(d->perm, sml_ptr(&M, r->perm_off), n * 4);
 }
 
+static uint16_t kv_f16(float f);
+// the card's layers' cache rows [p, p+n) to the CPU's cache
+static void kv_down(int p, int n) {
+    const size_t rows = (size_t) n * kvd, off = (size_t) p * kvd;
+    for (int l = 0; l < NL; l++) {
+        uint16_t * kh = CS.k_cache + (size_t) l * CS.n_ctx * kvd + off;
+        uint16_t * vh = CS.v_cache + (size_t) l * CS.n_ctx * kvd + off;
+        CU.MemcpyDtoH(g_kv_x, KC + (CUdeviceptr) (((size_t) l * n_ctx * kvd + off) * 4), rows * 4);
+        for (size_t i = 0; i < rows; i++) kh[i] = kv_f16(g_kv_x[i]);
+        CU.MemcpyDtoH(g_kv_x, VC + (CUdeviceptr) (((size_t) l * n_ctx * kvd + off) * 4), rows * 4);
+        for (size_t i = 0; i < rows; i++) vh[i] = kv_f16(g_kv_x[i]);
+    }
+}
+// ...and the rows the CPU wrote [lo, hi) back to the card, before the card reads the next prompt
+static void kv_up(int lo, int hi) {
+    const size_t rows = (size_t) (hi - lo) * kvd, off = (size_t) lo * kvd;
+    for (int l = 0; l < NL; l++) {
+        const uint16_t * kh = CS.k_cache + (size_t) l * CS.n_ctx * kvd + off;
+        const uint16_t * vh = CS.v_cache + (size_t) l * CS.n_ctx * kvd + off;
+        for (size_t i = 0; i < rows; i++) g_kv_x[i] = sml_f16_to_f32(kh[i]);
+        CU.MemcpyHtoD(KC + (CUdeviceptr) (((size_t) l * n_ctx * kvd + off) * 4), g_kv_x, rows * 4);
+        for (size_t i = 0; i < rows; i++) g_kv_x[i] = sml_f16_to_f32(vh[i]);
+        CU.MemcpyHtoD(VC + (CUdeviceptr) (((size_t) l * n_ctx * kvd + off) * 4), g_kv_x, rows * 4);
+    }
+}
+
 // CPU layer l onto the card for a chunk at position p: its tensors, and its cache rows 0..p-1
 static const gl * stream_in(int l, int p) {
     const sml_layer * s = &C.layers[l];
@@ -1608,6 +1641,12 @@ static void host_embed(int tok, int pos, float * out) {
 }
 
 static void gpu_forward(int tok, int pos) {
+    if (g_cpu_split && g_cpu_decode) {                 // the whole model on the CPU for this word
+        g_split_lg = sml_forward(&CS, tok, pos, 0);
+        if (g_dec_lo < 0 || pos < g_dec_lo) g_dec_lo = pos;
+        if (pos + 1 > g_dec_hi) g_dec_hi = pos + 1;
+        return;
+    }
     const sml_rec * e = C.emb;
     const uint16_t * esd = (const uint16_t *) sml_ptr(&M, e->sd_off);
     const uint8_t  * esq = (const uint8_t  *) sml_ptr(&M, e->sq_off);
@@ -2218,6 +2257,12 @@ static int gpu_setup(const char * path, int want_ctx, int threads) {
                 g_stream_ok = g_kv_h != NULL;
                 // the granary's side copies compete with the staging layer for the card: 97 vs 133 tok/s
                 if (g_stream_ok && !getenv("SML_JOSEPH")) g_joseph = 0;
+                // on by default for a split model (7B on a 4 GB card: writing 5.5 -> 6.9 tok/s, reading kept,
+                // 36 of 40 answers right); SML_DECODE=gpu keeps every word crossing the bus as before
+                if (!(getenv("SML_DECODE") && !strcmp(getenv("SML_DECODE"), "gpu"))) {
+                    g_kv_x = malloc((size_t) n_ctx * kvd * sizeof(float));
+                    g_cpu_decode_ready = g_kv_x != NULL;   // switched on by the server after its prompt check
+                }
                 if (g_stream_ok)
                     printf("  prompts: the CPU's %d layers are read on the card too, one at a time\n", nc);
             }
@@ -2344,7 +2389,12 @@ const float * sml_gpu_prefill(const int * ids, int pos0, int n) {
     if (n <= 0 || pos0 + n > n_ctx) return NULL;
     g_jb_on = 1;
     if (setjmp(g_jb)) { g_jb_on = 0; return NULL; }
-    if (g_pf_ok) gpu_prefill(ids, pos0, n);
+    if (g_cpu_split && g_cpu_decode && g_pf_ok) {
+        if (g_dec_lo >= 0 && g_dec_lo < pos0) kv_up(g_dec_lo, g_dec_hi < pos0 ? g_dec_hi : pos0);
+        g_dec_lo = g_dec_hi = -1;
+        gpu_prefill(ids, pos0, n);
+        kv_down(pos0, n);
+    } else if (g_pf_ok) gpu_prefill(ids, pos0, n);
     else for (int i = 0; i < n; i++) gpu_forward(ids[i], pos0 + i);
     const float * l = gpu_logits();
     g_jb_on = 0;
@@ -2359,6 +2409,12 @@ const float * sml_gpu_step(int tok, int pos) {
     const float * l = gpu_logits();
     g_jb_on = 0;
     return l;
+}
+
+int sml_gpu_decode_cpu(int on) {
+    g_cpu_decode = on && g_cpu_decode_ready;
+    g_dec_lo = g_dec_hi = -1;
+    return g_cpu_decode;
 }
 
 void sml_gpu_prompt_mode(int level) {
