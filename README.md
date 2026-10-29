@@ -48,7 +48,7 @@ set nothing. [docs/MODELS.md](docs/MODELS.md) has every step and every format.
 
 | What | Where it runs | What it does in Sheep |
 |---|---|---|
-| **NVIDIA Nemotron 3 Nano 30B-A3B** | Nebius. Requests go through OpenRouter pinned to the Nebius provider with fallbacks off, because Token Factory does not yet take payment from Uganda; Nebius Support confirmed this route in writing ([evidence](docs/evidence/NEBIUS_ROUTING_EVIDENCE.md)) | Plans a multi-step job as exact tool calls that Sheep runs on the computer; checks the local model's draft against the request before Sheep makes the file; answers while the local model loads or is being repaired |
+| **NVIDIA Nemotron 3 Super 120B-A12B** (and Nano) | Nebius Token Factory, called directly (`https://api.tokenfactory.nebius.com/v1`) | Plans a multi-step job as exact tool calls that Sheep runs on the computer; checks the local model's draft against the request before Sheep makes the file; answers while the local model loads or is being repaired |
 | **A local model** (Qwen, Llama, Gemma, Phi, Mistral, NVIDIA Nemotron-H and [many more](docs/MODELS.md#architecture-support)) | This computer, in Sheep's own engine (SML + SSF) | Writes the content; Sheep makes the files with its apps' own tools |
 | **Tavily** | Web search API | Current facts for questions, and for decks and documents, which end with their sources |
 
