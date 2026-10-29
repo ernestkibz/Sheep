@@ -110,9 +110,9 @@ race logs.
 
 **A model too big for the card.** Qwen2.5-7B at 4 bits (4.7 GB) does not fit a 4 GB card, so each engine
 splits it between the card and the processor. Sheep now reads a prompt on the card for every layer, copying
-the processor's layers across one at a time: its prompt reading went from 57 to 123 tokens a second in the
-race. Ollama still reads faster (138) and llama.cpp writes faster (6.6 against Sheep's 5.0); Sheep beats
-llama.cpp's prompt reading five times over (25). [The graph](mlmi/media/bench/big_model.png) has all four.
+the processor's layers across one at a time: its prompt reading went from 57 to 126 tokens a second in the
+race. It then writes on the processor: 6.9 tokens a second, ahead of llama.cpp (6.6) and Ollama (5.4).
+Ollama still reads faster (138) and llama.cpp starts faster; Sheep reads five times faster than llama.cpp (25). [The graph](mlmi/media/bench/big_model.png) has all four.
 
 ## Built during the hackathon
 
