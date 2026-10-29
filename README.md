@@ -9,7 +9,7 @@ current facts, with their sources.
 Sheep is for people with an ordinary laptop, a slow or costly connection, or work that should stay on their
 own machine. It was built in Uganda, where Nebius Token Factory itself is not yet open to accounts.
 
-![Sheep: a deck made from one line, with the Work Canvas beside the chat](mlmi/media/gallery/1-chat.png)
+![Sheep, with its guide pointing at the apps](docs/shots/tour.png)
 
 ## For judges: try it in two minutes
 
@@ -34,7 +34,7 @@ it, or runs in compatibility mode with the maker's own code. The level is chosen
 the model is placed on the graphics card, the processor or both, and it is checked before you rely on it. You
 set nothing. [docs/MODELS.md](docs/MODELS.md) has every step and every format.
 
-![What Sheep did for you: a model's setup, step by step](mlmi/media/gallery/2-what-sheep-did.png)
+![Settings › Models: one model for each job](docs/shots/models.png)
 
 ## How Sheep uses Nebius, NVIDIA Nemotron and Tavily
 
