@@ -113,7 +113,7 @@ class SheepBrandingTests(unittest.TestCase):
 
     def test_windows_shortcuts_and_tray_use_versioned_monochrome_icon(self):
         main = (DESKTOP / "main.js").read_text(encoding="utf-8")
-        installer = (DESKTOP.parents[1] / "submission" / "sheep.iss").read_text(encoding="utf-8")
+        installer = (DESKTOP.parents[1] / "installer" / "sheep.iss").read_text(encoding="utf-8")
         self.assertIn("sheep-mono-20261010.ico", main)
         self.assertIn('IconFilename:', installer)
         self.assertIn('UninstallDisplayIcon=', installer)
