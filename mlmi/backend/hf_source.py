@@ -103,6 +103,36 @@ def gguf_file(names):
     return sorted(files)[0] if files else None
 
 
+# Ernest, 2026-10-29: a copy that is already quantized is taken as it is: packed into SSF at its own width,
+# never shrunk again. Only an original (safetensors, or an F16/BF16/F32 GGUF) is offered every level.
+FLOAT_TAG = re.compile(r"(?:^|[-_.])(f16|bf16|f32|fp16|fp32)(?:[-_.]|$)", re.I)
+QUANT_TAG = re.compile(r"(?:^|[-_.])(i?q\d(?:_[a-z0-9]+)*)(?:[-_.]|$)", re.I)
+WIDTH_LEVEL = {1: "q2", 2: "q2", 3: "q3", 4: "small", 5: "q5", 6: "high", 7: "q7", 8: "q8"}
+
+
+def as_is(kind, name="", cfg=None):
+    """For a copy that is already quantized: {"id": the Sheep level at its own width, "tag": what it is},
+    or None for an original. kind is classify()'s answer; name the GGUF file; cfg its config.json."""
+    if kind == "gguf":
+        if FLOAT_TAG.search(name):
+            return None
+        m = QUANT_TAG.search(name)
+        tag = m.group(1).upper() if m else "quantized"
+        width = int(re.search(r"\d", tag).group()) if m else 4
+        # Q4_K_M and Q4_K_L keep 6-bit where it matters, like Sheep's 4/6-bit level
+        lv = "balanced" if re.fullmatch(r"Q4_K(_[ML])?", tag) or not m else WIDTH_LEVEL.get(width, "q8")
+        return {"id": lv, "tag": f"GGUF {tag}"}
+    if kind in ("original", "meta", "none", "no-config", "adapter", None, ""):
+        return None
+    qc = (cfg or {}).get("quantization_config") or ((cfg or {}).get("text_config") or {}).get("quantization_config") or {}
+    bits = qc.get("bits") or qc.get("w_bit") or ((cfg or {}).get("quantization") or {}).get("bits") or 4
+    try:
+        bits = int(bits)
+    except (TypeError, ValueError):
+        bits = 4
+    return {"id": WIDTH_LEVEL.get(bits, "q8"), "tag": f"{kind.upper().replace('MODEL', '')} {bits}-bit"}
+
+
 def fallback(repo, model_info=None, read_config=None):
     """What Sheep converts when `repo` has no original anywhere: {"how": "unpack", "kind": "gptq" |
     "awq" | "meta", "bytes": ...}, {"how": "gguf", "file": ..., "bytes": ...}, or None."""
@@ -114,15 +144,16 @@ def fallback(repo, model_info=None, read_config=None):
         sib = list(info.siblings or [])
         names = [str(x.rfilename) for x in sib]
         size = {str(x.rfilename): int(getattr(x, "size", 0) or 0) for x in sib}
-        kind = classify(names, (read_config or _read_config)(repo, info, names))
+        cfg = (read_config or _read_config)(repo, info, names)
+        kind = classify(names, cfg)
     except Exception:
         return None
     if kind in UNPACK:
         pick = [n for n in names if "/" not in n and (n.endswith(".safetensors") or
                                                       re.fullmatch(r"consolidated\.\d+\.pth", n))]
-        return {"how": "unpack", "kind": kind, "bytes": sum(size[n] for n in pick)}
+        return {"how": "unpack", "kind": kind, "bytes": sum(size[n] for n in pick), "as_is": as_is(kind, cfg=cfg)}
     g = gguf_file(names)
-    return {"how": "gguf", "file": g, "bytes": size.get(g, 0)} if g else None
+    return {"how": "gguf", "file": g, "bytes": size.get(g, 0), "as_is": as_is("gguf", g)} if g else None
 
 
 def folder_kind(d):

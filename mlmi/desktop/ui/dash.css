@@ -50,6 +50,7 @@
 .lvl:hover { transform:translateY(-1px); }
 .lvl.on { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset; }
 .lvl.red { opacity:.6; }
+.lvl.locked { filter:blur(1.6px) grayscale(1); opacity:.4; cursor:not-allowed; pointer-events:none; }
 .lvl .lname { font-weight:700; font-size:15px; display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; }
 .lvl .rec { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--accent);
   border:1px solid var(--accent); border-radius:10px; padding:1px 7px; }

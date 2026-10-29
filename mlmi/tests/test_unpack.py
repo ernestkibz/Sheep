@@ -30,11 +30,23 @@ class Kinds(unittest.TestCase):
     def test_fallback_unpacks_gptq_and_meta(self):
         fb = H.fallback("x/m-GPTQ", model_info=lambda r: info(["config.json", "model.safetensors"], {"model.safetensors": 7}),
                         read_config=lambda *a: GPTQ)
-        self.assertEqual(fb, {"how": "unpack", "kind": "gptq", "bytes": 7})
+        self.assertEqual(fb, {"how": "unpack", "kind": "gptq", "bytes": 7, "as_is": {"id": "small", "tag": "GPTQ 4-bit"}})
         fb = H.fallback("meta/L", model_info=lambda r: info(["consolidated.00.pth", "consolidated.01.pth", "params.json"]),
                         read_config=lambda *a: {})
         self.assertEqual((fb["how"], fb["kind"], fb["bytes"]), ("unpack", "meta", 200))
         self.assertIn("Meta's raw .pth", H.convert_note(fb, "meta/L"))
+        self.assertIsNone(fb["as_is"])                 # Meta's .pth is an original: every level is offered
+
+    def test_quantized_copies_kept_as_is(self):
+        # Ernest, 2026-10-29: a quantized copy is packed at its own width, an original gets every level
+        self.assertEqual(H.as_is("gguf", "m-Q4_K_M.gguf"), {"id": "balanced", "tag": "GGUF Q4_K_M"})
+        self.assertEqual(H.as_is("gguf", "m.Q8_0.gguf")["id"], "q8")
+        self.assertEqual(H.as_is("gguf", "m-IQ3_XXS.gguf")["id"], "q3")
+        self.assertIsNone(H.as_is("gguf", "m-f16.gguf"))
+        self.assertIsNone(H.as_is("gguf", "m-BF16.gguf"))
+        self.assertEqual(H.as_is("awq", cfg={"quantization_config": {"w_bit": 4}})["id"], "small")
+        self.assertEqual(H.as_is("gptq", cfg={"quantization_config": {"bits": 8}})["id"], "q8")
+        self.assertIsNone(H.as_is("original"))
 
     def test_other_formats_refused_by_name(self):
         for names, cfg, word in ((["model.onnx"], {}, "ONNX"), (["m.mlpackage/Data/w.bin"], {}, "Core ML"),

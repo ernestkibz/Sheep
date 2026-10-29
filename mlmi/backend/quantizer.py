@@ -88,6 +88,12 @@ class Job:
         self.fallback, self.allow_remote_code = fallback, bool(allow_remote_code)
         threading.Thread(target=self._run, args=(src, name, budget_mb, licence, on_done), daemon=True).start()
 
+    def _keep(self, keep):
+        """An already-quantized copy is built only at its own width (Ernest, 2026-10-29)."""
+        if keep and self.level != keep["id"]:
+            self._say(f"already quantized ({keep['tag']}): packed into SSF as it is, not shrunk again")
+            self.level = keep["id"]
+
     def stop(self):
         if self.proc and self.proc.poll() is None:
             self.proc.terminate()
@@ -353,12 +359,19 @@ class Job:
         try:
             d = Path(src)
             if d.is_file() and d.suffix.lower() == ".gguf":
+                from .hf_source import as_is
+                self._keep(as_is("gguf", d.name))
                 d = self._from_gguf(d)
                 name = name or d.name
             elif d.is_dir():
-                from .hf_source import UNPACK, WORDS, folder_kind
+                from .hf_source import UNPACK, WORDS, as_is, folder_kind
                 k = folder_kind(d)
                 if k in UNPACK:
+                    try:
+                        cfg = json.loads((d / "config.json").read_text(encoding="utf-8"))
+                    except (OSError, ValueError):
+                        cfg = {}
+                    self._keep(as_is(k, cfg=cfg))
                     d = self._unpack(d)
                 elif k not in ("original", "none", "no-config"):
                     raise ValueError(f"{d.name} is {WORDS.get(k, 'a converted copy')}, which Sheep cannot read; "
@@ -387,10 +400,19 @@ class Job:
                 try:
                     original, note, _ = resolve(src)          # a GGUF/GPTQ/MLX page: its original
                     fb = None
+                    if note:                                 # a copy is kept as it is when Sheep can read it
+                        fb = fallback(src)
+                        if not fb:
+                            raise ValueError(f"{note.split(';')[0]}, which Sheep cannot pack as it is. Add its "
+                                             f"original, {original}, to choose a level.")
+                        if not fb.get("as_is"):
+                            fb = None
                 except LookupError:
                     fb = fallback(src)                       # no original anywhere: the copy itself
                     if not fb:
                         raise
+                if fb:
+                    self._keep(fb.get("as_is"))
                 if fb and fb["how"] == "gguf":
                     self._say(f"{src} has no original weights on Hugging Face; Sheep converts its GGUF ({fb['file']}). "
                               "The quality is that file's.")

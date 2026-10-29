@@ -35,15 +35,16 @@ and the app's packages, once). No NVIDIA card is needed: Sheep uses the processo
 
 ## Any model, with nothing to set
 
-Give Sheep a model the way you would name it: a Hugging Face ID, a folder, or a `.gguf` file. A GGUF, GPTQ,
-AWQ, EXL2 or MLX page is traced back to the original it was made from, and built from that. A fine-tune that
-exists only as a GGUF or GPTQ copy is converted first. An architecture Sheep's engine has not met is fitted to
+Give Sheep a model the way you would name it: a Hugging Face ID, a folder, or a `.gguf` file. An original
+(safetensors, or an F16 GGUF) is offered every level, Q2 to exact. A copy that is already quantized, such as a
+Q4_K_M GGUF or a GPTQ or AWQ copy, is packed into SSF as it is, at its own width, and never shrunk again; Sheep
+names its original for anyone who wants another level. An architecture Sheep's engine has not met is fitted to
 it, or runs in compatibility mode with the maker's own code. The level is chosen for your computer's memory,
 the model is placed on the graphics card, the processor or both, and it is checked before you rely on it. You
 set nothing. [docs/MODELS.md](docs/MODELS.md) has every step and every format.
 
 **Checked on the 300 most-downloaded text models on Hugging Face:** 188 run natively in Sheep's engine, fitted
-with no settings (30 of them compressed copies traced back to their originals); 36 are gated by their makers; the
+with no settings (30 of them compressed copies); 36 are gated by their makers; the
 rest use maths the engine does not have yet and run in compatibility mode. `tooling/model_sweep.py` re-runs it.
 
 ![Settings › Models: one model for each job](docs/shots/models.png)

@@ -773,20 +773,28 @@ def make_handler(st):
                     from .model_slots import HF_ID
                     from .levels import LEVELS
 
-                    def convert_reply(fname, words):
-                        # no original: the GGUF, GPTQ/AWQ copy or Meta .pth is converted, then built at
-                        # the chosen level (Parts C1, C6)
-                        return self._send(200, {"gguf": fname, "convert": words, "info": {"src": src},
+                    def convert_reply(fname, words, keep=None, orig=""):
+                        # a GGUF, GPTQ/AWQ copy or Meta .pth is converted, then built (Parts C1, C6). An
+                        # original (Meta .pth, F16 GGUF) is offered every level; a copy that is already
+                        # quantized (keep) only its own, packed into SSF as it is (Ernest, 2026-10-29)
+                        if keep:
+                            words = (f"Already quantized ({keep['tag']}). Sheep packs it into SSF as it is, at its own "
+                                     "width, and does not shrink it again." +
+                                     (f" To choose a level, add its original, {orig}." if orig else
+                                      " To choose a level, add the original model it was made from."))
+                        return self._send(200, {"gguf": fname, "convert": words, "info": {"src": src}, "as_is": keep,
                                                 "levels": [{"id": x["id"], "name": x["name"], "what": x["what"]}
                                                            for x in LEVELS]})
                     from . import hf_source
                     if src.lower().endswith(".gguf") and Path(src).is_file():
                         return convert_reply(Path(src).name, "no original weights to build from, so Sheep converts "
-                                                             "this GGUF first. The quality is that file's.")
+                                                             "this GGUF first.", hf_source.as_is("gguf", Path(src).name))
                     if Path(src).is_dir():
                         k = hf_source.folder_kind(src)
                         if k in hf_source.UNPACK:
-                            return convert_reply(Path(src).name, hf_source.convert_note({"how": "unpack", "kind": k}, Path(src).name, local=True))
+                            cfg = load_json(Path(src) / "config.json", {})
+                            return convert_reply(Path(src).name, hf_source.convert_note({"how": "unpack", "kind": k}, Path(src).name, local=True),
+                                                 hf_source.as_is(k, cfg=cfg))
                         if k not in ("original", "none", "no-config"):
                             return self._send(400, {"error": f"{Path(src).name} is {hf_source.WORDS.get(k, 'a converted copy')}, "
                                                              "which Sheep cannot read; use the original model it was made from"})
@@ -797,11 +805,18 @@ def make_handler(st):
                         except LookupError as e:
                             fb = hf_source.fallback(src)
                             if fb:
-                                return convert_reply(fb.get("file") or src, hf_source.convert_note(fb, src))
+                                return convert_reply(fb.get("file") or src, hf_source.convert_note(fb, src), fb.get("as_is"))
                             return self._send(400, {"error": str(e)})
                         except Exception as e:
                             return self._send(400, {"error": hf_source.hub_error(e, src)})
                         if orig != src:
+                            # a copy: kept as it is when Sheep can read it, else its original is named
+                            fb = hf_source.fallback(src)
+                            if fb and fb.get("as_is"):
+                                return convert_reply(fb.get("file") or src, "", fb["as_is"], orig)
+                            if not fb:
+                                return self._send(400, {"error": f"{note.split(';')[0]}, which Sheep cannot pack as it is. "
+                                                                 f"Add its original, {orig}, to choose a level."})
                             original_of, src = src, orig
                     try:
                         info = levels.inspect(src)

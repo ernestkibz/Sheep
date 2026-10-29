@@ -114,8 +114,9 @@ and **Remove**. To add a chat model, use **Add any model**:
    and the build time. The recommended one is chosen already.
 3. Press **Build**. The steps show as they happen: found, converted if it had to be, built, then checked.
 
-A GGUF, GPTQ, AWQ, EXL2 or MLX page is traced to the original model it was made from, and Sheep builds from
-that. A model that exists only as a GGUF or GPTQ copy is converted first. A model Sheep's engine does not know
+An original (safetensors, or an F16 GGUF) can be built at any level. A copy that is already quantized (a Q4_K_M
+GGUF, a GPTQ or AWQ copy) is packed into SSF as it is, at its own width, and is not shrunk again: the other levels
+are greyed out, and Sheep names the original for anyone who wants to choose one. A model Sheep's engine does not know
 is fitted to it, or runs with its maker's own code (compatibility mode, slower but correct). If something is
 wrong (no internet, a misspelt name, a full disk), Sheep says what to do.
 

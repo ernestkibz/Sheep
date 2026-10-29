@@ -720,16 +720,23 @@
           return;
         }
         if (r.convert) {                              // no original: the GGUF, GPTQ/AWQ copy or Meta .pth is converted, then built
+          // a copy that is already quantized is packed as it is: only its own level, the rest locked
+          const keep = r.as_is;
           this.src = src;
-          this.level = this.level || "balanced";
+          this.level = keep ? keep.id : (this.level || "balanced");
           $("#qInfo", el).innerHTML = `<b>${esc(r.gguf)}</b> · ${esc(r.convert)}`;
           const drawG = () => {
-            $("#qLevels", el).innerHTML = r.levels.map((c) => `<button class="lvl ${c.id === this.level ? "on" : ""}" data-lv="${c.id}" title="${esc(c.what)}">
-              <span class="lname">${esc(c.name)}</span><span class="kv2"><span>${esc(c.what)}</span></span></button>`).join("");
-            $("#qGo", el).textContent = this.level === "exact" ? "Convert and build as-is" : "Convert and build";
+            $("#qLevels", el).innerHTML = r.levels.map((c) => {
+              const mine = keep && c.id === keep.id, locked = keep && !mine;
+              return `<button class="lvl ${c.id === this.level ? "on" : ""} ${locked ? "locked" : ""}" data-lv="${c.id}" ${locked ? "disabled" : ""}
+                title="${esc(locked ? "Already quantized: Sheep does not shrink it again" : c.what)}">
+              <span class="lname">${esc(mine ? `As is · ${keep.tag}` : c.name)}</span>
+              <span class="kv2"><span>${esc(mine ? `packed into SSF at its own width (${c.name}), not shrunk again` : c.what)}</span></span></button>`;
+            }).join("");
+            $("#qGo", el).textContent = keep ? "Pack into SSF as is" : this.level === "exact" ? "Convert and build as-is" : "Convert and build";
           };
           drawG();
-          $("#qLevels", el).onclick = (e) => { const b = e.target.closest("[data-lv]"); if (b) { this.level = b.dataset.lv; drawG(); } };
+          $("#qLevels", el).onclick = (e) => { const b = e.target.closest("[data-lv]:not([disabled])"); if (b) { this.level = b.dataset.lv; drawG(); } };
           $("#qGo", el).disabled = false;
           $("#qNameRow", el).style.display = "";
           return;
