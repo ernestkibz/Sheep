@@ -18,7 +18,18 @@ ELECTRON = ROOT / "mlmi" / "desktop" / "node_modules" / "electron" / "dist" / ("
 PICTURES = [("How Sheep is built", DOCS / "diagrams" / "sheep-1-how-sheep-is-built.png"),
             ("One request, end to end", DOCS / "diagrams" / "sheep-2-one-request-end-to-end.png"),
             ("A model, from a name to Ready", DOCS / "diagrams" / "sheep-3-a-model-from-a-name-to-ready.png"),
-            ("Sheep against llama.cpp", ROOT / "mlmi" / "media" / "benchmark.png")]
+            ("Sheep against llama.cpp", ROOT / "mlmi" / "media" / "bench" / "sheep_vs_llamacpp.png"),
+            ("Sheep against Ollama", ROOT / "mlmi" / "media" / "bench" / "sheep_vs_ollama.png"),
+            ("Engine against engine: SML and GGML", ROOT / "mlmi" / "media" / "bench" / "sml_vs_ggml.png"),
+            ("File against file: SSF and GGUF", ROOT / "mlmi" / "media" / "bench" / "ssf_vs_gguf.png"),
+            ("Hardware used for the same work", ROOT / "mlmi" / "media" / "bench" / "hardware.png"),
+            ("What else each one does", ROOT / "mlmi" / "media" / "bench" / "features.png"),
+            ("A model too big for the card", ROOT / "mlmi" / "media" / "bench" / "big_model.png")]
+# the app itself, photographed by tooling/manual_shots.ps1 (Sheep's own MLMI_SHOTS mode)
+SHOTS = ROOT / "docs" / "shots"
+SCREENS = [("Chat, with the start-up card", "home"), ("Quick guide", "guide"), ("Settings › Basics", "basics"),
+           ("Settings › Models: one row per job", "models"), ("Settings › Accounts", "accounts"),
+           ("Settings › Activity", "activity"), ("Sheep Studio", "studio")]
 CSS = """
 body { font-family: 'Segoe UI', system-ui, sans-serif; color: #1f2328; max-width: 860px; margin: 32px auto; line-height: 1.55; font-size: 11pt; }
 h1 { font-size: 26pt; margin-bottom: 4px; } h2 { font-size: 16pt; border-bottom: 1px solid #d8dee4; padding-bottom: 4px; margin-top: 28px; page-break-after: avoid; }
@@ -50,9 +61,12 @@ def main():
     body = markdown.markdown(guide, extensions=["tables"])
     figs = "".join(f'<figure><img src="{img(p)}" alt="{t}"><figcaption>{t}</figcaption></figure>'
                    for t, p in PICTURES if p.exists())
+    screens = "".join(f'<figure><img src="{img(SHOTS / (n + ".png"))}" alt="{t}"><figcaption>{t}</figcaption></figure>'
+                      for t, n in SCREENS if (SHOTS / (n + ".png")).exists())
     html = (f"<!doctype html><html><head><meta charset='utf-8'><title>Sheep manual</title><style>{CSS}</style></head><body>"
             f"<p class='cover'>Sheep · local AI on your own computer · manual</p>{body}"
-            f"<h2>How it fits together</h2>{figs}</body></html>")
+            + (f"<h2>The screens</h2>{screens}" if screens else "")
+            + f"<h2>How it fits together, and how it measures up</h2>{figs}</body></html>")
     out_html, out_pdf = DOCS / "Sheep-Manual.html", DOCS / "Sheep-Manual.pdf"
     out_html.write_text(html, encoding="utf-8")
     script = DOCS / ".print_manual.js"

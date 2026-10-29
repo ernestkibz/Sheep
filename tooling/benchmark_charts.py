@@ -365,10 +365,71 @@ def hardware(out):
     save(fig, out, "hardware.png")
 
 
+BIG_LOG = Path(__file__).resolve().parent / "race7b.jsonl"     # the 7B, too big for the card, split by each engine
+
+
+def big_model(out):
+    """Qwen2.5-7B at 4 bits (4.7 GB) on a 4 GB card: each engine splits it between the card and the CPU its
+    own way (Sheep's engine fills the card and reads every layer's prompt there; llama.cpp --fit; Ollama's
+    scheduler). The first round of each, run back to back at 94-95 C."""
+    import json
+    acc = {}
+    for line in BIG_LOG.read_text(encoding="utf-8").splitlines():
+        r = json.loads(line)
+        if r.get("error"):
+            continue
+        name = {"sheep": "Sheep", "llamacpp": "llama.cpp", "ollama": "Ollama"}[r["kind"]]
+        # the first round only: in the mirrored second round the card had reached its thermal floor
+        # (97-98 C, 210 MHz) and the laptop was swapping; those rows stay in the log
+        if name not in acc:
+            acc[name] = [r]
+    avg = lambda rs, k: sum(x.get(k) or 0 for x in rs) / len(rs)
+    engines = [(e, c) for e, c in (("Sheep", SHEEP), ("llama.cpp", LLAMA), ("Ollama", OLLAMA)) if e in acc]
+    panels = [("Reading the prompt\n(tokens a second, higher is better)", "prompt_tok_s", "tok/s", "{:.0f}", True),
+              ("Writing the answer\n(tokens a second, higher is better)", "gen_tok_s", "tok/s", "{:.2f}", True),
+              ("Start-up, ready to answer\n(seconds, lower is better)", "load_s", "s", "{:.1f}", False),
+              ("Graphics memory used\n(MB, of the card's 4096)", "peak_vram_mb", "MB", "{:.0f}", None)]
+    fig, axes = plt.subplots(1, len(panels), figsize=(17, 5.4), facecolor=BG)
+    head(fig, "A model too big for the card: Qwen2.5-7B on a 4 GB laptop GPU",
+         "4.7 GB at 4 bits; each engine splits it between the card and the CPU by itself. Ryzen 5 5600H, RTX 3050 "
+         "Laptop 4 GB, on AC. ~710-token prompt, 128 tokens written.")
+    wins = []
+    for ax, (t, k, unit, fmt, hi) in zip(axes, panels):
+        vals = [(e, c, avg(acc[e], k)) for e, c in engines]
+        top = max(v for _, _, v in vals) or 1
+        for j, (e, c, v) in enumerate(vals):
+            ax.barh(j, v, height=0.7, color=c)
+            ax.text(v + top * 0.02, j, f"{fmt.format(v)} {unit}", va="center", fontsize=10.5, color=INK)
+        if hi is not None:
+            best = (max if hi else min)(v for _, _, v in vals)
+            lead = [e for e, _, v in vals if abs(v - best) <= abs(best) * 0.02]
+            who = lead[0] if len(lead) == 1 else "tie"
+            wins.append(who)
+            word, c = (("Tie", TIE) if who == "tie" else ("✓ Sheep best", WIN) if who == "Sheep"
+                       else (f"Best: {who}", MUTED))
+            ax.text(0, len(vals) - 0.25, word, va="center", fontsize=11, color=c, fontweight="bold")
+        ax.set_yticks(range(len(vals)), [e for e, _, _ in vals])
+        ax.invert_yaxis()
+        ax.set_xlim(0, top * 1.45)
+        ax.set_xticks([])
+        clean(ax)
+        ax.set_title(t, loc="left", fontsize=12, color=INK, fontweight="bold")
+    score(fig, [("Sheep best", wins.count("Sheep"), WIN),
+                ("another best", sum(w not in ("Sheep", "tie") for w in wins), MUTED),
+                ("tie", wins.count("tie"), TIE)], len(wins))
+    fig.text(0.02, 0.02, "tooling/market_race.py, device auto, first round of each at 94-95 °C (the second round hit "
+             "the card's thermal floor; every row is in tooling/race7b.jsonl).\nSheep: 20 of 28 layers on the card; the "
+             "other 8 read prompts there one at a time (57 -> 123 tok/s on this laptop).", fontsize=9, color=MUTED)
+    fig.subplots_adjust(left=0.07, right=0.985, top=0.7, bottom=0.2, wspace=0.45)
+    save(fig, out, "big_model.png")
+
+
 def main(out):
     style()
     if HW_LOG.exists():
         hardware(out)
+    if BIG_LOG.exists():
+        big_model(out)
     versus(out, "llama.cpp", LLAMA, "sheep_vs_llamacpp.png")
     versus(out, "Ollama", OLLAMA, "sheep_vs_ollama.png")
     engines(out)

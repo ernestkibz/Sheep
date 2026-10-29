@@ -73,10 +73,33 @@ check and repair is shown in **Settings › Activity**.
 
 ## The engine
 
-Sheep's engine (**SML**) and file format (**SSF**) were built during the hackathon. On the three models raced
-against llama.cpp's Q4_K_M (Qwen2.5-3B, Llama-3.2-1B, pythia-410m) the SSF files are smaller and 12-41% more
-accurate, and decode is faster on both CPU and GPU against llama.cpp b11177, with 95% intervals above 1. The
-claims, their limits and every number are in [docs/ENGINE.md](docs/ENGINE.md) and [RESULTS.md](RESULTS.md).
+Sheep's engine (**SML**) and file format (**SSF**) were built during the hackathon. The claims, their limits
+and every number are in [docs/ENGINE.md](docs/ENGINE.md) and [RESULTS.md](RESULTS.md).
+
+### Raced against llama.cpp and Ollama on one laptop
+
+Ryzen 5 5600H, RTX 3050 Laptop 4 GB, on AC; Qwen2.5-3B at 4 bits on all three engines (Sheep's SSF,
+the others' GGUF Q4_K_M), each as a server, median of the runs, 40 hard questions at temperature 0.
+Every graph names its winner per test, losses included. Made by `tooling/benchmark_charts.py` from the
+race logs.
+
+| Graph | What it compares |
+|---|---|
+| [Sheep vs llama.cpp](mlmi/media/bench/sheep_vs_llamacpp.png) | Reading, writing, answers right, start-up, on the GPU and the CPU |
+| [Sheep vs Ollama](mlmi/media/bench/sheep_vs_ollama.png) | The same four, against Ollama |
+| [SML vs GGML](mlmi/media/bench/sml_vs_ggml.png) | The engines alone: 8-round ABBA races with 95% ranges, and as whole servers |
+| [SSF vs GGUF](mlmi/media/bench/ssf_vs_gguf.png) | The files: closeness to the original model, same next word, size, on three models |
+| [Hardware used](mlmi/media/bench/hardware.png) | Memory, graphics memory, CPU busy and graphics-card power for the same work |
+| [Features](mlmi/media/bench/features.png) | What each does besides running a model |
+| [Too big for the card](mlmi/media/bench/big_model.png) | Qwen2.5-7B on the 4 GB card, split by each engine its own way |
+
+![Sheep vs llama.cpp](mlmi/media/bench/sheep_vs_llamacpp.png)
+
+**A model too big for the card.** Qwen2.5-7B at 4 bits (4.7 GB) does not fit a 4 GB card, so each engine
+splits it between the card and the processor. Sheep now reads a prompt on the card for every layer, copying
+the processor's layers across one at a time: its prompt reading went from 57 to 123 tokens a second in the
+race. Ollama still reads faster (138) and llama.cpp writes faster (6.6 against Sheep's 5.0); Sheep beats
+llama.cpp's prompt reading five times over (25). [The graph](mlmi/media/bench/big_model.png) has all four.
 
 ## Built during the hackathon
 
