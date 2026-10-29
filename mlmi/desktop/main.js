@@ -101,6 +101,8 @@ async function createWindow() {
     width: Math.min(1440, wa.width), height: Math.min(900, wa.height), minWidth: 980, minHeight: 600,
     backgroundColor: "#0b0b0b", title: "Sheep", autoHideMenuBar: true, icon: path.join(__dirname, "sheep.png"),
     show: !process.argv.includes("--hidden"),
+    // screenshots and recordings (MLMI_SHOTS) happen off the screen, behind nothing, out of the taskbar
+    ...(process.env.MLMI_SHOTS ? { x: -4000, y: 0, skipTaskbar: true, focusable: false } : {}),
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false,
                       backgroundThrottling: false },
   });

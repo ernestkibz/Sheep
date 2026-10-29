@@ -16,6 +16,10 @@
 #tour .ts-fleece circle { fill:#f4f4f4; }
 #tour .ts-ink { fill:#050505; stroke:#f4f4f4; stroke-width:2; stroke-linejoin:round; }
 #tour .ts-eye circle { fill:#fff; }
+#tour .ts-limb-e { stroke:#f4f4f4; stroke-width:21; stroke-linecap:round; }
+#tour .ts-limb-i { stroke:#050505; stroke-width:13; stroke-linecap:round; }
+#tour .ts-board-r { fill:#f4f4f4; stroke:#050505; stroke-width:4; }
+#tour .ts-board-l { stroke:#050505; stroke-width:3; stroke-linecap:round; }
 #tour .ts-crook path, #tour .ts-crook line { fill:none; stroke-linecap:round; stroke-linejoin:round; }
 #tour .ts-crook-edge { stroke:#f4f4f4; stroke-width:4.2; }
 #tour .ts-crook-ink { stroke:#050505; stroke-width:2; }

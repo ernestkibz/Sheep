@@ -25,15 +25,22 @@
   const HOOK = "M0 0 C6 0 8.5 -6.2 5.5 -9.8 C3 -12.6 -1.6 -11 -0.6 -7.2";
   const SHEEP = `<svg class="ts-svg" viewBox="0 0 260 270" aria-hidden="true">
     <ellipse class="ts-shadow" cx="116" cy="251" rx="46" ry="6.5"/>
-    <g class="ts-crook"><g transform="scale(4)">
-      <line class="ts-crook-edge ts-shaft" x1="2" y1="0" x2="55" y2="0"/><line class="ts-crook-ink ts-shaft" x1="2" y1="0" x2="55" y2="0"/>
-      <g class="ts-hook" transform="translate(55 0)"><path class="ts-crook-edge" d="${HOOK}"/><path class="ts-crook-ink" d="${HOOK}"/></g></g></g>
     <g class="ts-legL"><g transform="${L}"><rect class="ts-ink" x="21.5" y="40" width="4.5" height="18" rx="2"/></g></g>
     <g class="ts-legR"><g transform="${L}"><rect class="ts-ink" x="34.5" y="40" width="4.5" height="18" rx="2"/></g></g>
     <g class="ts-upper">
       <g transform="${L} ${FLEECE}" class="ts-fleece"><circle cx="42" cy="28" r="10"/><circle cx="30" cy="22" r="11"/><circle cx="19" cy="29" r="10"/>
         <circle cx="36" cy="38" r="10"/><circle cx="23" cy="39" r="10"/><circle cx="46" cy="37" r="7"/><circle cx="14" cy="38" r="7"/></g>
-      <g class="ts-paw"><g transform="scale(4)"><rect class="ts-ink" x="-1.5" y="-2.25" width="10" height="4.5" rx="2.2"/></g></g>
+      <g class="ts-board" transform="rotate(-9 82 168)">
+        <line class="ts-limb-e" x1="96" y1="128" x2="88" y2="166"/><line class="ts-limb-i" x1="96" y1="128" x2="88" y2="166"/>
+        <rect class="ts-board-r" x="60" y="140" width="40" height="52" rx="5"/><rect class="ts-ink" x="72" y="134" width="16" height="10" rx="3"/>
+        <line class="ts-board-l" x1="68" y1="158" x2="92" y2="158"/><line class="ts-board-l" x1="68" y1="167" x2="92" y2="167"/>
+        <line class="ts-board-l" x1="68" y1="176" x2="84" y2="176"/><circle class="ts-ink" cx="88" cy="168" r="7"/></g>
+      <g class="ts-crook"><g transform="scale(4)">
+        <line class="ts-crook-edge" x1="-8" y1="0" x2="34" y2="0"/><line class="ts-crook-ink" x1="-8" y1="0" x2="34" y2="0"/>
+        <g transform="translate(34 0)"><path class="ts-crook-edge" d="${HOOK}"/><path class="ts-crook-ink" d="${HOOK}"/></g></g></g>
+      <g class="ts-arm">
+        <line class="ts-limb-e ts-ua"/><line class="ts-limb-i ts-ua"/><line class="ts-limb-e ts-fa"/><line class="ts-limb-i ts-fa"/>
+        <circle class="ts-ink ts-hand" r="8.5"/></g>
       <g class="ts-ear"><g transform="${L}"><ellipse class="ts-ink" cx="40.5" cy="0" rx="4" ry="2.4" transform="rotate(25 40.5 0)"/>
         <ellipse class="ts-ink" cx="28.5" cy="-2" rx="4" ry="2.4" transform="rotate(-25 28.5 -2)"/></g></g>
       <g transform="${L}"><ellipse class="ts-ink" cx="34" cy="6" rx="8" ry="9.5"/></g>
@@ -41,8 +48,10 @@
     </g>
   </svg>`;
   // where things are in the local frame (px of the 260 x 270 drawing): logo grid x4, shifted
-  const FEET = { x: 116, y: 250 }, SHOULDER = { x: 187, y: 130 }, HIPS = [{ x: 90, y: 178 }, { x: 142, y: 178 }];
-  const HEAD = { x: 131, y: 42 }, EYE = { x: 131, y: 38 }, REACH = 240;   // the crook's hook from the shoulder
+  const FEET = { x: 116, y: 250 }, SHOULDER = { x: 168, y: 126 }, HIPS = [{ x: 90, y: 178 }, { x: 142, y: 178 }];
+  const HEAD = { x: 131, y: 42 }, EYE = { x: 131, y: 38 };
+  // the arm: upper arm and forearm (px), and the crook from the hand to its hook's front
+  const UPPER = 36, FORE = 34, CROOK = 200, REACH = UPPER + FORE + CROOK;
 
   // ---------------------------------------------------------------- what this computer and this model are
   const gb = (b) => (b ? (b > 1e6 ? b / 2 ** 30 : b) : 0);
@@ -196,8 +205,9 @@
     o[key] = x + o[key + "V"] * dt;
   }
 
+  let typedN = 0, sayLen = 0, said = [];
   let root, spot, ring, actor, bubble, svg, parts = {}, subs = [], i = 0, ctx = null, typing = 0, raf = 0, last = 0;
-  const st = { len: 55, lenT: 55, rx: 0, ry: 0, rw: 0, rh: 0, ringT: null, ear: 0, earT: 0, x: 0, y: 0, face: 1, phase: 0, arm: -78, tap: 0, hop: 0, hopV: 0, blink: 0, nextBlink: 2,
+  const st = { tx: 230, ty: -40, sub: -1, reach: 0, rx: 0, ry: 0, rw: 0, rh: 0, ringT: null, ear: 0, earT: 0, x: 0, y: 0, face: 1, phase: 0, arm: -78, tap: 0, hop: 0, hopV: 0, blink: 0, nextBlink: 2,
                ex: 0, ey: 0, sx: 0, sy: 0, sw: 0, sh: 0, bx: 0, by: 0, t: 0, arrived: 0, said: true };
   const goal = { x: 0, y: 0, face: 1, point: null, spot: null, bubble: null };
   const mouse = { x: -1, y: -1 };
@@ -221,8 +231,9 @@
     actor = root.querySelector(".tour-actor");
     bubble = root.querySelector(".tour-bubble");
     svg = actor.querySelector("svg");
-    for (const k of ["legL", "legR", "upper", "crook", "paw", "eye", "ear", "shadow", "hook"]) parts[k] = svg.querySelector(".ts-" + k);
-    parts.shafts = svg.querySelectorAll(".ts-shaft");
+    for (const k of ["legL", "legR", "upper", "crook", "eye", "ear", "shadow", "hand"]) parts[k] = svg.querySelector(".ts-" + k);
+    parts.ua = svg.querySelectorAll(".ts-ua");
+    parts.fa = svg.querySelectorAll(".ts-fa");
     ring = root.querySelector(".tour-ring");
     root.querySelector(".tb-next").onclick = () => (i < STOPS.length - 1 ? show(i + 1) : close());
     root.querySelector(".tb-back").onclick = () => i > 0 && show(i - 1);
@@ -318,34 +329,52 @@
     // turn to the way it walks, then to the part; scaleX passes through 0, a turn, not a flip
     const faceT = far > 40 ? Math.sign(goal.x - st.x) || goal.face : goal.face;
     st.face += (faceT - st.face) * Math.min(1, dt * 9);
-    // the crook: upright and swinging while walking; once there, aimed at the point and tapped twice
-    let armT = -78 + Math.sin(st.phase) * 7 * walk;
+    // What the crook's hook should touch, in the drawing's own frame. Walking, it is carried upright
+    // ahead; once there, it visits each part of the section in turn and taps it twice.
+    const local = (P) => ({ x: (P.x - st.x) / k * goal.face + FEET.x, y: (P.y - st.y - st.hop) / k + FEET.y });
+    let T = { x: SHOULDER.x + 70 + Math.sin(st.phase) * 6 * walk, y: SHOULDER.y - 170 }, looking = null;
     if (far < 6) {
-      if (!st.arrived) { st.arrived = st.t; if (!st.said) say(); }
+      if (!st.arrived) { st.arrived = st.t; st.sub = -1; if (!st.said) say(); }
       let P = goal.point, pr = null;
       const since = st.t - st.arrived;
-      if (subs.length) {                                    // one part every 1.7 s, round and round
-        const n = Math.floor(since / 1.7) % subs.length;
-        pr = subs[n].getBoundingClientRect();
+      const order = said.length ? said : subs.map((el) => ({ el }));
+      let cur = null;
+      if (said.length && typedN < sayLen) {                 // reading: the last part the words have reached
+        for (const x of said) if (x.at <= typedN) cur = x.el;
+      } else if (order.length) {                            // read: each part in reading order, round and round
+        cur = order[Math.floor(since / 1.7) % order.length].el;
+      }
+      if (cur) {
+        if (cur !== st.cur) { st.cur = cur; st.curAt = st.t; }
+        pr = cur.getBoundingClientRect();
         P = { x: pr.left + pr.width / 2, y: pr.top + pr.height / 2 };
       }
       if (P) {
-        const sx = st.x + (SHOULDER.x - FEET.x) * k * goal.face, sy = st.y + (SHOULDER.y - FEET.y) * k + st.hop;
-        const dx = Math.abs(P.x - sx), dy = P.y - sy;
-        const ang = Math.atan2(dy, dx + 1) * 180 / Math.PI;
-        const each = since % 1.7;                           // a double tap as each part is reached
-        armT = clamp(ang, -82, 75) + (each < 0.9 ? Math.sin(each * 17) * 7 * Math.exp(-each * 3.5) : 0);
-        // the shaft runs out to the part: its hook ends on it (logo units: the hook adds about 6)
-        st.lenT = clamp(Math.hypot(dx, dy) / (4 * k) - 6, 26, 120);
-      } else { armT = -78 + Math.sin(st.t * 3) * 6; st.lenT = 55; }
-      if (pr) {
-        st.ringT = [pr.left - 6, pr.top - 6, pr.width + 12, pr.height + 12];
-      } else st.ringT = null;
-    } else { st.arrived = 0; st.lenT = 55; st.ringT = null; }
-    spring(st, "arm", armT, 11, dt);
-    spring(st, "len", st.lenT || 55, 9, dt);
-    for (const l of parts.shafts) l.setAttribute("x2", st.len.toFixed(2));
-    parts.hook.setAttribute("transform", `translate(${st.len.toFixed(2)} 0)`);
+        const L = local(P), each = st.t - (st.curAt || st.arrived);
+        const d = Math.hypot(L.x - SHOULDER.x, L.y - SHOULDER.y) || 1;
+        const push = each < 0.9 ? Math.sin(each * 17) * 7 * Math.exp(-each * 3.5) : 0;   // the double tap
+        T = { x: L.x + (L.x - SHOULDER.x) / d * push, y: L.y + (L.y - SHOULDER.y) / d * push };
+        looking = P;
+      } else T = { x: SHOULDER.x + 60, y: SHOULDER.y - 175 + Math.sin(st.t * 3) * 10 };    // no part: a wave
+      st.ringT = pr ? [pr.left - 6, pr.top - 6, pr.width + 12, pr.height + 12] : null;
+    } else { st.arrived = 0; st.ringT = null; }
+    spring(st, "tx", T.x, 10, dt); spring(st, "ty", T.y, 10, dt);
+    // two-bone IK: the hand stands one crook-length short of the target on the line from the shoulder;
+    // the elbow bends below that line; the crook runs from the hand to the target
+    {
+      const dx = st.tx - SHOULDER.x, dy = st.ty - SHOULDER.y, D = Math.hypot(dx, dy) || 1, ux = dx / D, uy = dy / D;
+      const c = clamp(D - CROOK, 14, UPPER + FORE - 2);
+      const hx = SHOULDER.x + ux * c, hy = SHOULDER.y + uy * c;
+      const bend = Math.acos(clamp((UPPER * UPPER + c * c - FORE * FORE) / (2 * UPPER * c), -1, 1));
+      const base = Math.atan2(uy, ux), side = ux >= 0 ? 1 : -1;
+      const ex = SHOULDER.x + UPPER * Math.cos(base + bend * side), ey = SHOULDER.y + UPPER * Math.sin(base + bend * side);
+      for (const l of parts.ua) { l.setAttribute("x1", SHOULDER.x); l.setAttribute("y1", SHOULDER.y); l.setAttribute("x2", ex.toFixed(1)); l.setAttribute("y2", ey.toFixed(1)); }
+      for (const l of parts.fa) { l.setAttribute("x1", ex.toFixed(1)); l.setAttribute("y1", ey.toFixed(1)); l.setAttribute("x2", hx.toFixed(1)); l.setAttribute("y2", hy.toFixed(1)); }
+      parts.hand.setAttribute("cx", hx.toFixed(1)); parts.hand.setAttribute("cy", hy.toFixed(1));
+      const ca = Math.atan2(st.ty - hy, st.tx - hx) * 180 / Math.PI;
+      parts.crook.setAttribute("transform", `translate(${hx.toFixed(1)} ${hy.toFixed(1)}) rotate(${ca.toFixed(2)})`);
+      st.reach = D;
+    }
     // a ring follows the crook from part to part
     if (st.ringT) {
       const R = st.ringT;
@@ -361,7 +390,8 @@
     if (st.t > st.nextBlink) { st.blink = 0.14; st.nextBlink = st.t + 2.5 + Math.random() * 3; }
     st.blink = Math.max(0, st.blink - dt);
     const hx = st.x + (HEAD.x - FEET.x) * k * st.face, hy = st.y + (HEAD.y - FEET.y) * k;
-    const lx = mouse.x < 0 ? 0 : clamp((mouse.x - hx) / 120, -1, 1), ly = mouse.y < 0 ? 0 : clamp((mouse.y - hy) / 120, -1, 1);
+    const seen = looking || (mouse.x < 0 ? null : mouse);
+    const lx = seen ? clamp((seen.x - hx) / 120, -1, 1) : 0, ly = seen ? clamp((seen.y - hy) / 120, -1, 1) : 0;
     st.ex += (lx * 2.2 * Math.sign(st.face || 1) - st.ex) * Math.min(1, dt * 8);
     st.ey += (ly * 2.2 - st.ey) * Math.min(1, dt * 8);
     // pose
@@ -375,18 +405,16 @@
       const u = (q - 0.55) / 0.45, e = 0.5 - 0.5 * Math.cos(Math.PI * u);
       return { a: -A + 2 * A * e, lift: Math.sin(Math.PI * u) * Lift };
     };
-    const cyc = st.phase / (2 * Math.PI), gl = leg(cyc), gr = leg(cyc + 0.5);
+    const gl = { a: 0, lift: 0 }, gr = { a: 0, lift: 0 };    // the legs stay still (Ernest, 2026-10-29)
     const bob = -Math.abs(Math.cos(st.phase)) * 6 * walk * k + (1 - walk) * Math.sin(st.t * 2.1) * 1.1;
-    const lean = clamp((st.xV || 0) / 80, -7, 7) * Math.sign(st.face || 1) + Math.sin(st.phase) * 2.2 * walk;
+    const lean = clamp((st.xV || 0) / 80, -7, 7) * Math.sign(st.face || 1) + Math.sin(st.phase) * 2.2 * walk
+      + clamp(((st.reach || 0) - REACH * 0.7) / 25, 0, 5) * Math.sign(st.face || 1);
     parts.legL.setAttribute("transform", `translate(0 ${-gl.lift}) rotate(${gl.a} ${HIPS[0].x} ${HIPS[0].y})`);
     parts.legR.setAttribute("transform", `translate(0 ${-gr.lift}) rotate(${gr.a} ${HIPS[1].x} ${HIPS[1].y})`);
     // squash on each footfall, stretch between: the wool settles onto the legs
     const sq = 0.04 * walk * (1 - Math.abs(Math.cos(st.phase))) - (st.hopV < 0 ? 0.05 : 0);
     parts.upper.setAttribute("transform", `translate(0 ${bob / k}) rotate(${lean} ${FEET.x} ${FEET.y}) ` +
       `translate(${FEET.x} 178) scale(${1 + sq * 0.6} ${1 - sq}) translate(${-FEET.x} -178)`);
-    const arm = `translate(${SHOULDER.x} ${SHOULDER.y}) rotate(${st.arm})`;
-    parts.crook.setAttribute("transform", arm);
-    parts.paw.setAttribute("transform", arm);
     // the ear trails the head: it flops with each step and settles
     st.earT = -Math.sin(st.phase * 2) * 12 * walk + Math.sin(st.t * 1.7) * 2;
     spring(st, "ear", st.earT, 14, dt);
@@ -416,8 +444,10 @@
     if (reduce()) { el.textContent = text; return; }
     el.textContent = "";
     let n = 0;
+    typedN = 0; sayLen = text.length;
     typing = setInterval(() => {
       n = Math.min(text.length, n + 2);
+      typedN = n;
       el.textContent = text.slice(0, n);
       if (n >= text.length) clearInterval(typing);
     }, 14);
@@ -425,7 +455,7 @@
   function finishTyping() {
     const el = root && root.querySelector(".tb-say");
     if (!st.said) say();
-    if (el && el.dataset.full) { clearInterval(typing); el.textContent = el.dataset.full; }
+    if (el && el.dataset.full) { clearInterval(typing); el.textContent = el.dataset.full; typedN = sayLen; }
   }
   function say() {
     st.said = true;
@@ -454,6 +484,13 @@
     st.said = false; st.arrived = 0;
     aim(false);
     subs = partsOf(s);
+    // the parts the words name, in the order they are named: "Words for documents, Sheets for ..."
+    const text = (s.say(ctx) || "").toLowerCase();
+    said = subs.map((el) => {
+      const label = ((el.getAttribute("aria-label") || el.textContent || "").trim().split("\n")[0]).trim().toLowerCase();
+      return { el, at: label && label.length < 40 ? text.indexOf(label) : -1 };
+    }).filter((x) => x.at >= 0).sort((a, b) => a.at - b.at);
+    typedN = 0; sayLen = 1e9; st.cur = null;
     setTimeout(() => { if (!st.said && STOPS[i] === s) say(); }, 1600);   // a long walk still talks
   }
 
