@@ -567,12 +567,20 @@ const MLMI = (() => {
   // A step that went wrong and was then put right is part of the work, not an
   // error: it shows a quiet "retried" mark. The warning icon is kept for a job
   // that ended without doing what was asked (Ernest, 2026-10-13).
+  const UNDONE = { Created: "create", Added: "add", Imported: "import", Exported: "export", Wrote: "write", Read: "read",
+    Copied: "copy", Moved: "move", Deleted: "delete", Made: "make", Replaced: "replace", Rendered: "render", Edited: "edit" };
+  // a step that did not happen never says it did: "Created" beside a warning read as a success (Ernest, 2026-10-30)
+  const undone = (label) => {
+    const [first, ...rest] = label.split(" ");
+    return UNDONE[first] ? ["Couldn't " + UNDONE[first], ...rest].join(" ") : "Couldn't finish: " + label.toLowerCase();
+  };
   function stepHtml(s, failedJob) {
     const f = s.args && (s.args.path || s.args.dst || s.args.src);
     const bad = s.ok === false && failedJob;
     const cls = s.ok === undefined ? "run" : s.ok ? "ok" : bad ? "fail" : "retry";
     const ic = s.ok === undefined ? "spark" : s.ok ? "check" : bad ? "alert" : "redo";
-    const label = VERB[s.name] || s.name.replace(/_/g, " ");
+    const did = VERB[s.name] || s.name.replace(/_/g, " ");
+    const label = s.ok === false ? undone(did) : did;
     const why = s.ok === false ? ` <span class="dim">· ${bad ? esc(String(s.text || "").split(/[.;\n]/)[0].slice(0, 90)) : "retried"}</span>` : "";
     return `<div class="step ${cls}">${icon(ic)}<span>${esc(label)}</span>${f ? `<span class="file" data-open="${esc(f)}">${esc(f)}</span>` : ""}${why}</div>`;
   }
