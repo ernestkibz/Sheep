@@ -641,9 +641,11 @@ const MLMI = (() => {
       ${reveal}<button class="ghost" data-work title="Show on the Work Canvas">${icon("canvas")}Canvas</button></span></div></div>`;
   }
   // a file's own folder in Windows, the file selected (the path is workspace-relative)
-  MLMI.reveal = (p) => window.mlmiDesktop
-    ? window.mlmiDesktop.reveal(((S.state && S.state.workspace) || "") + "\\" + p.replace(/\//g, "\\"))
-    : toast("Show in folder works in the desktop app", "bad");
+  function revealFile(p) {
+    return window.mlmiDesktop
+      ? window.mlmiDesktop.reveal(((S.state && S.state.workspace) || "") + "\\" + p.replace(/\//g, "\\"))
+      : toast("Show in folder works in the desktop app", "bad");
+  }
   // the first lines of each document block, read once and kept
   const PREV = {};
   function fillPreviews(changedPath = null) {
@@ -1670,7 +1672,7 @@ const MLMI = (() => {
       const ex = e.target.closest("[data-export]");
       if (ex) return MLMI.exportBtn && MLMI.exportBtn(ex.dataset.export);
       const rv = e.target.closest("[data-reveal]");
-      if (rv) return MLMI.reveal(rv.dataset.reveal);
+      if (rv) return revealFile(rv.dataset.reveal);
       if (e.target.closest("[data-vtip]")) { e.preventDefault(); return MLMI.videoTip && MLMI.videoTip(); }
       const f = e.target.closest("[data-open]");
       if (f) { e.preventDefault(); return openFile(f.dataset.open); }
@@ -1805,5 +1807,5 @@ const MLMI = (() => {
     ta.focus();
   }
 
-  return { $, $$, esc, api, op, toast, ask, S, go, themeOf, setupAction, setupRows, modelName: prettyModel, openFile, openApp, closeCanvas, openSettings, loadTree, refresh, start, NATIVE, send, icon, saveChat, attachFiles, modelSlotChoice, hfSignIn, hfSignInHtml };
+  return { reveal: revealFile, $, $$, esc, api, op, toast, ask, S, go, themeOf, setupAction, setupRows, modelName: prettyModel, openFile, openApp, closeCanvas, openSettings, loadTree, refresh, start, NATIVE, send, icon, saveChat, attachFiles, modelSlotChoice, hfSignIn, hfSignInHtml };
 })();
