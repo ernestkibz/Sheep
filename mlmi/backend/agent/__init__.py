@@ -456,6 +456,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
     rc.register_cancel = sess.set_cancel_hook
     fails = 0
     tool_oks, tool_fails = [], []     # this job's tool results, for the honesty check before "done"
+    failure_reasons = {}
 
     def ask(cid, name, args, reason):
         """The person's yes or no; the tests and the checker answer for themselves."""
@@ -563,6 +564,8 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
             result = f"{type(e).__name__}: {e}"
             ok = False
             emit({"type": "tool_result", "id": cid, "name": name, "ok": False, "text": result, "route": route})
+        if not ok:
+            failure_reasons[name] = plain_error(result)
         for f in sorted(rc.made - before):
             emit({"type": "file_changed", "path": f})
         return ok, result
@@ -1418,6 +1421,16 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                 # has been increased", "saved as meeting.wav": both refused, 2026-10-14 live run)
                 text = ("I could not do this, so nothing was changed. The last step said: "
                         + tool_fails[-1].split(" (use ")[0].rstrip(". ") + ".")
+                gave_up = True
+            if (job and job.get("kind") == "words" and job.get("action") == "create" and not rc.made
+                    and "words_create" in names
+                    and re.search(r"\b(?:can(?:not|'t)|could(?: not|n't)|unable to|not able to|do not|don't)\b"
+                                  r".{0,100}\b(?:create|write|make|save|produce|generate)\b"
+                                  r".{0,80}\b(?:documents?|\.sdoc|word(?: file| document)?|files?)\b",
+                                  text or "", re.I)):
+                reason = failure_reasons.get("words_create")
+                text = ("I couldn't create the document this time. "
+                        + (f"The save failed: {reason}." if reason else "No successful save was confirmed."))
                 gave_up = True
             # the work is checked against the request before it is called done:
             # one chance to fix what is short, then the person is told

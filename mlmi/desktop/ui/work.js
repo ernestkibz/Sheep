@@ -76,14 +76,53 @@
   MLMI.workCount = () => blocks().filter((b) => b.kind !== "job").length;
   MLMI.workActiveCount = () => blocks().filter((b) => b.kind === "job" && ["active", "stopping"].includes(b.state)).length;
   MLMI.highlight = (code) => highlight(code);
-  // Chat text with its code shown as code: fenced blocks highlighted with a copy
-  // button, `inline code`, **bold**, and [n] citations as small markers.
+  // Chat text with fenced code and Markdown tables rendered as contained blocks.
   MLMI.md = (text) => {
     const parts = [];
     let last = 0, m;
     const re = /```([\w+-]*)[ \t]*\n([\s\S]*?)```/g;
-    const prose = (t) => esc(t).replace(/`([^`\n]+)`/g, "<code>$1</code>").replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>")
+    const inline = (t) => esc(t).replace(/`([^`\n]+)`/g, "<code>$1</code>").replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>")
       .replace(/\[(\d{1,2})\]/g, '<sup class="cite">$1</sup>');
+    const cellsOf = (line) => {
+      let s = String(line || "").trim();
+      if (!s.includes("|")) return null;
+      if (s.startsWith("|")) s = s.slice(1);
+      if (s.endsWith("|") && !s.endsWith("\\|")) s = s.slice(0, -1);
+      const cells = [];
+      let cell = "";
+      for (let i = 0; i < s.length; i++) {
+        if (s[i] === "\\" && s[i + 1] === "|") { cell += "|"; i++; }
+        else if (s[i] === "|") { cells.push(cell.trim()); cell = ""; }
+        else cell += s[i];
+      }
+      cells.push(cell.trim());
+      return cells.length > 1 ? cells : null;
+    };
+    const prose = (t) => {
+      const lines = String(t || "").split(/\r?\n/), out = [];
+      for (let i = 0; i < lines.length;) {
+        const header = cellsOf(lines[i]), divider = cellsOf(lines[i + 1]);
+        const align = divider && divider.map((c) => {
+          const d = c.replace(/\s/g, "");
+          if (!/^:?-{3,}:?$/.test(d)) return "";
+          return d.startsWith(":") ? (d.endsWith(":") ? "center" : "left") : d.endsWith(":") ? "right" : "left";
+        });
+        if (header && divider && header.length === divider.length && align.every(Boolean)) {
+          const rows = [];
+          let j = i + 2, row;
+          while (j < lines.length && (row = cellsOf(lines[j])) && row.length === header.length) {
+            rows.push(row); j++;
+          }
+          const th = header.map((c, n) => `<th scope="col" style="text-align:${align[n]}">${inline(c)}</th>`).join("");
+          const body = rows.map((r) => `<tr>${header.map((_, n) => `<td style="text-align:${align[n]}">${inline(r[n])}</td>`).join("")}</tr>`).join("");
+          out.push(`<div class="chat-table-wrap" role="region" aria-label="Table in response" tabindex="0"><table class="chat-table"><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table></div>`);
+          i = j;
+        } else {
+          out.push(inline(lines[i])); i++;
+        }
+      }
+      return out.join("\n");
+    };
     while ((m = re.exec(text))) {
       parts.push(prose(text.slice(last, m.index)));
       parts.push(`<pre class="code"><span class="code-head">${esc(m[1] || "code")}<button class="ghost" data-copycode title="Copy">${icon("copy")}Copy</button></span><code>${highlight(m[2].replace(/\n$/, ""))}</code></pre>`);
