@@ -43,6 +43,61 @@ def hollow(d, rel):
     return False
 
 
+def _raw(c):
+    return c.get("v") if isinstance(c, dict) else c
+
+
+def book_size(d):
+    """(sheet names, cells, formulas) of a workbook."""
+    cells = [_raw(c) for s in d.get("sheets", []) for c in s.get("cells", {}).values()]
+    return [s.get("name") for s in d.get("sheets", [])], len(cells), sum(str(c).startswith("=") for c in cells)
+
+
+KEPT_WORDS = {"ahead", "on track", "behind", "status", "metric", "notes", "owner", "total", "target"}
+
+
+def stale(ws, rel, example):
+    """Cells of a made workbook still holding the example's own words: (still the same, all, ["Sheet!A1: words"]).
+    A copy with two cells changed was called done (2026-10-30): the design is kept, the content has to change."""
+    a, b = _load(ws, example), _load(ws, rel)
+    if not a or not b:
+        return 0, 0, []
+    new = {s.get("name"): s.get("cells", {}) for s in b.get("sheets", [])}
+    same, total, left = 0, 0, []
+    for s in a.get("sheets", []):
+        for k, c in s.get("cells", {}).items():
+            v = _raw(c)
+            if (not isinstance(v, str) or v.startswith("=") or len(v) < 4 or v.strip().lower() in KEPT_WORDS
+                    or not re.search(r"[a-z]{3}", v, re.I)):
+                continue
+            total += 1
+            if s.get("name") in new and k in new[s["name"]] and _raw(new[s["name"]][k]) == v:
+                same += 1
+                left.append(f"{s['name']}!{k}: {v[:50]}")
+    return same, total, left
+
+
+def example_of(ws, asked):
+    """The workbook a request holds up as its example, and a line on how much is in it, so that a model matches
+    its depth and not only its topic: Nemotron answered a tracker of 382 formulas with a table of 30 cells."""
+    best = None
+    for rel in re.findall(r"[\w./ ()'&-]*?attachments/[^;\n]+?\.ssheet", asked or ""):
+        d = _load(ws, rel.strip())
+        size = book_size(d) if d else None
+        if size and (not best or size[2] > best[1][2]):
+            best = (rel.strip(), size, d)
+    if not best:
+        return None, ""
+    rel, (names, cells, formulas), d = best
+    seen = list(dict.fromkeys(re.sub(r"\$?[A-Z]+\$?\d+", "#", str(_raw(c)))[:70] for s in d["sheets"]
+                              for c in s["cells"].values() if str(_raw(c)).startswith("=")))[:5]
+    return rel, (f"The example {rel} has {len(names)} sheets ({', '.join(map(str, names))}), {cells} cells and {formulas} "
+                 "formulas, so it calculates itself" + (f", such as {' ; '.join(seen)}" if seen else "") + ". Match that "
+                 "depth: live formulas for totals, pace and status, and a dashboard that reads from the data. The quickest "
+                 "good way is copy_file of the example to a new name, once, then sheets_read and change its text and numbers "
+                 "for this job with sheets_set_many, a whole sheet in one call, leaving its formulas alone.")
+
+
 def _list_items(d):
     """Items in the document's lists, and its paragraphs, for counted requests."""
     items = paras = 0

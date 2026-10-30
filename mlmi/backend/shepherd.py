@@ -261,6 +261,24 @@ ASKING = r"^\s*(?:what|why|how|who|whom|where|when|which|whose)\b"
 MEDIA_MADE = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".mp4", ".webm", ".wav", ".mp3")
 
 
+# How much a job takes at once (Ernest, 2026-10-30): a big job goes in batches the person can steer, unless they
+# say they can wait, and then the model thinks as long as it needs and finishes it in one go
+CAN_WAIT = (r"\b(i can wait|i'?ll wait|i don'?t mind waiting|take (?:your|the|as much) time|no rush|however long|"
+            r"all at once|all in one go|in one go|everything at once|the whole thing at once)\b")
+BIG_JOB = (r"\b(tracker|dashboard|work ?plan|workplan|\d+[- ]day|proposal|business plan|strategy|handbook|manual|"
+           r"playbook|roadmap|full report|detailed|comprehensive|complete|in depth|in-depth|whole|entire|"
+           r"like (?:the|this|that|our|my)|equivalent|based on|template|\d{2,} (?:slides?|sections?|pages?|rows?))\b")
+NEXT = r"^\s*(?:yes|yeah|yep|ya|y|sure|ok(?:ay)?|continue|next|go on|go ahead|carry on|keep going|proceed|do the next|please do)\b"
+
+
+def batch_of(text, attached=0):
+    """"whole": the person can wait; "batches": a big job, a part at a time; "": a small job, done at once."""
+    t = (text or "").lower().split("\n\nattached")[0]
+    if re.search(CAN_WAIT, t):
+        return "whole"
+    return "batches" if re.search(BIG_JOB, t) or attached >= 2 else ""
+
+
 def carried(messages, alone=lambda t: False, works=False, asks=lambda t: False):
     """The request a turn belongs to, for every kind of work, or None to read the turn by itself: a hand-back
     or a retry is the last request again, an answer to the assistant's own question is that request with the
@@ -282,6 +300,10 @@ def carried(messages, alone=lambda t: False, works=False, asks=lambda t: False):
     failed = not files and bool(re.search(FAILED, said, re.I))
     asked_back = not files and bool(re.search(ASKED_BACK, said[-700:], re.I))
     retry = bool(re.search(RETRY, low)) and (failed or bool(files))
+    # "yes" after a batch and "shall I go on?": the same request, on the files it has made so far
+    onward = bool(files) and bool(re.search(ASKED_BACK, said[-400:], re.I)) and bool(re.search(NEXT, low))
+    if onward:
+        retry = True
     question = now.endswith("?") or bool(re.search(QUESTION, low))
     change = (any(str(f).lower().endswith(MEDIA_MADE) for f in files) and not works and not question
               and len(now.split()) <= 12)
@@ -295,6 +317,9 @@ def carried(messages, alone=lambda t: False, works=False, asks=lambda t: False):
         attached = list(m.get("attachments") or []) + attached
         if not (re.search(HANDBACK, text.lower()) or re.search(RETRY, text.lower())):
             if explicit_change(text) or re.search(NOUN_LED, text.lower()) or asks(text):
+                if onward:
+                    details = ["done so far: " + ", ".join(str(f) for f in files) + "; carry on with the next part in those "
+                               "files, reading them first"]
                 return {"text": " — ".join([text] + details), "attachments": list(dict.fromkeys(attached))}
             if not handback and not retry and len(details) < 3:
                 details.insert(0, text)

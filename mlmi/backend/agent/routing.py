@@ -15,7 +15,7 @@ from .prompts import PLAN_ONLY, SYSTEM, brief, taught
 # it only when the request names what they do.
 CORE = {
     "words": ["words_create", "words_read", "words_add", "words_add_list", "words_add_table", "words_set"],
-    "sheets": ["sheets_create", "sheets_read", "sheets_table", "sheets_write"],
+    "sheets": ["sheets_create", "sheets_read", "sheets_table", "sheets_write", "sheets_set_many"],
     "slides": ["slides_create", "slides_read", "slides_add", "slides_set"],
     "studio": ["studio_create", "studio_read", "studio_template", "studio_add_text", "studio_add_media", "studio_render"],
     "": ["list_files", "read_file", "words_create", "words_add", "words_add_list", "sheets_create", "sheets_write",

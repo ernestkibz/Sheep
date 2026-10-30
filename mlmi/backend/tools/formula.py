@@ -11,7 +11,11 @@ silently wrong number.
 import math
 import re
 
+from datetime import date as _date, timedelta as _delta
+
 from openpyxl.utils import column_index_from_string, get_column_letter
+
+EPOCH = _date(1899, 12, 30)
 
 TOKEN = re.compile(r"""
     (?P<ws>\s+)
@@ -25,6 +29,12 @@ TOKEN = re.compile(r"""
 
 
 class FErr(Exception):
+    def __init__(self, code):
+        self.code = code
+
+
+class _Bad:
+    """An argument that failed: only an error if the function uses it (IF's other branch, IFERROR)."""
     def __init__(self, code):
         self.code = code
 
@@ -49,10 +59,54 @@ def _num(v):
         return 0.0
     if isinstance(v, (int, float)):
         return float(v)
+    m = re.match(r"(\d{4})-(\d{2})-(\d{2})(?:[ T].*)?$", str(v))
+    if m:                              # a date counts as Excel's day number: end - start works
+        return float((_date(*map(int, m.groups())) - EPOCH).days)
     try:
         return float(str(v).replace(",", ""))
     except ValueError:
         raise FErr("#VALUE!")
+
+
+def _text_as(v, fmt):
+    """TEXT(): the number and date formats workbooks really use."""
+    f = str(fmt)
+    if re.search(r"[ymd]", f, re.I) and not re.search(r"[0#%]", f):
+        d = EPOCH + _delta(days=int(_num(v)))
+        parts = {"yyyy": f"{d.year}", "yy": f"{d.year % 100:02d}", "mmmm": d.strftime("%B"), "mmm": d.strftime("%b"),
+                 "mm": f"{d.month:02d}", "m": str(d.month), "dddd": d.strftime("%A"), "ddd": d.strftime("%a"),
+                 "dd": f"{d.day:02d}", "d": str(d.day)}
+        return re.sub(r"y{4}|y{2}|m{1,4}|d{1,4}", lambda x: parts[x.group().lower()], f, flags=re.I)
+    if not re.search(r"[0#]", f):
+        return _text(v)
+    n, dec = _num(v), len(f.split(".")[1].rstrip("%")) if "." in f else 0
+    if "%" in f:
+        return f"{n * 100:.{dec}f}%"
+    return f"{n:,.{dec}f}" if "," in f else f"{n:.{dec}f}"
+
+
+def _index(a):
+    rng = a[0] if isinstance(a[0], list) else [[a[0]]]
+    i, j = int(_num(a[1])), int(_num(a[2])) if len(a) > 2 else None
+    if i < 1 and j is None or (j is not None and j < 1):
+        raise FErr("#REF!")
+    if j is None:
+        j, i = (1, i) if len(rng) > 1 or len(rng[0]) == 1 else (i, 1)
+    return rng[i - 1][j - 1]
+
+
+def _match(a):
+    flat, x = _flat([a[1]]), a[0]
+    kind = int(_num(a[2])) if len(a) > 2 else 1
+    low = str(x).lower() if isinstance(x, str) else x
+    for i, v in enumerate(flat, 1):
+        if kind == 0 and (str(v).lower() if isinstance(v, str) else v) == low:
+            return float(i)
+    if kind != 0:
+        hits = [i for i, v in enumerate(flat, 1) if isinstance(v, (int, float)) and v <= _num(x)]
+        if hits:
+            return float(hits[-1])
+    raise FErr("#N/A")
 
 
 def _flat(args):
@@ -138,6 +192,12 @@ FUNCS = {
     "AVERAGEIF": lambda a: (lambda xs: sum(xs) / len(xs) if xs else (_ for _ in ()).throw(FErr("#DIV/0!")))(
         [_num(v) for v, s in zip(_flat([a[2] if len(a) > 2 else a[0]]), _flat([a[0]]))
          if _crit(a[1])(s) and isinstance(v, (int, float))]),
+    "MID": lambda a: _text(a[0])[int(_num(a[1])) - 1:int(_num(a[1])) - 1 + int(_num(a[2]))],
+    "REPT": lambda a: _text(a[0]) * max(0, int(_num(a[1]))),
+    "TEXT": lambda a: _text_as(a[0], a[1]),
+    "INDEX": _index,
+    "MATCH": _match,
+    "IFERROR": lambda a: a[1] if isinstance(a[0], _Bad) or (isinstance(a[0], str) and a[0].startswith("#")) else a[0],
     "PI": lambda a: math.pi,
     "TODAY": lambda a: __import__("datetime").date.today().isoformat(),
 }
@@ -299,7 +359,20 @@ class Evaluator:
             args = []
             if self._peek()[1] != ")":
                 while True:
-                    args.append(self._cmp())
+                    end, depth = self.i, 0            # where this argument ends, should it fail part way
+                    while end < len(self.toks):
+                        k, t = self.toks[end]
+                        depth += k == "fn" or t == "("
+                        if depth == 0 and t in (",", ")"):
+                            break
+                        depth -= t == ")" and depth > 0
+                        end += 1
+                    try:
+                        args.append(self._cmp())
+                    except (FErr, ZeroDivisionError, ValueError, TypeError, IndexError) as e:
+                        args.append(_Bad(e.code if isinstance(e, FErr) else
+                                         "#DIV/0!" if isinstance(e, ZeroDivisionError) else "#VALUE!"))
+                        self.i = end
                     if self._peek()[1] == ",":
                         self._eat()
                         continue
@@ -308,9 +381,14 @@ class Evaluator:
             fn = FUNCS.get(name)
             if not fn:
                 raise FErr("#NAME?")
+            bad = next((x for x in (args[:1] if name == "IF" else [] if name == "IFERROR" else args) if isinstance(x, _Bad)), None)
+            if bad:
+                raise FErr(bad.code)
             if name == "IF":
                 args = [self._scalar(args[0])] + args[1:]
             v = fn(args)
+            if isinstance(v, _Bad):
+                raise FErr(v.code)
             return float(v) if isinstance(v, int) and not isinstance(v, bool) else v
         if val == "(":
             v = self._cmp()

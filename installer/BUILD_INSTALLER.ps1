@@ -119,6 +119,13 @@ if (!(Test-Path "$stage\app\mlmi\desktop\sheep.png") -or !(Test-Path "$stage\app
 @"
 @echo off
 set "MLMI_ROOT=%~dp0app"
+rem "Sheep.cmd prepare": the installer runs this hidden, so it never waits on a key and gives up fast with no internet
+set "HOLD=pause"
+set "PIPOPT="
+if /i "%~1"=="prepare" (
+  set "HOLD=rem"
+  set "PIPOPT=--retries 1 --timeout 20"
+)
 set "SHEEP_ENV=%LOCALAPPDATA%\Sheep\venv"
 set "SHEEP_PY=%LOCALAPPDATA%\Sheep\python\python.exe"
 rem A Python that really runs (Windows' Store alias answers to "python" but is not one), else
@@ -135,7 +142,7 @@ if not defined PY (
 )
 if not defined PY (
   echo Could not get Python for Sheep. Check the internet connection and run Sheep again.
-  pause
+  %HOLD%
   exit /b 1
 )
 if not exist "%SHEEP_ENV%\Scripts\python.exe" (
@@ -143,7 +150,7 @@ if not exist "%SHEEP_ENV%\Scripts\python.exe" (
   "%PY%" -m venv "%SHEEP_ENV%"
   if errorlevel 1 (
     echo Could not create Sheep's Python environment.
-    pause
+    %HOLD%
     exit /b 1
   )
 )
@@ -153,14 +160,15 @@ rem launches are quick and work offline.
 fc /b "%MLMI_ROOT%\pyproject.toml" "%SHEEP_ENV%\installed-pyproject.toml" >nul 2>&1
 if errorlevel 1 (
   echo Installing Sheep's backend dependencies, once...
-  "%MLMI_PYTHON%" -m pip install --disable-pip-version-check "%MLMI_ROOT%"
+  "%MLMI_PYTHON%" -m pip install --disable-pip-version-check %PIPOPT% "%MLMI_ROOT%"
   if errorlevel 1 (
     echo Could not install backend dependencies. Check your internet connection and retry.
-    pause
+    %HOLD%
     exit /b 1
   )
   copy /y "%MLMI_ROOT%\pyproject.toml" "%SHEEP_ENV%\installed-pyproject.toml" >nul
 )
+if /i "%~1"=="prepare" exit /b 0
 rem NVIDIA: pictures and video need CUDA PyTorch (DirectML does not fit a 4 GB card).
 rem It installs once, in the background, while Sheep opens; Settings shows its progress.
 where nvidia-smi >nul 2>&1

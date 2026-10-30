@@ -10,6 +10,7 @@ Routing rules and the Nebius settings come from tooling/sml_bridge.py, the
 bridge that already decides local-versus-cloud for chat; they are imported,
 not copied, so the two cannot drift apart.
 """
+import re
 import json
 import os
 import sys
@@ -276,7 +277,7 @@ class Cloud:
             pass
         return self.models
 
-    def chat(self, messages, tools=None, max_tokens=4096, why=""):
+    def chat(self, messages, tools=None, max_tokens=4096, why="", wait=60, effort=""):
         # Nemotron 3 reasons before it answers (362 of 396 tokens on a plan):
         # a small budget cuts the answer off, so the budget is generous
         if not self.ready():
@@ -285,6 +286,8 @@ class Cloud:
                                          "max_tokens": max_tokens, "temperature": 0})
         if tools:
             body["tools"] = tools
+        if effort:                        # how long it may think: "low" for a batch, "high" when the person can wait
+            body["reasoning_effort"] = effort
         raw = json.dumps(messages)
         with self.lock:
             entry = {"t": time.time(), "why": why, "model": self.cfg.model, "chars": len(raw),
@@ -295,7 +298,13 @@ class Cloud:
             self.sent = self.sent[-200:]
         t0 = time.perf_counter()
         try:
-            r = _post(self.cfg.base + "/chat/completions", body, {"Authorization": "Bearer " + self.cfg.key}, timeout=60)   # a stalled cloud gives way to the laptop within a minute
+            try:
+                r = _post(self.cfg.base + "/chat/completions", body, {"Authorization": "Bearer " + self.cfg.key}, timeout=wait)
+            except LLMError as e:             # a busy moment or a dropped line is not the end of a job: once more
+                if not re.search(r"\b(429|50[0-4])\b|timed out|reset|aborted|unreachable", str(e), re.I):
+                    raise
+                time.sleep(3)
+                r = _post(self.cfg.base + "/chat/completions", body, {"Authorization": "Bearer " + self.cfg.key}, timeout=wait)   # a stalled cloud gives way to the laptop within a minute
         except LLMError as e:
             note_route(self.cfg.base, body, error=str(e))
             raise

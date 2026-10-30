@@ -175,7 +175,7 @@ LONG_NOTES = {
 ARTIFACT_TOOLS = {
     "slides_create", "slides_add", "slides_set", "slides_delete", "slides_move", "slides_set_theme",
     "words_create", "words_add", "words_add_list", "words_add_table", "words_replace", "words_delete",
-    "sheets_create", "sheets_write", "sheets_set_cell", "sheets_add_sheet",
+    "sheets_create", "sheets_write", "sheets_set_cell", "sheets_set_many", "sheets_add_sheet",
     "studio_create", "studio_add_media", "studio_add_text", "studio_add_shape", "studio_set",
     "studio_template", "studio_render", "make_image", "make_video",
 }
@@ -184,7 +184,7 @@ ARTIFACT_TOOLS = {
 # a detected job may use its own tools: "give me a powerpoint about water" was refused before (2026-10-20)
 JOB_TOOLS = {"slides": {"slides_create", "slides_add", "export_file"},
              "words": {"words_create", "words_add", "words_add_list", "words_add_table", "export_file"},
-             "sheets": {"sheets_create", "sheets_write", "sheets_set_cell", "sheets_add_sheet", "export_file"}}
+             "sheets": {"sheets_create", "sheets_write", "sheets_set_cell", "sheets_set_many", "sheets_add_sheet", "export_file"}}
 
 
 # media tools the app checks reach but never run: running them lends the GPU under orch.lock or downloads models
@@ -229,7 +229,7 @@ def artifact_action_allowed(name, text):
     # cannot authorize an unrelated artifact the model happened to suggest.
     target_tools = {
         "words": {"words_create", "words_add", "words_add_list", "words_add_table"},
-        "sheets": {"sheets_create", "sheets_write", "sheets_set_cell", "sheets_add_sheet"},
+        "sheets": {"sheets_create", "sheets_write", "sheets_set_cell", "sheets_set_many", "sheets_add_sheet"},
         "slides": {"slides_create", "slides_add"},
         "video": {"make_video", "studio_render"},
     }

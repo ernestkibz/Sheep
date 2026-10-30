@@ -3,6 +3,7 @@ here (formula.py), so the grid, the model and an exported .xlsx all agree."""
 import builtins
 import re
 
+import json
 from openpyxl.utils import column_index_from_string, get_column_letter, range_boundaries
 
 from . import tool, overwrite_check
@@ -225,6 +226,27 @@ def sheets_write(ctx, path, cell, values, sheet=""):
     tail = "; ".join(f"{k} = {fmt(ev.value(s['name'], k))}" for k, v in written
                      if isinstance(v, str) and v.startswith("="))
     return f"wrote {n} cells {cell.upper()}:{end}" + (f"; {tail[:600]}" if tail else "")
+
+
+@tool("sheets_set_many", "sheets", 2, "Set many cells in one call, anywhere on a sheet: use this, not one call per cell.",
+      {"path": ("string", "the .ssheet file"),
+       "cells": ("object", "cell to value or formula, e.g. {\"A1\": \"Title\", \"C15\": 13, \"D15\": \"=C15*2\"}"),
+       "sheet": ("string", "sheet name; omit for the first")}, ("path", "cells"))
+def sheets_set_many(ctx, path, cells, sheet=""):
+    p, d = open_doc(ctx, path, "sheets")
+    s = _sheet(d, sheet)
+    if isinstance(cells, str):
+        cells = json.loads(cells)
+    for cell, value in dict(cells).items():
+        c, r = _cell(cell)
+        k = f"{get_column_letter(c)}{r}"
+        v = coerce(value)
+        if v is None or v == "":
+            s["cells"].pop(k, None)
+        else:
+            s["cells"][k] = v
+    save_doc(ctx, p, d, f"set {len(cells)} cells in {path}")
+    return f"set {len(cells)} cells in {s['name']}"
 
 
 @tool("sheets_set_cell", "sheets", 2, "Set one cell to a value or a formula (empty clears it).",

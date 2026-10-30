@@ -78,6 +78,90 @@ class Carried(unittest.TestCase):
         self.assertIsNone(shepherd.carried(chat("draw a dog", "What style?", "make a deck about tea"), lambda t: True))
 
 
+class Pace(unittest.TestCase):
+    """A big job goes a part at a time, unless the person says they can wait."""
+    def test_how_much_at_once(self):
+        for t in ("make a 90 day work plan tracker", "a detailed report on tea", "make a dashboard like the sales one",
+                  "make a 20 slides deck on water"):
+            self.assertEqual(shepherd.batch_of(t), "batches", t)
+        for t in ("make a tracker, i can wait", "do the whole plan all at once", "take your time and write the report"):
+            self.assertEqual(shepherd.batch_of(t), "whole", t)
+        for t in ("write a note to Sam", "make a deck on tea", "draw a dog"):
+            self.assertEqual(shepherd.batch_of(t), "", t)
+        self.assertEqual(shepherd.batch_of("make a summary", 2), "batches")
+
+    def test_yes_goes_on_to_the_next_part(self):
+        for now in ("yes", "continue", "next", "go on", "ok", "ya"):
+            held = shepherd.carried(chat("make a 90 day tracker", "Sheet one is done. Shall I do the next sheet?", now,
+                                         files=["plan.ssheet"]))
+            self.assertIn("make a 90 day tracker", held["text"], now)
+            self.assertIn("plan.ssheet", held["text"], now)
+        self.assertIsNone(shepherd.carried(chat("make a 90 day tracker", "All done.", "yes", files=["plan.ssheet"])))
+
+    def test_the_model_is_told_and_may_think_when_asked(self):
+        for text, line, kw in (("make a 90 day work plan tracker", agent.BATCHES, {"wait": 180}),
+                               ("make a 90 day work plan tracker, i can wait", agent.WHOLE, {"wait": 600, "effort": "high"})):
+            seen = {}
+
+            class Note(Calls):
+                def chat(self, msgs, tools=None, **k):
+                    seen.update(k, msgs=msgs)
+                    return super().chat(msgs, tools, **k)
+            Whole().run_it(chat(text), True, Note())
+            self.assertIn(line, " ".join(str(m.get("content")) for m in seen["msgs"]))
+            self.assertEqual({k: seen[k] for k in kw}, kw)
+
+
+class Formulas(unittest.TestCase):
+    def test_what_real_workbooks_use(self):
+        from mlmi.backend.tools import formula as F
+
+        class Book:
+            sheetnames = ["In put", "S"]
+            d = {("In put", "A1"): "2026-10-01", ("In put", "B1"): 90, ("S", "A1"): "x", ("S", "A2"): "y", ("S", "B1"): 3, ("S", "B2"): 7}
+
+            def get(self, s, c):
+                return self.d.get((s, c))
+        e = F.Evaluator(Book())
+        for src, want in (("'In put'!A1+'In put'!B1-1", 46385.0), ('TEXT(\'In put\'!A1,"mmm d, yyyy")', "Oct 1, 2026"),
+                          ('TEXT(0.5,"0%")', "50%"), ('REPT("#",3)', "###"), ('MID("abcdef",2,3)', "bcd"),
+                          ('INDEX(S!B1:B2,MATCH("y",S!A1:A2,0))', 7.0), ('IFERROR(MATCH("z",S!A1:A2,0),"none")', "none"),
+                          ("IF(1>0,5,1/0)", 5.0), ("IFERROR(1/0,0)", 0.0)):
+            self.assertEqual(e.formula("S", src), want, src)
+
+
+class Example(unittest.TestCase):
+    """The harness holds the work up against the example it was given: depth, and whether the content changed."""
+    def test_how_much_is_in_the_example_and_what_still_is_its_own(self):
+        from mlmi.backend import tools as T, verify
+        with tempfile.TemporaryDirectory() as d:
+            ws = Workspace(Path(d))
+            (Path(d) / "attachments").mkdir()
+            T.run(ws, "sheets_create", {"path": "attachments/sales.ssheet", "headers": ["Pipeline", "Target"],
+                                        "rows": [["Partners deals", 5], ["Diaspora deals", 7]]}, by="agent")
+            T.run(ws, "sheets_set_cell", {"path": "attachments/sales.ssheet", "cell": "B4", "value": "=SUM(B2:B3)"}, by="agent")
+            rel, says = verify.example_of(ws, "make one\n\nAttached: attachments/sales.ssheet (a workbook)")
+            self.assertEqual(rel, "attachments/sales.ssheet")
+            self.assertIn("formulas", says)
+            T.run(ws, "copy_file", {"src": "attachments/sales.ssheet", "dst": "tech.ssheet"}, by="agent")
+            same, total, left = verify.stale(ws, "tech.ssheet", "attachments/sales.ssheet")
+            self.assertEqual((same, total), (total, total))
+            self.assertTrue(left)
+            T.run(ws, "sheets_set_cell", {"path": "tech.ssheet", "cell": "A2", "value": "Releases shipped"}, by="agent")
+            self.assertEqual(verify.stale(ws, "tech.ssheet", "attachments/sales.ssheet")[0], total - 1)
+
+
+class ManyCells(unittest.TestCase):
+    def test_a_whole_sheet_in_one_call(self):
+        from mlmi.backend import formats as F, tools as T
+        with tempfile.TemporaryDirectory() as d:
+            ws = Workspace(Path(d))
+            T.run(ws, "sheets_create", {"path": "t.ssheet", "headers": ["A", "B"]}, by="agent")
+            T.run(ws, "sheets_set_many", {"path": "t.ssheet", "cells": {"A2": "Releases", "C9": 13, "D9": "=C9*2"}}, by="agent")
+            cells = F.load(ws.path("t.ssheet"))["sheets"][0]["cells"]
+            self.assertEqual((cells["A2"], cells["C9"], cells["D9"]), ("Releases", 13, "=C9*2"))
+
+
 class Guard(unittest.TestCase):
     def test_the_model_decides_unless_this_is_talk(self):
         for t in ("a version for the finance team", "the plan for my team please", "same but in french", "tech team version"):

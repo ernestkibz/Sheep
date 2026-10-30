@@ -25,6 +25,8 @@ from .prompts import (  # noqa: F401
     too_long,
     SYSTEM,
     ANSWER,
+    BATCHES,
+    WHOLE,
     CAN,
     brief,
     taught,
@@ -383,6 +385,28 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                              "Sources slide or section listing these links:\n" + found[:2500])
             emit({"type": "sources", "items": found_res[:5]})
 
+    # a big job in batches the person steers; the whole of it at once only if they said they can wait.
+    # The tool loop does this one: a plan of calls cannot stop and ask (shepherd.batch_of)
+    pace = shepherd.batch_of(cue, len(raw_attached) + len((held or {}).get("attachments") or [])) if names and perm != "plan" else ""
+    example, example_says = (None, "")
+    if pace:
+        example, example_says = verify.example_of(ws, asked)
+        for m in reversed(convo):
+            if m.get("role") == "user":
+                m["content"] = f"{m.get('content') or ''}\n\n({WHOLE if pace == 'whole' else BATCHES} {example_says})"
+                break
+        # what a big job needs, for every model: the tools to read an example, copy it and change it at once
+        names = list(dict.fromkeys(list(names) + [n for n in ("copy_file", "read_file", "list_files", "words_read", "sheets_read",
+                                                              "sheets_set_many", "sheets_add_sheet", "slides_read")
+                                                  if able(state, [n])[0] and n in T.TOOLS]))
+        if cloud_on:
+            executor = cloud
+            job = None
+        if pace == "whole":
+            minutes = "5 to 15" if executor is cloud else "15 to 40"
+            emit({"type": "text", "route": "cloud" if executor is cloud else "local", "partial": True,
+                  "text": f"You said you can wait, so this may take about {minutes} minutes. You can keep using your computer."})
+
     # Mode 1: Nemotron writes the job as exact tool calls, content included, and
     # SHEEP runs them here at once. Planned in words, the 3B re-typed a deck slide
     # by slide at about a minute a step while the chat looked stuck (2026-10-01).
@@ -401,7 +425,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
             plan_msg, info = cloud.chat([{"role": "system", "content": PLANNER_CALLS},
                                          {"role": "user", "content": f"Tools (JSON schemas):\n{spec}\n\n"
                                           f"{chr(10).join(ctx_lines)}\n\nJob: {last_user}"}],
-                                        max_tokens=8000, why="plan the job as tool calls")  # it reasons first
+                                        max_tokens=8000, why="plan the job as tool calls", wait=120)  # it reasons first
             exec_calls = _plan_calls(plan_msg.get("content") or "", set(plan_names))
             if exec_calls and any(T.TOOLS[c["tool"]].tier < 2 for c in exec_calls):
                 # the job needs what is in a file: the local loop reads, then acts
@@ -460,7 +484,15 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
             # the job's own target counts as asked for: "add three slides to the deck" names no file, and
             # the deck Sheep resolved from the chat was refused as "not part of this request" (B10, 2026-10-21)
             target = f"\nWork on: {job['target']}" if job and job.get("target") else ""
-            why = in_scope(ws, name, args, scope_asked + target, path, rc.made, opened) or _overwrites_own(ws, name, args, rc.made)
+            # a big job revises its own work; a small one is finished when its table is written (_overwrites_own)
+            why = in_scope(ws, name, args, scope_asked + target, path, rc.made, opened) or (
+                None if pace else _overwrites_own(ws, name, args, rc.made))
+            kept = (str(args.get("path") or "") if name.endswith("_create") or name == "delete_file"
+                    else str(args.get("dst") or "") if name == "copy_file" else "")
+            if pace and kept in rc.made:      # ten minutes of work went when it copied the example over itself
+                raise ToolError(f"{kept} already holds this job's work: do not start it again, read it and carry on")
+            if held and kept and "carry on with the next part" in asked and exists(kept):
+                raise ToolError(f"{kept} already holds the earlier parts: read it, then add to it, do not make it again")
             if why:
                 raise OutOfScope(why)
             reason = T.needs_confirm(ws, name, args, rc)
@@ -1166,7 +1198,9 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
 
     fitted = 0
     pressed = False
-    for step in range(MAX_STEPS):
+    pushes = 0
+    limit = 60 if pace == "whole" else MAX_STEPS      # "i can wait" is not cut off at twenty steps
+    for step in range(limit):
         if sess.stop.is_set():
             return finish(stopped=True)
         # a hot machine cools between local steps (bounded); a cloud step does not heat it
@@ -1177,7 +1211,9 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
         emit({"type": "thinking", "route": "cloud" if executor is cloud else "local", "step": step + 1,
               "what": "Nemotron is working" if executor is cloud else "Sheep is working"})
         try:
-            kw = {"why": "step the local model could not do"} if executor is cloud else base_kw()
+            kw = {"why": "step the local model could not do", "wait": 120} if executor is cloud else base_kw()
+            if executor is cloud and pace:
+                kw.update(wait=600, max_tokens=16000, effort="high") if pace == "whole" else kw.update(wait=180, max_tokens=8000)
             if executor is not cloud and not schemas:          # a plain answer streams as it is written
                 kw["on_delta"] = lambda piece: emit({"type": "draft", "delta": piece})
             msg, info = executor.chat(convo, schemas or None, **kw)
@@ -1373,8 +1409,28 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
             # the work is checked against the request before it is called done:
             # one chance to fix what is short, then the person is told
             short = verify.shortfalls(ws, asked, rc.made) if rc.made else []
-            if short and not checked and step < MAX_STEPS - 1:
+            if pace == "batches":             # a part at a time: only an empty file is short of it
+                short = [s for s in short if "holds only" in s]
+            elif pace and example:
+                # asked for the whole job: it is held up against the example it was given
+                want = verify.book_size(verify._load(ws, example))
+                for rel in sorted(f for f in rc.made if f.endswith(".ssheet")):
+                    have = verify.book_size(verify._load(ws, rel) or {})
+                    if have[2] * 2 < want[2]:
+                        short.append(f"{rel} has {have[1]} cells and {have[2]} formulas; the example has {want[1]} and {want[2]}")
+            if pace and example:
+                for rel in sorted(f for f in rc.made if f.endswith(".ssheet") and f != example):
+                    same, total, left = verify.stale(ws, rel, example)
+                    if total and same * 3 > total:
+                        short.append(f"{same} of {total} text cells in {rel} still hold the example's words; rewrite them "
+                                     "for this job with sheets_write or sheets_set_cell, such as " + "; ".join(left[:24]))
+            if pace == "batches" and short and any("example's words" in s for s in short):
+                # a part at a time: the person hears how far it is, the model is not sent back
+                text = (text or summary()) + "\n\nStill to do: " + next(s for s in short if "example's words" in s).split(";")[0] + "."
+                short = [s for s in short if "example's words" not in s]
+            if short and (not checked or (pace and pushes < 3)) and step < limit - 1:
                 checked = True
+                pushes += 1
                 emit({"type": "thinking", "route": "local", "what": "Checking the work: " + short[0]})
                 convo.append({"role": "assistant", "content": text or "Done."})
                 convo.append({"role": "user", "content": "Checked against my request: " + "; ".join(short)
@@ -1424,14 +1480,15 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                 emit({"type": "tool_result", "id": cid, "name": name, "ok": False, "text": str(e)})
                 ok, result = False, str(e)
             else:
-                key = name + json.dumps(args, sort_keys=True)
-                if key in seen_calls and rc.made:
+                # reading a file again after changing it is checking the work, not a loop
+                key = name + json.dumps(args, sort_keys=True) + (str(len(tool_oks)) if T.TOOLS.get(name) and T.TOOLS[name].tier < 2 else "")
+                if key in seen_calls and rc.made and not pace:
                     # the same call again after the work is done: a loop, not progress
                     emit({"type": "text", "text": summary(), "route": "local"})
                     return finish()
                 seen_calls.add(key)
                 content = _content(name, args)
-                if content and content <= added and rc.made:
+                if content and content <= added and rc.made and not pace:
                     # the same content again: the job already did this
                     emit({"type": "text", "text": summary(), "route": "local"})
                     return finish()
@@ -1451,12 +1508,12 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                     if ok and name in MEDIA_DONE and not re.search(OTHER_WORK, rest):
                         emit({"type": "text", "text": MEDIA_DONE[name](result), "route": "local"})
                         return finish()
-                    if not ok and result.endswith("The job is done when the request is done.") and rc.made:
+                    if not ok and result.endswith("The job is done when the request is done.") and rc.made and not pace:
                         emit({"type": "text", "text": summary(), "route": "local"})
                         return finish()
             step_failed = step_failed or not ok
             (tool_oks if ok else tool_fails).append(result)
-            convo.append({"role": "tool", "tool_call_id": cid, "content": (result + DONE_HINT) if ok else f"ERROR: {result}"})
+            convo.append({"role": "tool", "tool_call_id": cid, "content": (result + ("" if pace else DONE_HINT)) if ok else f"ERROR: {result}"})
         fails = fails + 1 if step_failed else 0
         if fails >= 2:
             if executor is local and cloud_on:
@@ -1469,5 +1526,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                 emit({"type": "text", "text": "I could not complete this: the last three steps failed. "
                                               "See the tool results above.", "route": "local"})
                 return finish(failed=True)
-    emit({"type": "text", "text": f"Stopped after {MAX_STEPS} steps.", "route": "local"})
+    # out of steps with work done is a pause, not an end: "yes" carries on in the same files
+    emit({"type": "text", "text": (summary() + " It is a long job and this is as far as this turn went. Shall I continue?")
+          if rc.made else f"Stopped after {limit} steps.", "route": "local"})
     return finish()
