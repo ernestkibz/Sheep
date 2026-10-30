@@ -326,7 +326,7 @@ class Whole(unittest.TestCase):
         st, events = self.run_it(chat("hello"), True, AsksFirst())
         self.assertFalse([e for e in events if "go ahead" in str(e.get("what"))])
 
-    def run_it(self, messages, cloud_answers, model=None):
+    def run_it(self, messages, cloud_answers, model=None, app=""):
         model = model or Calls()
         off = types.SimpleNamespace(ready=lambda: False)
         st = types.SimpleNamespace(
@@ -335,7 +335,7 @@ class Whole(unittest.TestCase):
             local=model if not cloud_answers else off, cloud=model if cloud_answers else off,
             orch=Orch(ready=not cloud_answers), busy=threading.Lock(), model_path="" if cloud_answers else "m.ssf")
         events = []
-        agent.run(st, messages, emit=events.append, auto_confirm="yes")
+        agent.run(st, messages, app=app, emit=events.append, auto_confirm="yes")
         return st, events
 
     def test_his_turn_makes_the_file_on_either_model(self):
@@ -344,6 +344,72 @@ class Whole(unittest.TestCase):
             refused = [e for e in events if e.get("type") == "tool_result" and not e.get("ok")]
             self.assertEqual(refused, [], cloud_answers)
             self.assertTrue([f for f in st.ws.tree() if f["path"].endswith(".sdoc")], cloud_answers)
+
+    def test_friend_chat_does_not_repeat_video_setup_or_offer_app_tools(self):
+        class Friend(Calls):
+            def chat(self, msgs, tools=None, **kwargs):
+                self.tools = tools
+                self.system = msgs[0]["content"]
+                return {"content": "I'm here with you. What's on your mind?"}, {"route": "cloud", "ms": 1, "tokens": {}}
+
+        warning = ("Sheep is not set up for this yet: for video work it needs Chat model and AnimateDiff. "
+                   "Add them, then press Try again.")
+        model = Friend()
+        _, events = self.run_it(chat("make a video of a dog", warning,
+                                     "i need some one to talk to like a friend"), True, model, app="studio")
+        self.assertFalse([e for e in events if e.get("type") == "setup_needed"])
+        self.assertIsNone(model.tools)
+        self.assertIn("friendly personal conversation", model.system)
+
+    def test_nebius_takes_a_document_job_above_the_local_checker_tier(self):
+        off = types.SimpleNamespace(ready=lambda: False)
+        cloud = Calls()
+        state = types.SimpleNamespace(
+            session=agent.Session(), ws=Workspace(Path(tempfile.mkdtemp(prefix="mlmi-tier-route-"))),
+            model_card=lambda: {"tier": 1}, mode=1, permission="auto", local=off, cloud=cloud,
+            orch=Orch(ready=True), busy=threading.Lock(), model_path="m.ssf")
+        events = []
+        agent.run(state, chat("write a report on tea"), emit=events.append, auto_confirm="yes")
+        self.assertTrue([e for e in events if e.get("type") == "route" and "Checker tier 2" in e.get("why", "")])
+        self.assertTrue([f for f in state.ws.tree() if f["path"].endswith(".sdoc")])
+
+    def test_nebius_can_run_a_direct_tool_above_the_local_checker_tier(self):
+        off = types.SimpleNamespace(ready=lambda: False)
+        cloud = Calls()
+        workspace = Workspace(Path(tempfile.mkdtemp(prefix="mlmi-direct-tier-")))
+        (workspace.root / "notes.txt").write_text("Keep these notes.", encoding="utf-8")
+        state = types.SimpleNamespace(
+            session=agent.Session(), ws=workspace, model_card=lambda: {"tier": 0}, mode=1, permission="auto",
+            local=off, cloud=cloud, orch=Orch(ready=False), busy=threading.Lock(), model_path="")
+        events = []
+        agent.run(state, chat("copy notes.txt to backup.txt"), emit=events.append, auto_confirm="yes")
+        self.assertEqual((workspace.root / "backup.txt").read_text(encoding="utf-8"), "Keep these notes.")
+        self.assertFalse([e for e in events if e.get("type") == "text" and "Checker" in e.get("text", "")])
+
+    def test_cloud_chat_failure_falls_back_to_a_ready_local_chat_model(self):
+        from mlmi.backend.modes import LLMError
+
+        class Down:
+            def ready(self):
+                return True
+
+            def chat(self, *args, **kwargs):
+                raise LLMError("Nebius timed out")
+
+        class LocalReply(Calls):
+            def chat(self, msgs, tools=None, **kwargs):
+                return {"content": "I'm here. What would you like to talk about?"}, {"route": "local", "ms": 1, "tokens": {}}
+
+        local = LocalReply()
+        state = types.SimpleNamespace(
+            session=agent.Session(), ws=Workspace(Path(tempfile.mkdtemp(prefix="mlmi-cloud-fallback-"))),
+            model_card=lambda: {"tier": 0}, mode=1, permission="auto", local=local, cloud=Down(),
+            orch=Orch(ready=True), busy=threading.Lock(), model_path="m.ssf")
+        events = []
+        agent.run(state, chat("i need some one to talk to like a friend"), emit=events.append)
+        self.assertTrue([e for e in events if e.get("type") == "route" and e.get("route") == "local"])
+        self.assertEqual([e["text"] for e in events if e.get("type") == "text"],
+                         ["I'm here. What would you like to talk about?"])
 
 
 if __name__ == "__main__":

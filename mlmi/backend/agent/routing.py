@@ -267,7 +267,8 @@ def wants_tools(text, app=""):
     and failed (2026-09-30); a question gets a plain answer, no tools."""
     import re
     t = (text or "").lower()
-    if shepherd.social_chat(t):
+    if (shepherd.social_chat(t) and not re.search(ACTION, t)
+            and not explicit_media_request(t)):
         return False
     # a named file of any kind Sheep works on: pictures, sound, video and Studio projects too
     # ("Describe photo.jpg", "Slow down the first clip in intro.sstudio" were answered in
@@ -450,10 +451,12 @@ def able(state, names):
     return kept, tips
 
 
-def setup(state, app, text=""):
+def setup(state, app, text="", tier_override=None):
     """(apps, tool names, system text) for a job in `app`. With no text (the
-    warm-up) it is the app's core; a request adds the extras it names after it."""
-    tier = state.model_card()["tier"]
+    warm-up) it is the app's core; a request adds the extras it names after it.
+    A cloud executor can request the same routed tools at its own tier without
+    changing the local model's saved Checker tier."""
+    tier = state.model_card()["tier"] if tier_override is None else int(tier_override)
     # Media intent is app-independent: a video request typed while Words is open
     # still needs Sheep's video and Studio tools, rather than the document writer.
     tool_app = "studio" if explicit_media_request(text) else app

@@ -308,13 +308,17 @@ class Cloud:
         except LLMError as e:
             note_route(self.cfg.base, body, error=str(e))
             raise
-        if "choices" not in r:
-            note_route(self.cfg.base, body, r, error=str(r.get("error", r)))
-            raise LLMError(str(r.get("error", r))[:300])
+        choices = r.get("choices")
+        if (not isinstance(choices, list) or not choices
+                or not isinstance(choices[0], dict)
+                or not isinstance(choices[0].get("message"), dict)):
+            error = str(r.get("error", "The cloud returned no usable chat response."))[:300]
+            note_route(self.cfg.base, body, r, error=error)
+            raise LLMError(error)
         answered = note_route(self.cfg.base, body, r)
         entry["provider"] = answered
         entry["gen"] = str(r.get("id") or "")          # the provider's own id for this call (routing evidence)
-        return r["choices"][0]["message"], {"route": "cloud", "ms": (time.perf_counter() - t0) * 1000,
+        return choices[0]["message"], {"route": "cloud", "ms": (time.perf_counter() - t0) * 1000,
                                             "tokens": r.get("usage", {}), "model": self.cfg.model,
                                             "provider": answered}
 

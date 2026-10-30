@@ -59,6 +59,8 @@ CASES = [
     ("Tell me a joke", "answer", [], []),
     ("Hello", "answer", [], []),
     ("Thanks, that was great!", "answer", [], []),
+    ("I need someone to talk to like a friend", "answer", [], []),
+    ("I need someone to talk to like a friend, and make a budget sheet", "job:sheets:create", [], []),
     ("Who wrote Things Fall Apart?", "answer", [], []),
     ("What should I write in a birthday card for my mum?", "answer", [], []),
     ("Is it safe to eat raw eggs?", "answer", [], []),

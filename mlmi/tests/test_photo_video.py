@@ -130,6 +130,16 @@ class PhotoVideoTests(unittest.TestCase):
         self.assertTrue(agent.is_ai_video(
             "Create a text-to-video clip with narration and render the result through Sheep Studio"))
 
+    def test_cloud_tool_tier_does_not_raise_the_local_checker_tier(self):
+        state = types.SimpleNamespace(
+            permission="auto", model_card=lambda: {"tier": 0},
+            orch=types.SimpleNamespace(abilities=lambda: {}, NEEDS={}))
+        _, local_names, _ = agent.setup(state, "", "Create a document about tea")
+        _, cloud_names, _ = agent.setup(state, "", "Create a document about tea", tier_override=3)
+        self.assertNotIn("words_create", local_names)
+        self.assertIn("words_create", cloud_names)
+        self.assertEqual(state.model_card()["tier"], 0)
+
     def test_explicit_media_plan_creates_montage_and_guided_animation_with_voice(self):
         first = self.image("attachments/first.png")
         second = self.image("attachments/second.jpg")

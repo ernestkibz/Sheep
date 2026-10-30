@@ -160,6 +160,8 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
     perm = state.permission
     asked = next((str(m.get("content") or "") for m in reversed(messages) if m.get("role") == "user"), "")
     cue = cues.fix(asked)          # routing reads the typo-corrected words; the model keeps asked
+    social_turn = (shepherd.social_chat(cue) and not explicit_media_request(cue)
+                   and not re.search(ACTION, cue, re.I))
 
     def exists(p):
         try:
@@ -182,6 +184,8 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
             cue = cues.fix(asked)
             messages = messages[:-1] + [dict(messages[-1], content=asked)]
             emit({"type": "thinking", "route": "local", "what": "Picking up your request"})
+    social_turn = (shepherd.social_chat(cue) and not explicit_media_request(cue)
+                   and not re.search(ACTION, cue, re.I))
     apps, names, job_system = setup(state, app, cue)
     # a short follow-up to a file request is that request again (shepherd.follow_on, 2026-10-20)
     if tier >= 2 and perm != "plan":
@@ -213,7 +217,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
     # text-based AI, I can't view images", 2026-10-13). The text model stays the
     # one that understands requests; the others are its tools.
     knows = hasattr(getattr(state, "orch", None), "abilities")      # no orchestrator: nothing is known missing
-    for need_pattern, tool, kind in MEDIA_NEEDS if knows else []:
+    for need_pattern, tool, kind in MEDIA_NEEDS if knows and not social_turn else []:
         if not re.search(need_pattern, cue, re.I):
             continue
         # the answer is a checklist: what this kind of work needs, what is here, what to add
@@ -247,19 +251,26 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
     last_files += re.findall(r"[\w./-]+\.(?:sdeck|ssheet|sdoc)\b", prev_answer)
     # making or filling a deck, document or sheet: the model writes, Sheep operates
     job = (shepherd.intent(asked, app, path, last_files, prev_answer, exists)
-           if tier >= 2 and perm != "plan" and not explicit_media_request(cue) else None)
-    if (not job and cue != asked and tier >= 2 and perm != "plan" and not explicit_media_request(cue)):
+           if perm != "plan" and not explicit_media_request(cue) and not social_turn else None)
+    if (not job and cue != asked and perm != "plan" and not explicit_media_request(cue) and not social_turn):
         # "mak a powerpont about water": the job is read from the corrected words (file names
         # and capitalised names are never corrected, cues.py)
         job = shepherd.intent(cue, app, path, last_files, prev_answer, exists)
     if job and job.get("reuse") and prev_answer:
         job = dict(job, source_answer=prev_answer, source_request=previous_request)
-    if not app and ability_question(cue) and not held:
+    capability_question = not app and ability_question(cue) and not held
+    if capability_question:
         job, names = None, []        # "can you make spreadsheets?" -- answered, not done
+    if social_turn:
+        job, names = None, []        # a friendly conversation never inherits the open app's tool list
     if not wants_tools(cue, app) and not job and not held:
         names = []                   # a question: answered in words, no tools on offer
     ctx_lines = []
-    plain = shepherd.social_chat(cue) or (not names and not app and not explicit_media_request(cue))
+    with_files = bool(attached or (held and held["attachments"]))
+    requested_work = (not capability_question and not social_turn and
+                      (wants_tools(cue, app) or bool(job) or explicit_media_request(cue) or
+                       (with_files and not shepherd.just_talk(cue))))
+    plain = social_turn or (not requested_work and not with_files)
     if path and not plain:
         ctx_lines.append(f"The file open in the editor is: {path}")
     if selected_video_images and ("make_video" in names or re.search(PHOTO_MONTAGE, asked, re.I)):
@@ -297,7 +308,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
     # about notes.sdoc as text (2026-10-05).
     # The job turn is the one warm() read into the engine (setup), so its cache holds.
     system = answer_prompt(state) if plain else job_system
-    if shepherd.social_chat(cue):
+    if social_turn:
         system += "\n\nThe person wants a friendly personal conversation. Reply warmly to the latest message and do not resume an earlier file or media task."
     convo = [{"role": "system", "content": system}] + [{k: v for k, v in m.items() if k not in ("files", "attachments")}
                                                        for m in messages if m.get("role") != "system"]
@@ -309,9 +320,40 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
             m["content"] = f"{m.get('content') or ''}\n\n({'; '.join(ctx_lines)})"
             break
 
-    # executor: the local model unless it has not earned tools and the cloud is on
+    # Route the work at the tier it needs. The local model stays first when its
+    # Checker tier is enough; Nebius gets only the tools this request can use.
+    cloud_names = []
+    if requested_work:
+        _, cloud_names, _ = setup(state, app, cue, tier_override=3)
+        if with_files and not shepherd.just_talk(cue) and not job:
+            cloud_names = able(state, T.offered(1 if perm == "plan" else 3, apps))[0]
+    direct_tier = None
+    if not attached and perm != "plan":
+        from .. import direct
+        parsed_direct = direct.parse(asked)
+        if parsed_direct and parsed_direct[0] in T.TOOLS:
+            direct_tier = T.TOOLS[parsed_direct[0]].tier
+    required_tier = 0
+    if requested_work:
+        if direct_tier is not None:
+            required_tier = direct_tier
+        elif job:
+            required_tier = 2
+        elif explicit_media_request(cue):
+            required_tier = max((T.TOOLS[n].tier for n in cloud_names if n in T.TOOLS), default=2)
+        elif (re.search(r"\b(delete|remove|move)\b", cue, re.I)
+              and re.search(r"\b(file|folder)\b|\.[a-z0-9]{2,6}\b", cue, re.I)):
+            required_tier = 3       # whole-file deletion and moves need the producer tier
+        elif re.search(WRITE_WORDS, cue, re.I) and not re.search(READ_ONLY, cue, re.I):
+            required_tier = 2
+        else:
+            required_tier = 1
+    needs_cloud_tier = requested_work and perm != "plan" and required_tier > tier
+
+    # executor: the local model unless it has not earned the tools this request needs
     executor = local
     stand_in = False          # the cloud answers only because the local reply was gibberish
+    cloud_failed = False
     orch = getattr(state, "orch", None)
 
     def base_kw(**extra):
@@ -331,7 +373,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
         if cloud_on:
             executor = cloud
             stand_in = True
-            names = able(state, T.offered(1 if perm == "plan" else 3, apps))[0]
+            names = cloud_names
             emit({"type": "route", "route": "cloud", "why": "your model is being fixed; Nebius answers meanwhile"})
         else:
             emit({"type": "text", "route": "local", "text": "Your model produced faulty replies, so the orchestrator is "
@@ -344,7 +386,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
         # with the stage and a progress figure for the loading bar
         if cloud_on:
             executor = cloud
-            names = able(state, T.offered(1 if perm == "plan" else 3, apps))[0]
+            names = cloud_names
             emit({"type": "route", "route": "cloud", "why": "Nemotron on Nebius answers" if not getattr(state, "model_path", "")
                   else "your model is getting ready; Nemotron answers meanwhile"})
         else:
@@ -371,17 +413,30 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
     # what the person said, not the names of their files: "...OCT-JAN 2027.docx" sent a request for a version of
     # that plan to the web as a question about now (Ernest's chat, 2026-10-30). Files in play are the work
     said = cue.split("\n\nAttached")[0].lower()
-    with_files = bool(attached or (held and held["attachments"]))
     if with_files and not shepherd.just_talk(said) and not job:
-        names = names or able(state, T.offered(3, apps))[0]
+        names = names or able(state, T.offered(1 if perm == "plan" else tier, apps))[0]
     if _web.STATE["on"] and re.search(WEB_CUES, said) and not re.search(ACTION, said) and not job and not with_files:
         return research(asked, convo, executor, emit)
     if with_files and not re.search(WEB_CUES, said):
         names = [n for n in names if not n.startswith("web_")]
+    local_names = set(names)
+    if not cloud_on and perm != "plan" and requested_work and required_tier > tier:
+        emit({"type": "text", "route": "local", "text":
+              ("This local model is chat-only until it passes Sheep's Checker for tool use. " if tier == 0 else
+               "This request needs tool access above this local model's current Checker level. ") +
+              "Open Settings > Advanced > Checker and complete the exam. Nothing was changed."})
+        emit({"type": "done", "stopped": False, "changed": []})
+        return
     if tier == 0 and cloud_on:
         executor = cloud
-        names = able(state, T.offered(1 if perm == "plan" else 3, apps))[0]
-        emit({"type": "route", "route": "cloud", "why": "the local model has not earned tools (tier 0)"})
+        names = cloud_names
+        emit({"type": "route", "route": "cloud", "why":
+              "the local model has not earned tools (tier 0)" if requested_work else "Nemotron answers in Sheep + Nebius mode"})
+    elif cloud_on and needs_cloud_tier:
+        executor = cloud
+        names = cloud_names
+        emit({"type": "route", "route": "cloud", "why":
+              f"this request needs Checker tier {required_tier}; Nebius can use those Sheep tools"})
     elif tier == 0:
         names = []
 
@@ -997,7 +1052,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                           asked, re.I)
     folder_name = folder.group(1).strip().strip("\"'") if folder else ""
     if (folder_name and not re.search(r"\b(?:in|inside|within)\b", folder_name, re.I)
-            and not exec_calls and executor is local and tier >= 2 and perm != "plan"
+            and not exec_calls and (executor is cloud or tier >= 2) and perm != "plan"
             and "create_folder" in T.TOOLS):
         cid = "folder_create_" + uuid.uuid4().hex[:6]
         args = {"path": folder_name}
@@ -1192,7 +1247,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
         cmd = direct.parse(asked)          # exact words: file names in a one-line command must not change
         if cmd:
             tool, dargs, words = cmd
-            if T.TOOLS[tool].tier > tier:
+            if T.TOOLS[tool].tier > tier and executor is local:
                 emit({"type": "text", "route": "local", "text":
                       f"This model may create and edit files but not {tool.split('_')[0]} them yet: that opens once it "
                       "passes the Checker exam (Settings › Advanced › Checker). Nothing was changed."})
@@ -1243,9 +1298,19 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                 convo[:] = fit(convo, fitted)
                 emit({"type": "route", "route": "local", "why": "the conversation was shortened to fit the model"})
                 continue
-            if executor is local and cloud_on:
+            if executor is local and cloud_on and not cloud_failed:
                 executor = cloud
+                stand_in = True
                 emit({"type": "route", "route": "cloud", "why": f"local engine failed ({e}); escalated"})
+                continue
+            if (executor is cloud and not stand_in and not cloud_failed and not tool_oks and not tool_fails
+                    and not rc.made and set(names).issubset(local_names)
+                    and (orch is None or orch.ready() and not orch.holding())):
+                cloud_failed = True
+                executor = local
+                names = list(local_names)
+                schemas = T.schemas(names)
+                emit({"type": "route", "route": "local", "why": f"Nebius is unavailable ({e}); this local model can answer"})
                 continue
             if too_long(e):
                 # said in words, not as the engine's 400 (2026-10-13 simulation)
@@ -1260,7 +1325,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
             orch.after_turn(info)
             if info.get("degenerate"):
                 # the guard cut the reply: never show it; Nebius takes the turn when it can
-                if cloud_on:
+                if cloud_on and not cloud_failed:
                     executor = cloud
                     stand_in = True
                     emit({"type": "route", "route": "cloud", "why": "the reply fell into a loop; Nebius answers this turn"})
@@ -1557,8 +1622,9 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
             convo.append({"role": "tool", "tool_call_id": cid, "content": (result + ("" if pace else DONE_HINT)) if ok else f"ERROR: {result}"})
         fails = fails + 1 if step_failed else 0
         if fails >= 2:
-            if executor is local and cloud_on:
+            if executor is local and cloud_on and not cloud_failed:
                 executor = cloud
+                stand_in = True
                 schemas = T.schemas(able(state, T.offered(1 if perm == "plan" else 3, apps))[0])
                 names = [s["function"]["name"] for s in schemas]
                 emit({"type": "route", "route": "cloud", "why": "two failed steps in a row; escalated to Nebius"})
