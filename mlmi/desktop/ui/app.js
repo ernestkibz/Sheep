@@ -615,8 +615,9 @@ const MLMI = (() => {
     const ext = p.split(".").pop().toLowerCase();
     const name = p.split("/").pop();
     const media = MEDIA_OF[ext];
+    const reveal = `<button class="ghost" data-reveal="${esc(p)}" title="Show this file in its folder">${icon("folder")}Folder</button>`;
     const foot = (what) => `<div class="cb-foot"><span><b>${esc(name)}</b><small>${what}</small></span>
-      <button class="ghost" data-work title="Show on the Work Canvas">${icon("canvas")}Canvas</button></div>`;
+      <span class="row">${reveal}<button class="ghost" data-work title="Show on the Work Canvas">${icon("canvas")}Canvas</button></span></div>`;
     if (media === "image") return `<div class="chatblock"><img loading="lazy" src="${rawUrl(p)}" alt="${esc(name)}">${foot("Picture")}</div>`;
     if (media === "video") return `<div class="chatblock"><video controls preload="metadata" src="${rawUrl(p)}"></video>${foot(p.startsWith("media/")
       ? `AI video · <a href="#" data-vtip>what decides its speed and quality</a>` : "Video")}</div>`;
@@ -629,8 +630,12 @@ const MLMI = (() => {
     return `<div class="chatblock doc"><div class="filecard" data-open="${esc(p)}"><span class="fi">${icon(ic)}</span><span><b>${esc(shown)}</b><small>${esc(APP_NAME[app] || "file")}</small></span></div>
       ${app && app !== "studio" ? `<div class="cb-prev" data-prev="${esc(p)}"></div>` : ""}<div class="cb-foot"><span><small>${esc(APP_NAME[app] || "File")}</small></span>
       <span class="row"><button class="ghost" data-open="${esc(p)}">${icon(ic)}Open</button>${office ? `<button class="ghost" data-export="${esc(p)}" title="Save a copy as .${office}">.${office}</button>` : ""}
-      <button class="ghost" data-work title="Show on the Work Canvas">${icon("canvas")}Canvas</button></span></div></div>`;
+      ${reveal}<button class="ghost" data-work title="Show on the Work Canvas">${icon("canvas")}Canvas</button></span></div></div>`;
   }
+  // a file's own folder in Windows, the file selected (the path is workspace-relative)
+  MLMI.reveal = (p) => window.mlmiDesktop
+    ? window.mlmiDesktop.reveal(((S.state && S.state.workspace) || "") + "\\" + p.replace(/\//g, "\\"))
+    : toast("Show in folder works in the desktop app", "bad");
   // the first lines of each document block, read once and kept
   const PREV = {};
   function fillPreviews(changedPath = null) {
@@ -1656,6 +1661,8 @@ const MLMI = (() => {
       if (e.target.closest("[data-work]")) return openApp("work");
       const ex = e.target.closest("[data-export]");
       if (ex) return MLMI.exportBtn && MLMI.exportBtn(ex.dataset.export);
+      const rv = e.target.closest("[data-reveal]");
+      if (rv) return MLMI.reveal(rv.dataset.reveal);
       if (e.target.closest("[data-vtip]")) { e.preventDefault(); return MLMI.videoTip && MLMI.videoTip(); }
       const f = e.target.closest("[data-open]");
       if (f) { e.preventDefault(); return openFile(f.dataset.open); }

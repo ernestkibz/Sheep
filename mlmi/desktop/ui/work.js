@@ -140,7 +140,7 @@
       if (RUNS[b.lang]) a.push(["run", "play", "Run"]);
     }
     if (b.kind === "note") a.push(["copy", "copy", "Copy"], ["save", "save", "Save as file"]);
-    if (b.path && ["image", "audio", "file"].includes(b.kind)) a.push(["reveal", "folder", "Show in folder"]);
+    if (b.path) a.push(["reveal", "folder", "Show in folder"]);
     return a.map(([k, ic, t]) => `<button class="ghost ico" data-act="${k}" title="${t}">${icon(ic)}</button>`).join("");
   }
 
@@ -194,9 +194,7 @@
       if (act === "open") return MLMI.openFile(b.path);
       if (act === "pin") { S.canvas.pinned[b.id] = !S.canvas.pinned[b.id]; if (!S.canvas.pinned[b.id]) delete S.canvas.pinned[b.id]; this.draw(); MLMI.saveChat(); return; }
       // the block's path is workspace-relative; the system file browser needs it absolute
-      if (act === "reveal") return window.mlmiDesktop
-        ? window.mlmiDesktop.reveal(((S.state && S.state.workspace) || "") + "\\" + b.path.replace(/\//g, "\\"))
-        : toast("Show in folder works in the desktop app", "bad");
+      if (act === "reveal") return MLMI.reveal(b.path);
       const text = b.kind === "code" ? b.code : b.text;
       if (act === "copy") { await navigator.clipboard.writeText(text); return toast("Copied"); }
       if (act === "save") {
