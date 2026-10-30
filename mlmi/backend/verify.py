@@ -29,6 +29,20 @@ def _load(ws, rel):
         return None
 
 
+def hollow(d, rel):
+    """A new file with nothing but its title or headers. Nemotron made a 90-day plan that was one heading and
+    said it mirrored the attached plan (2026-10-30): a file that exists is not a job that is done."""
+    if rel.endswith(".sdoc"):
+        return not any(b.get("text") or b.get("rows") or b.get("src") for b in d.get("blocks", [])
+                       if not (b.get("type") == "heading" and b.get("level") == 0))
+    if rel.endswith(".sdeck"):
+        return not any(s.get("bullets") or s.get("items") for s in d.get("slides", []))
+    if rel.endswith(".ssheet"):
+        return not any(re.search(r"\d+$", k) and int(re.search(r"\d+$", k).group()) > 1
+                       for s in d.get("sheets", []) for k in s.get("cells", {}))
+    return False
+
+
 def _list_items(d):
     """Items in the document's lists, and its paragraphs, for counted requests."""
     items = paras = 0
@@ -53,6 +67,11 @@ def shortfalls(ws, asked, made):
         name = name.strip()
         if not any(m.lower().split("/")[-1] == name for m in made) and not ws.path(name).exists():
             out.append(f"there is no file called {name}")
+    if not re.search(r"\b(blank|empty|template|skeleton)\b", t):
+        for rel in made:
+            d = _load(ws, rel) if rel.endswith((".sdoc", ".sdeck", ".ssheet")) else None
+            if d and hollow(d, rel):
+                out.append(f"{rel} holds only its title, with none of the content that was asked for")
     decks = [m for m in made if m.endswith(".sdeck")]
     docs = [m for m in made if m.endswith(".sdoc")]
     vids = [m for m in made if m.endswith(".sstudio")]

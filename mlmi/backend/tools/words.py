@@ -127,21 +127,38 @@ def model(path, ws):
 
 # ------------------------------------------------------------------ tools
 
-@tool("words_create", "words", 2, "Create a new Sheep Words document (.sdoc). The title becomes the heading at "
-      "the top: do not add it again.",
+@tool("words_create", "words", 2, "Create a new Sheep Words document (.sdoc), with all its content in one call. "
+      "The title becomes the heading at the top: do not add it again.",
       {"path": ("string", "new file, e.g. report.sdoc"), "title": ("string", "title at the top (optional)"),
+       "content": ("string", "the whole document as markdown: ## headings, paragraphs, - bullets, 1. numbered "
+                             "items, | tables |. Write all of it here"),
        "overwrite": ("boolean", "true only to replace an existing document")},
       ("path",), confirm=confirm_create("words"))
-def words_create(ctx, path, title="", overwrite=False):
+def words_create(ctx, path, title="", overwrite=False, content=""):
     p, msg = start_new(ctx, path, "words", overwrite)
     if msg:
         return msg
     d = F.new("words")
+    from .. import shepherd
+    named, blocks = shepherd.parse_doc(F.clean(content)) if str(content or "").strip() else ("", [])
+    title = title or named                 # one model call fills the document, one undo removes it
     if title:
         d["title"] = title
         d["blocks"].append({"type": "heading", "level": 0, "text": title})
+    if named and named != title:
+        d["blocks"].append({"type": "heading", "level": 1, "text": named})
+    for kind, level, text in blocks:
+        if kind == "table":
+            w = max(len(r) for r in text)
+            d["blocks"].append({"type": "table", "header": True, "rows": [r + [""] * (w - len(r)) for r in text]})
+        elif kind == "quote":
+            d["blocks"].append({"type": "paragraph", "style": "quote", "text": text})
+        elif kind == "paragraph":
+            d["blocks"].append({"type": "paragraph", "text": text})
+        else:
+            d["blocks"].append({"type": kind, "level": level, "text": F.item(text) if kind != "heading" else text})
     save_doc(ctx, p, d, f"create {ctx.ws.rel(p)}")
-    return f"created {ctx.ws.rel(p)}"
+    return f"created {ctx.ws.rel(p)}" + (f" with {len(blocks)} blocks" if blocks else "")
 
 
 @tool("words_read", "words", 1, "Read a Sheep Words document as numbered blocks.",

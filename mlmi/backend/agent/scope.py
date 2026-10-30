@@ -68,13 +68,29 @@ def _norm(x):
     return re.sub(r"[\s_.\-/\\]+", " ", str(x or "").lower()).strip()
 
 
-def in_scope(ws, name, args, asked, open_path, made):
+# the kinds of thing one request can ask for: "a report and a tracker" is two new files
+FILE_KINDS = (r"docs?|documents?|reports?|word", r"sheets?|spreadsheets?|workbooks?|excel|trackers?",
+              r"decks?|slides?|presentations?|power ?points?", r"pictures?|images?|photos?|posters?|logos?",
+              r"videos?|clips?", r"voice|audio|recordings?")
+COUNTED = (r"\b" + shepherd.NUM + r"\s+(?:[\w-]+\s+)?(?:files?|docs?|documents?|reports?|sheets?|spreadsheets?|workbooks?|"
+           r"decks?|presentations?|pictures?|images?|photos?|posters?|logos?|videos?|clips?|recordings?|versions?)\b")
+
+
+def files_asked(asked):
+    """How many new files one request may make: the kinds it names, or the number it gives."""
+    t = str(asked or "").split("\n\nAttached")[0].lower()
+    kinds = sum(bool(re.search(r"\b(?:" + k + r")\b", t)) for k in FILE_KINDS)
+    return min(12, max(1, kinds, *[shepherd._n(n) for n in re.findall(COUNTED, t)]))
+
+
+def in_scope(ws, name, args, asked, open_path, made, read=()):
     """The scope guard (Ernest: do for the user what they asked, nothing else).
     Llama 3.2 3B, after making the list it was asked for, went on to create
     budget.ssheet.sdoc and report.q3.sdoc and to write into the person's own
     Project brief (2026-09-30). A write may touch only: the file open in the
-    editor, a file the request names, a file this job made, or -- once per job
-    -- one new file (the thing the person asked to be made). Reads are free."""
+    editor, a file the request names, a file this job made or read first, or the
+    new files the request asks for (files_asked; "update my plan" names no file,
+    so the one the model opened counts). Reads are free."""
     t = T.TOOLS.get(name)
     if not t or t.tier < 2 or name.startswith("herder_") and name in ("herder_help", "herder_list", "herder_show"):
         return None
@@ -82,7 +98,7 @@ def in_scope(ws, name, args, asked, open_path, made):
     a = _norm(asked)
     for tg in targets:
         rel = str(tg).replace("\\", "/")
-        if rel in made or (open_path and _norm(rel) == _norm(open_path)):
+        if rel in made or rel in read or (open_path and _norm(rel) == _norm(open_path)):
             continue
         stem = rel.rsplit("/", 1)[-1].rsplit(".", 1)[0]
         if _norm(rel) in a or (len(_norm(stem)) >= 3 and _norm(stem) in a):
@@ -91,7 +107,7 @@ def in_scope(ws, name, args, asked, open_path, made):
             exists = ws.path(rel).exists()
         except ToolError:
             exists = False
-        if not exists and not made:
+        if not exists and len(made) < files_asked(asked):
             continue
         return (f"{rel} is not part of this request" + ("" if exists else ": this job already made its file")
                 + ". The job is done when the request is done.")
@@ -224,7 +240,7 @@ def artifact_action_allowed(name, text):
         (text or "").lower(),
     )
     if not destination:
-        return False
+        return not shepherd.just_talk(text)
     noun = destination.group(1)
     family = (
         "words" if noun in {"document", "doc", "file", "report", "note", "notes"}

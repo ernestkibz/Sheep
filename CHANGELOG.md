@@ -3,6 +3,16 @@
 Grouped by date; the commit messages hold the detail. [docs/DEVELOPMENT_HISTORY.md](docs/DEVELOPMENT_HISTORY.md)
 tells the same story by stage, with the proof for each.
 
+## 2026-10-30: the agent keeps the thread
+- A turn belongs to the conversation: "just do it", "you decide", an answer to Sheep's question, "try again" or a
+  short change to a picture all carry the request before them, for every tool and every model.
+- The model chooses the tools unless the person is only talking: a greeting, thanks, a question or "no file".
+- "Can you make ..." is a request, not a question, and gets its tools.
+- One request can make several files, and a job can change a file it found and read.
+- A model asked to make something and answering with a question is told once to choose for itself and do the job.
+- A new file holding only its title is not done: the model is told to finish it, and `words_create` takes the
+  whole document in one call.
+
 ## 2026-10-21: polish
 - One name, Sheep, in the window, installer, launcher and the model's own instructions.
 - Plain words on every screen, with a test that fails on engineer's words.

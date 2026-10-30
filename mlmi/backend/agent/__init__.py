@@ -156,13 +156,29 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
     perm = state.permission
     asked = next((str(m.get("content") or "") for m in reversed(messages) if m.get("role") == "user"), "")
     cue = cues.fix(asked)          # routing reads the typo-corrected words; the model keeps asked
-    apps, names, job_system = setup(state, app, cue)
 
     def exists(p):
         try:
             return ws.path(p).exists()
         except ToolError:
             return False
+    # "just do it" and an answer to Sheep's own question belong to the request before them, for every tool
+    # and every model: the whole job carries that request from here on, as if the person had said it again
+    held = None
+    if perm != "plan":
+        def alone(t):
+            return explicit_media_request(cues.fix(t)) or bool(shepherd.intent(t, app, path, [], "", exists))
+        held = shepherd.carried(messages, alone, wants_tools(cue, app), lambda t: wants_tools(cues.fix(t), app))
+        if held:
+            asked = held["text"]
+            imported = [next((n for n in (Path(a).with_suffix(x).as_posix() for x in (".sdoc", ".ssheet", ".sdeck"))
+                              if exists(n)), a) for a in held["attachments"]]
+            if imported:
+                asked += "\n\nAttached earlier: " + "; ".join(imported)
+            cue = cues.fix(asked)
+            messages = messages[:-1] + [dict(messages[-1], content=asked)]
+            emit({"type": "thinking", "route": "local", "what": "Picking up your request"})
+    apps, names, job_system = setup(state, app, cue)
     # a short follow-up to a file request is that request again (shepherd.follow_on, 2026-10-20)
     if tier >= 2 and perm != "plan":
         merged = shepherd.follow_on(messages, exists)
@@ -233,9 +249,9 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
         job = shepherd.intent(cue, app, path, last_files, prev_answer, exists)
     if job and job.get("reuse") and prev_answer:
         job = dict(job, source_answer=prev_answer, source_request=previous_request)
-    if not app and ability_question(cue):
+    if not app and ability_question(cue) and not held:
         job, names = None, []        # "can you make spreadsheets?" -- answered, not done
-    if not wants_tools(cue, app) and not job:
+    if not wants_tools(cue, app) and not job and not held:
         names = []                   # a question: answered in words, no tools on offer
     local, cloud = state.local, state.cloud
     cloud_on = mode == 1 and cloud.ready()
@@ -422,6 +438,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
         return sess.pending.pop(cid, {}).get("allow", False)
 
     scope_asked = asked
+    opened = set()                    # files this job read: "update my plan" names none, the model found it
 
     def call(cid, name, args, route):
         """Run one tool for the job; returns (ok, text) and emits what happened."""
@@ -443,7 +460,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
             # the job's own target counts as asked for: "add three slides to the deck" names no file, and
             # the deck Sheep resolved from the chat was refused as "not part of this request" (B10, 2026-10-21)
             target = f"\nWork on: {job['target']}" if job and job.get("target") else ""
-            why = in_scope(ws, name, args, scope_asked + target, path, rc.made) or _overwrites_own(ws, name, args, rc.made)
+            why = in_scope(ws, name, args, scope_asked + target, path, rc.made, opened) or _overwrites_own(ws, name, args, rc.made)
             if why:
                 raise OutOfScope(why)
             reason = T.needs_confirm(ws, name, args, rc)
@@ -488,6 +505,8 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
             emit({"type": "tool_result", "id": cid, "name": name, "ok": True, "text": result,
                   "ms": round((time.perf_counter() - t0) * 1000), "route": route})
             ok = True
+            if T.TOOLS.get(name) and T.TOOLS[name].tier < 2 and args.get("path"):
+                opened.add(str(args["path"]).replace("\\", "/"))
             if T.TOOLS.get(name) and T.TOOLS[name].tier >= 2:
                 # a change that names no made file (copy, move, delete, calendar, mail)
                 # still counts: the no-tool guard said "nothing was changed" after a copy
@@ -1109,9 +1128,13 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                 call("plan_sources", "slides_add", {"path": deck, "title": "Sources", "bullets": [
                     f"{r.get('title') or r['url']}: {r['url']}" for r in job["sources"][:5]]}, "sheep")
             slides = sum(c["tool"] == "slides_add" for c in exec_calls)
-            emit({"type": "text", "route": "cloud", "text": summary() + (f" {slides + 1} slides, written by Nemotron and "
-                  "made on this machine." if slides else " Written by Nemotron, made on this machine.")})
-            return finish()
+            short = verify.shortfalls(ws, asked, rc.made)
+            if not short:
+                emit({"type": "text", "route": "cloud", "text": summary() + (f" {slides + 1} slides, written by Nemotron and "
+                      "made on this machine." if slides else " Written by Nemotron, made on this machine.")})
+                return finish()
+            convo.append({"role": "system", "content": "Already done, do not repeat:\n" + "\n".join(done_lines)
+                          + "\nChecked against the request: " + "; ".join(short) + ". Fix that with the tools."})
 
     # one exact command ("render intro.sstudio", "copy a.txt to b.txt"): Sheep runs the
     # tool itself and the job ends (direct.py says why). It still asks the person's yes.
@@ -1142,6 +1165,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                                                        "Fix that with the tools, or tell the person why it cannot be done."})
 
     fitted = 0
+    pressed = False
     for step in range(MAX_STEPS):
         if sess.stop.is_set():
             return finish(stopped=True)
@@ -1313,6 +1337,16 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                     convo.append({"role": "assistant", "content": text})
                     convo.append({"role": "user", "content": hint})
                     continue
+            if (names and not rc.made and not acted and not pressed and perm != "plan" and (held or shepherd.explicit_change(cue))
+                    and re.search(shepherd.ASKED_BACK, (text or "")[-400:], re.I)):
+                # asked to make something, it asked a question back instead, for any model: Nemotron asked
+                # "how many slides?" again after "up to you" (2026-10-30). Told once to choose for itself
+                pressed = True
+                emit({"type": "thinking", "route": "local", "what": "Sheep is telling the model to go ahead"})
+                convo.append({"role": "assistant", "content": text})
+                convo.append({"role": "user", "content": "Do not ask me anything. Make sensible choices yourself, call the "
+                                                         "tools and do the whole job now."})
+                continue
             if not rc.made and not acted and tier >= 2 and perm != "plan" and re.search(CLAIM, text or "", re.I):
                 # it says it made or changed a file and no tool ran (Ernest's dog-breed
                 # deck, 2026-10-06): never shown as done. What it wrote goes in the file.

@@ -295,6 +295,12 @@ def wants_tools(text, app=""):
                              r"write|compose|give me|suggest|brainstorm|list|tell me|explain|describe)\b", t)
             and not re.search(ARTIFACT_NOUNS, t)):
         return False
+    # "Can you make an equivalent of this for the tech team?" is a request in polite words: read as a
+    # question it named no file kind and got no tools (Ernest's chat, 2026-10-30); "Can you make
+    # spreadsheets?" is still an ability question, answered in run
+    if re.match(r"\s*(?:please\s+)?(?:can|could|would|will) (?:you|sheep)\s+(?:please\s+)?(?:just\s+)?"
+                r"(?:make|create|build|prepare|draft|generate|produce|design|put together|turn|convert)\b", t):
+        return True
     # A question about the world is answered, not worked on: "Why do leaves change
     # colour?" matched the action word "change" and went down the file path
     # (2026-10-06). A question that names no file, document or app gets words.

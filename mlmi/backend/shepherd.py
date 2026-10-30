@@ -245,6 +245,71 @@ def follow_on(messages, exists=lambda p: False):
     return None
 
 
+# The person handing the job back ("just do it", "you decide", "stop asking"): the request stands (Ernest,
+# 2026-10-30: "can you just do the thinking" after Nemotron's questions made no file, on any model)
+HANDBACK = (r"\b(?:do (?:it|that|this|the thinking|your best|what you (?:can|think))|go ahead|carry on|proceed|"
+            r"you (?:decide|choose|pick|figure)|your (?:choice|call|pick)|up to you|figure it out|"
+            r"use your (?:judge?ment|best)|whatever you (?:think|want|like)|"
+            r"(?:don'?t|dont|stop|no need to|quit) (?:ask|question)|no (?:more )?questions|"
+            r"(?:don'?t|dont) (?:feel like answering|care|mind)|any(?:thing)? (?:is|will) (?:fine|do|work)|"
+            r"defaults? (?:is|are) fine|make (?:it|them|something) up|surprise me)\b")
+RETRY = r"\b(?:try (?:it )?again|retry|again|once more|one more time|redo|another (?:one|go|try)|keep going|finish it)\b"
+FAILED = r"\b(?:could not|couldn'?t|failed|nothing was changed|was not (?:made|done)|did not finish)\b"
+ASKED_BACK = (r"\?\s*$|\?\s*\n|let me know|could you (?:tell|share|confirm)|once i have|"
+              r"please (?:tell|confirm|share)|which (?:one )?would you")
+ASKING = r"^\s*(?:what|why|how|who|whom|where|when|which|whose)\b"
+MEDIA_MADE = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".mp4", ".webm", ".wav", ".mp3")
+
+
+def carried(messages, alone=lambda t: False, works=False, asks=lambda t: False):
+    """The request a turn belongs to, for every kind of work, or None to read the turn by itself: a hand-back
+    or a retry is the last request again, an answer to the assistant's own question is that request with the
+    answer, and a short change after a picture, video or recording is that request changed. alone(text): the
+    turn is a whole new job. works: the turn already asks for work by itself. asks(text): an earlier turn asked
+    for work. {"text", "attachments"}."""
+    turns = [m for m in messages if m.get("role") in ("user", "assistant")]
+    if len(turns) < 3 or turns[-1].get("role") != "user" or turns[-2].get("role") != "assistant":
+        return None
+    now = str(turns[-1].get("content") or "").strip()
+    low = now.lower()
+    if not now or len(now.split()) > 24 or re.search(ASKING, low) or re.search(OPT_OUT, low) or alone(now):
+        return None
+    last, handback = turns[-2], bool(re.search(HANDBACK, low))
+    if re.search(CLOSERS, low) and not handback:
+        return None
+    said = str(last.get("content") or "")
+    files = last.get("files") or []
+    failed = not files and bool(re.search(FAILED, said, re.I))
+    asked_back = not files and bool(re.search(ASKED_BACK, said[-700:], re.I))
+    retry = bool(re.search(RETRY, low)) and (failed or bool(files))
+    question = now.endswith("?") or bool(re.search(QUESTION, low))
+    change = (any(str(f).lower().endswith(MEDIA_MADE) for f in files) and not works and not question
+              and len(now.split()) <= 12)
+    if not (handback or retry or change or (asked_back and not question)):
+        return None
+    details, attached = ([] if handback or retry else [now]), []
+    for m in reversed(turns[:-1]):
+        if m.get("role") != "user":
+            continue
+        text = str(m.get("content") or "").strip()
+        attached = list(m.get("attachments") or []) + attached
+        if not (re.search(HANDBACK, text.lower()) or re.search(RETRY, text.lower())):
+            if explicit_change(text) or re.search(NOUN_LED, text.lower()) or asks(text):
+                return {"text": " — ".join([text] + details), "attachments": list(dict.fromkeys(attached))}
+            if not handback and not retry and len(details) < 3:
+                details.insert(0, text)
+    return None
+
+
+def just_talk(text):
+    """Is this turn only conversation: a greeting, thanks, a question, or "no file"? Anything else may become
+    work if the model judges so; the model chooses the tools (Ernest, 2026-10-30)."""
+    t = (text or "").lower().strip()
+    return (not t or bool(re.search(CLOSERS, t) or re.search(OPT_OUT, t) or re.search(QUESTION, t)
+                          or re.search(HOWTO, t) or re.match(r"(?:hi|hey|hello|hell|yo|morning|good (?:morning|evening))\b", t))
+            or t.endswith("?"))
+
+
 # ------------------------------------------------------------------ the writing turn
 WRITE = {
     "slides": ("Write a slide deck as markdown and nothing else.\n"

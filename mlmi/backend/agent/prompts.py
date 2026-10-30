@@ -49,6 +49,8 @@ by calling the tools you are given.
 
 Rules:
 - To change or create a file, call a tool. Never say a file was changed unless a tool result says so.
+- Act, do not interrogate: when details are missing, make sensible choices, do the whole job, and say in your \
+reply what you assumed. Ask only when you truly cannot go on.
 - A deck, document or spreadsheet that is asked for is made as a file with the tools, never written out in \
 the chat. A question, or a card message, poem or caption, is answered in your reply.
 - Work in the Sheep apps. Microsoft files come in with import_file and go out with export_file: if the user \
