@@ -155,6 +155,8 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
     sess.reset_stop()
     tier = state.model_card()["tier"]
     mode = state.mode
+    local, cloud = state.local, state.cloud
+    cloud_on = mode == 1 and cloud.ready()
     perm = state.permission
     asked = next((str(m.get("content") or "") for m in reversed(messages) if m.get("role") == "user"), "")
     cue = cues.fix(asked)          # routing reads the typo-corrected words; the model keeps asked
@@ -169,7 +171,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
     held = None
     if perm != "plan":
         def alone(t):
-            return explicit_media_request(cues.fix(t)) or bool(shepherd.intent(t, app, path, [], "", exists))
+            return shepherd.social_chat(t) or explicit_media_request(cues.fix(t)) or bool(shepherd.intent(t, app, path, [], "", exists))
         held = shepherd.carried(messages, alone, wants_tools(cue, app), lambda t: wants_tools(cues.fix(t), app))
         if held:
             asked = held["text"]
@@ -184,7 +186,8 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
     # a short follow-up to a file request is that request again (shepherd.follow_on, 2026-10-20)
     if tier >= 2 and perm != "plan":
         merged = shepherd.follow_on(messages, exists)
-        if merged and not shepherd.intent(asked, app, path, [], "", exists) and not wants_tools(cue, app):
+        if (merged and not shepherd.social_chat(cue)
+                and not shepherd.intent(asked, app, path, [], "", exists) and not wants_tools(cue, app)):
             asked, cue = merged, cues.fix(merged)
             apps, names, job_system = setup(state, app, cue)
     # Files attached to this message are made readable first (Word/Excel/PowerPoint
@@ -216,7 +219,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
         # the answer is a checklist: what this kind of work needs, what is here, what to add
         try:
             from ..server import setup_checklist
-            items = setup_checklist(state, MEDIA_KIND[tool])
+            items = setup_checklist(state, MEDIA_KIND[tool], cloud_chat=cloud_on)
         except Exception:
             items = []
         # GPU support only makes the work faster: it never blocks a request (2026-10-27: an
@@ -255,11 +258,8 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
         job, names = None, []        # "can you make spreadsheets?" -- answered, not done
     if not wants_tools(cue, app) and not job and not held:
         names = []                   # a question: answered in words, no tools on offer
-    local, cloud = state.local, state.cloud
-    cloud_on = mode == 1 and cloud.ready()
-
     ctx_lines = []
-    plain = not names and not app          # a question in the chat: no files, no tools in its prompt
+    plain = shepherd.social_chat(cue) or (not names and not app and not explicit_media_request(cue))
     if path and not plain:
         ctx_lines.append(f"The file open in the editor is: {path}")
     if selected_video_images and ("make_video" in names or re.search(PHOTO_MONTAGE, asked, re.I)):
@@ -297,6 +297,8 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
     # about notes.sdoc as text (2026-10-05).
     # The job turn is the one warm() read into the engine (setup), so its cache holds.
     system = answer_prompt(state) if plain else job_system
+    if shepherd.social_chat(cue):
+        system += "\n\nThe person wants a friendly personal conversation. Reply warmly to the latest message and do not resume an earlier file or media task."
     convo = [{"role": "system", "content": system}] + [{k: v for k, v in m.items() if k not in ("files", "attachments")}
                                                        for m in messages if m.get("role") != "system"]
     if att_lines:

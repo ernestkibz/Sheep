@@ -508,7 +508,7 @@ def activity_view(st):
             "repairs": [h for h in e.get("history") or [] if str(h.get("event", "")).startswith("egypt")][-20:]}
 
 
-def setup_checklist(st, kind=""):
+def setup_checklist(st, kind="", cloud_chat=False):
     """What Sheep needs for each kind of work, what is here and what is missing,
     for a person who asks for something Sheep is not set up for (Ernest, 2026-10-13).
     kind narrows it to one need ("video", "picture", "speech", "voice", "vision")."""
@@ -519,8 +519,10 @@ def setup_checklist(st, kind=""):
     nv = gpu_runtime.nvidia()
     # (kind, label, ready, how to get it, what it is for, optional, the button's action)
     rows = [
-        ("text", "Chat (text) model", bool(st.model_path), "Add a model from the model menu at the top",
-         "Everything: Sheep needs one model to chat and write.", False, {"do": "slot", "slot": "chat", "label": "Add a model"}),
+        ("text", "Chat (text) model", bool(st.model_path) or bool(cloud_chat), "Add a model from the model menu at the top",
+         "Nebius can write video prompts; video generation still runs locally." if cloud_chat
+         else "Everything: Sheep needs one model to chat and write.",
+         False, {"do": "slot", "slot": "chat", "label": "Add a model"}),
         ("picture", "Picture model (Stable Diffusion 1.5)", bool(cat.get("sd15-lcm", {}).get("ready")),
          "Settings › Models › pictures", "Only for making pictures. Skip it if you will not ask for any.", True,
          {"do": "media", "id": "sd15-lcm", "label": "Download (about 2 GB)"}),

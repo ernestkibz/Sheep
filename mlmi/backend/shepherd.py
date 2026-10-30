@@ -255,7 +255,8 @@ HANDBACK = (r"\b(?:do (?:it|that|this|the thinking|your best|what you (?:can|thi
             r"defaults? (?:is|are) fine|make (?:it|them|something) up|surprise me)\b")
 RETRY = r"\b(?:try (?:it )?again|retry|again|once more|one more time|redo|another (?:one|go|try)|keep going|finish it)\b"
 FAILED = r"\b(?:could not|couldn'?t|failed|nothing was changed|was not (?:made|done)|did not finish)\b"
-ASKED_BACK = (r"\?\s*$|\?\s*\n|let me know|could you (?:tell|share|confirm)|once i have|"
+# A generic "let me know if there's anything else" is not a pending job question.
+ASKED_BACK = (r"\?\s*$|\?\s*\n|could you (?:tell|share|confirm)|once i have|"
               r"please (?:tell|confirm|share)|which (?:one )?would you")
 ASKING = r"^\s*(?:what|why|how|who|whom|where|when|which|whose)\b"
 MEDIA_MADE = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".mp4", ".webm", ".wav", ".mp3")
@@ -329,11 +330,23 @@ def carried(messages, alone=lambda t: False, works=False, asks=lambda t: False):
     return None
 
 
+SOCIAL_CHAT = (r"\b(?:i\s+)?(?:need|want)\s+(?:some\s*one|somebody|a person|a friend)\s+to\s+talk\b|"
+              r"\b(?:i feel|i'm feeling|i am feeling)\s+(?:lonely|alone|sad|down|overwhelmed)\b|"
+              r"\b(?:can|could)\s+i\s+talk\s+to\s+you\b|"
+              r"\b(?:talk|chat)\s+(?:to|with)\s+me\s+like\s+(?:a\s+)?friend\b|"
+              r"\b(?:be|act like)\s+(?:my|a)\s+friend\b")
+
+
+def social_chat(text):
+    """A personal conversation request, not a continuation of the previous artifact job."""
+    return bool(re.search(SOCIAL_CHAT, str(text or ""), re.I))
+
+
 def just_talk(text):
     """Is this turn only conversation: a greeting, thanks, a question, or "no file"? Anything else may become
     work if the model judges so; the model chooses the tools (Ernest, 2026-10-30)."""
     t = (text or "").lower().strip()
-    return (not t or bool(re.search(CLOSERS, t) or re.search(OPT_OUT, t) or re.search(QUESTION, t)
+    return (not t or social_chat(t) or bool(re.search(CLOSERS, t) or re.search(OPT_OUT, t) or re.search(QUESTION, t)
                           or re.search(HOWTO, t) or re.match(r"(?:hi|hey|hello|hell|yo|morning|good (?:morning|evening))\b", t))
             or t.endswith("?"))
 

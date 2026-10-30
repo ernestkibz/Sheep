@@ -267,6 +267,8 @@ def wants_tools(text, app=""):
     and failed (2026-09-30); a question gets a plain answer, no tools."""
     import re
     t = (text or "").lower()
+    if shepherd.social_chat(t):
+        return False
     # a named file of any kind Sheep works on: pictures, sound, video and Studio projects too
     # ("Describe photo.jpg", "Slow down the first clip in intro.sstudio" were answered in
     # words with no tool, 2026-10-14 cue audit)
