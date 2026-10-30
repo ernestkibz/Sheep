@@ -301,7 +301,8 @@ def carried(messages, alone=lambda t: False, works=False, asks=lambda t: False):
     asked_back = not files and bool(re.search(ASKED_BACK, said[-700:], re.I))
     retry = bool(re.search(RETRY, low)) and (failed or bool(files))
     # "yes" after a batch and "shall I go on?": the same request, on the files it has made so far
-    onward = bool(files) and bool(re.search(ASKED_BACK, said[-400:], re.I)) and bool(re.search(NEXT, low))
+    onward = (bool(files) and bool(re.search(NEXT, low))
+              and bool(re.search(ASKED_BACK + r"|\bnext\b\s*(?:step|part|up|batch)?\s*:", said[-600:], re.I)))
     if onward:
         retry = True
     question = now.endswith("?") or bool(re.search(QUESTION, low))
@@ -316,7 +317,9 @@ def carried(messages, alone=lambda t: False, works=False, asks=lambda t: False):
         text = str(m.get("content") or "").strip()
         attached = list(m.get("attachments") or []) + attached
         if not (re.search(HANDBACK, text.lower()) or re.search(RETRY, text.lower())):
-            if explicit_change(text) or re.search(NOUN_LED, text.lower()) or asks(text):
+            # "need a version of this" with files attached names no verb: the files say it is work
+            if (explicit_change(text) or re.search(NOUN_LED, text.lower()) or asks(text)
+                    or (m.get("attachments") and not just_talk(text))):
                 if onward:
                     details = ["done so far: " + ", ".join(str(f) for f in files) + "; carry on with the next part in those "
                                "files, reading them first"]

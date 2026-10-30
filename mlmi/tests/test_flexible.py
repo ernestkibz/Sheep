@@ -97,6 +97,7 @@ class Pace(unittest.TestCase):
             self.assertIn("make a 90 day tracker", held["text"], now)
             self.assertIn("plan.ssheet", held["text"], now)
         self.assertIsNone(shepherd.carried(chat("make a 90 day tracker", "All done.", "yes", files=["plan.ssheet"])))
+        self.assertTrue(shepherd.carried(chat("make a 90 day tracker", "Rows done. Next: the actions section.", "yes", files=["plan.ssheet"])))
 
     def test_the_model_is_told_and_may_think_when_asked(self):
         for text, line, kw in (("make a 90 day work plan tracker", agent.BATCHES, {"wait": 180}),
@@ -151,6 +152,15 @@ class Example(unittest.TestCase):
             self.assertEqual(verify.stale(ws, "tech.ssheet", "attachments/sales.ssheet")[0], total - 1)
 
 
+class FilesAreWork(unittest.TestCase):
+    def test_yes_after_a_request_that_was_only_files_and_a_few_words(self):
+        m = chat("need a version of this but for the tech tema", "Labels done. Shall I go on?", "yes", files=["t.ssheet"])
+        m[0]["attachments"] = ["attachments/a.xlsx"]
+        held = shepherd.carried(m)
+        self.assertIn("need a version", held["text"])
+        self.assertEqual(held["attachments"], ["attachments/a.xlsx"])
+
+
 class ManyCells(unittest.TestCase):
     def test_a_whole_sheet_in_one_call(self):
         from mlmi.backend import formats as F, tools as T
@@ -160,6 +170,11 @@ class ManyCells(unittest.TestCase):
             T.run(ws, "sheets_set_many", {"path": "t.ssheet", "cells": {"A2": "Releases", "C9": 13, "D9": "=C9*2"}}, by="agent")
             cells = F.load(ws.path("t.ssheet"))["sheets"][0]["cells"]
             self.assertEqual((cells["A2"], cells["C9"], cells["D9"]), ("Releases", 13, "=C9*2"))
+            # the sheet in the cell's name, and a reply with a broken comma
+            T.run(ws, "sheets_set_many", {"path": "t.ssheet", "cells": {"Sheet1!A3": "Named"}}, by="agent")
+            T.run(ws, "sheets_set_many", {"path": "t.ssheet", "cells": '{"A4": "Kept" "A5": 7}'}, by="agent")
+            cells = F.load(ws.path("t.ssheet"))["sheets"][0]["cells"]
+            self.assertEqual((cells["A3"], cells["A4"], cells["A5"]), ("Named", "Kept", 7))
 
 
 class Guard(unittest.TestCase):
@@ -212,6 +227,37 @@ class Finished(unittest.TestCase):
                                                            "paragraph", "table"])
             self.assertEqual((blocks[0]["level"], blocks[0]["text"]), (0, "Plan"))
             self.assertEqual(blocks[-1]["rows"], [["Week", "Owner"], ["1", "Sam"]])
+
+
+class Attached(unittest.TestCase):
+    """Ernest's chat: "need a version of this but for the tech tema" with a file named ...2027.docx went to the web."""
+    def test_a_file_name_is_not_a_question_about_now(self):
+        model = Calls()
+        off = types.SimpleNamespace(ready=lambda: False)
+        st = types.SimpleNamespace(session=agent.Session(), ws=Workspace(Path(tempfile.mkdtemp(prefix="mlmi-flex-"))),
+                                   model_card=lambda: {"tier": 0}, mode=1, permission="auto", local=off, cloud=model,
+                                   orch=Orch(ready=False), busy=threading.Lock(), model_path="")
+        (st.ws.root / "plan 2027.txt").write_text("the plan", encoding="utf-8")
+        from mlmi.backend.tools import web
+        was, web.STATE["on"] = web.STATE["on"], True
+        events = []
+        try:
+            agent.run(st, [{"role": "user", "content": "need a version of this but for the tech tema",
+                            "attachments": ["plan 2027.txt"]}], emit=events.append, auto_confirm="yes")
+        finally:
+            web.STATE["on"] = was
+        self.assertFalse([e for e in events if str(e.get("name", "")).startswith("web_")])
+        self.assertTrue([f for f in st.ws.tree() if f["path"].endswith(".sdoc")])
+
+
+class ChatFiles(unittest.TestCase):
+    def test_a_file_this_chat_made_is_open_to_the_next_turn(self):
+        with tempfile.TemporaryDirectory() as d:
+            ws = Workspace(Path(d))
+            (Path(d) / "tracker.ssheet").write_text("{}", encoding="utf-8")
+            args = {"path": "tracker.ssheet", "cells": {"A1": "x"}}
+            self.assertIn("not part", agent.in_scope(ws, "sheets_set_many", args, "need a version for the tech team", "", set()))
+            self.assertIsNone(agent.in_scope(ws, "sheets_set_many", args, "need a version for the tech team", "", set(), {"tracker.ssheet"}))
 
 
 class Orch:

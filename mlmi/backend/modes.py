@@ -301,7 +301,7 @@ class Cloud:
             try:
                 r = _post(self.cfg.base + "/chat/completions", body, {"Authorization": "Bearer " + self.cfg.key}, timeout=wait)
             except LLMError as e:             # a busy moment or a dropped line is not the end of a job: once more
-                if not re.search(r"\b(429|50[0-4])\b|timed out|reset|aborted|unreachable", str(e), re.I):
+                if not re.search(r"\b(429|50[0-4]|529)\b|overloaded|timed out|reset|aborted|unreachable", str(e), re.I):
                     raise
                 time.sleep(3)
                 r = _post(self.cfg.base + "/chat/completions", body, {"Authorization": "Bearer " + self.cfg.key}, timeout=wait)   # a stalled cloud gives way to the laptop within a minute

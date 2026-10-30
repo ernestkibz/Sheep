@@ -366,8 +366,16 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
     # itself, as it does exact arithmetic. Given web tools, the 3B searched once,
     # then wandered into files and herders and never answered (2026-10-05).
     from ..tools import web as _web
-    if _web.STATE["on"] and re.search(WEB_CUES, cue.lower()) and not re.search(ACTION, cue.lower()) and not job:
+    # what the person said, not the names of their files: "...OCT-JAN 2027.docx" sent a request for a version of
+    # that plan to the web as a question about now (Ernest's chat, 2026-10-30). Files in play are the work
+    said = cue.split("\n\nAttached")[0].lower()
+    with_files = bool(attached or (held and held["attachments"]))
+    if with_files and not shepherd.just_talk(said) and not job:
+        names = names or able(state, T.offered(3, apps))[0]
+    if _web.STATE["on"] and re.search(WEB_CUES, said) and not re.search(ACTION, said) and not job and not with_files:
         return research(asked, convo, executor, emit)
+    if with_files and not re.search(WEB_CUES, said):
+        names = [n for n in names if not n.startswith("web_")]
     if tier == 0 and cloud_on:
         executor = cloud
         names = able(state, T.offered(1 if perm == "plan" else 3, apps))[0]
@@ -377,7 +385,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
 
     # A deck or document about something current: search first, and whoever writes it works from
     # what was found; the file ends with its sources (hackathon B7: Tavily in a real job)
-    if job and job["kind"] in ("slides", "words") and _web.STATE["on"] and re.search(WEB_CUES, cue.lower()):
+    if job and job["kind"] in ("slides", "words") and _web.STATE["on"] and re.search(WEB_CUES, said):
         found_res, found = gather(asked, emit)
         if found_res:
             job = dict(job, research=found, sources=found_res[:5])
@@ -462,7 +470,9 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
         return sess.pending.pop(cid, {}).get("allow", False)
 
     scope_asked = asked
-    opened = set()                    # files this job read: "update my plan" names none, the model found it
+    # files this job read ("update my plan" names none, the model found it) and the files this chat made:
+    # after "yes" the model was refused the workbook it had made one turn before (2026-10-30)
+    opened = set(str(f).replace("\\", "/") for f in last_files)
 
     def call(cid, name, args, route):
         """Run one tool for the job; returns (ok, text) and emits what happened."""
@@ -537,6 +547,8 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
             emit({"type": "tool_result", "id": cid, "name": name, "ok": True, "text": result,
                   "ms": round((time.perf_counter() - t0) * 1000), "route": route})
             ok = True
+            if name in ("copy_file", "move_file") and args.get("dst"):
+                rc.made.add(str(args["dst"]).replace("\\", "/"))   # a copy is this job's own file, to check and to work on
             if T.TOOLS.get(name) and T.TOOLS[name].tier < 2 and args.get("path"):
                 opened.add(str(args["path"]).replace("\\", "/"))
             if T.TOOLS.get(name) and T.TOOLS[name].tier >= 2:
@@ -1198,6 +1210,7 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
 
     fitted = 0
     pressed = False
+    idled = False
     pushes = 0
     limit = 60 if pace == "whole" else MAX_STEPS      # "i can wait" is not cut off at twenty steps
     for step in range(limit):
@@ -1408,6 +1421,14 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                 gave_up = True
             # the work is checked against the request before it is called done:
             # one chance to fix what is short, then the person is told
+            if pace and held and not acted and not rc.made and not idled and step < limit - 1:
+                # "yes" and it said the job was finished with nothing touched: a turn of a big job does work
+                idled = True
+                emit({"type": "thinking", "route": "local", "what": "Nothing changed yet: Sheep is sending it back to work"})
+                convo.append({"role": "assistant", "content": text or "Done."})
+                convo.append({"role": "user", "content": "Nothing was changed in this turn. Read the file, then do the next "
+                                                         "part now with the tools, with real content."})
+                continue
             short = verify.shortfalls(ws, asked, rc.made) if rc.made else []
             if pace == "batches":             # a part at a time: only an empty file is short of it
                 short = [s for s in short if "holds only" in s]
@@ -1418,13 +1439,17 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                     have = verify.book_size(verify._load(ws, rel) or {})
                     if have[2] * 2 < want[2]:
                         short.append(f"{rel} has {have[1]} cells and {have[2]} formulas; the example has {want[1]} and {want[2]}")
+            untouched = False
             if pace and example:
-                for rel in sorted(f for f in rc.made if f.endswith(".ssheet") and f != example):
+                # the files this turn made and the ones it carries on from: "yes" is checked like the first turn
+                earlier = asked.split("done so far:")[1].split(";")[0] if "done so far:" in asked else ""
+                for rel in sorted({f for f in rc.made | {x.strip() for x in earlier.split(",")} if f.endswith(".ssheet") and f != example}):
                     same, total, left = verify.stale(ws, rel, example)
                     if total and same * 3 > total:
+                        untouched = untouched or same * 20 >= total * 19
                         short.append(f"{same} of {total} text cells in {rel} still hold the example's words; rewrite them "
-                                     "for this job with sheets_write or sheets_set_cell, such as " + "; ".join(left[:24]))
-            if pace == "batches" and short and any("example's words" in s for s in short):
+                                     "for this job with sheets_set_many, such as " + "; ".join(left[:24]))
+            if pace == "batches" and short and not untouched and any("example's words" in s for s in short):
                 # a part at a time: the person hears how far it is, the model is not sent back
                 text = (text or summary()) + "\n\nStill to do: " + next(s for s in short if "example's words" in s).split(";")[0] + "."
                 short = [s for s in short if "example's words" not in s]
@@ -1437,7 +1462,8 @@ def run(state, messages, app="", path="", emit=print, auto_confirm=None, cache=T
                               + ". Fix that with the tools, then tell me when it is done."})
                 continue
             if short:
-                text = (text or summary()) + "\n\nNot yet as asked: " + "; ".join(short) + "."
+                # whatever the model says, the person hears what the files show
+                text = (text or summary()) + "\n\nNot yet as asked: " + "; ".join(s.split(", such as ")[0] for s in short) + "."
             emit({"type": "text", "text": text, "route": info["route"]})
             return finish(failed=gave_up)
         if text:

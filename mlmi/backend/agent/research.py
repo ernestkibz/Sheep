@@ -57,7 +57,8 @@ def research(question, convo, executor, emit, pages=2):
             quiet["on_delta"] = lambda piece: emit({"type": "draft", "delta": piece})
         if getattr(executor, "retry_device", None):
             quiet["on_retry"] = lambda why: emit({"type": "device_retry", "why": why})
-        msg, info = executor.chat(msgs, None, max_tokens=700, **quiet)
+        # Nemotron reasons before it answers: 700 tokens went on reasoning and left an empty reply (2026-10-30)
+        msg, info = executor.chat(msgs, None, max_tokens=4000 if getattr(executor, "name", "") == "nebius" else 700, **quiet)
         text = (msg.get("content") or "").strip()
         emit({"type": "text", "text": text or "I could not write an answer from the sources.", "route": info.get("route", "local")})
     except Exception as e:

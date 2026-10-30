@@ -68,8 +68,8 @@ asks for a Word, Excel or PowerPoint file, make it in Sheep, then export it.
 
 # Ernest, 2026-10-30: thinking for one huge reply is slow and can stop halfway. A big job goes a part at a time
 # unless the person says they can wait; both are for any model.
-BATCHES = ("This is a big job, so do it in batches. Do the first part properly now, with full real content: one sheet, "
-           "one table, one section, or about five slides. Then stop and say in two lines what is done, what comes next, "
+BATCHES = ("This is a big job, so do it in batches. Do the next part properly now, with full real content: a whole sheet, "
+           "a whole table, a whole section, or about five slides, in as few calls as you can. Then stop and say in two lines what is done, what comes next, "
            "and ask if you should continue. If the person said which part to do, do that part.")
 WHOLE = ("The person said they can wait. Take the time to think it through, then finish the whole job in this turn, "
          "with full real content in every part.")

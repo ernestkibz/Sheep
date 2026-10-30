@@ -230,15 +230,24 @@ def sheets_write(ctx, path, cell, values, sheet=""):
 
 @tool("sheets_set_many", "sheets", 2, "Set many cells in one call, anywhere on a sheet: use this, not one call per cell.",
       {"path": ("string", "the .ssheet file"),
-       "cells": ("object", "cell to value or formula, e.g. {\"A1\": \"Title\", \"C15\": 13, \"D15\": \"=C15*2\"}"),
+       "cells": ("object", "cell to value or formula, e.g. {\"A1\": \"Title\", \"C15\": 13, \"D15\": \"=C15*2\", "
+                           "\"Other sheet!B2\": \"x\"}"),
        "sheet": ("string", "sheet name; omit for the first")}, ("path", "cells"))
 def sheets_set_many(ctx, path, cells, sheet=""):
     p, d = open_doc(ctx, path, "sheets")
-    s = _sheet(d, sheet)
     if isinstance(cells, str):
-        cells = json.loads(cells)
+        try:
+            cells = json.loads(cells, strict=False)
+        except ValueError:
+            # a long reply with one bad comma or quote: the pairs that can be read still count
+            cells = {m.group(1): json.loads(m.group(2), strict=False) for m in re.finditer(
+                r'"([^"\n]*?[A-Za-z]{1,3}\d+)"\s*:\s*("(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?)', cells)}
+            if not cells:
+                raise ToolError("cells must be an object of cell to value, such as {\"A1\": \"Title\"}")
     for cell, value in dict(cells).items():
-        c, r = _cell(cell)
+        where, _, name = str(cell).rpartition("!")   # "Input Dashboard!A1" names its own sheet
+        s = _sheet(d, where.strip("'") or sheet)
+        c, r = _cell(name)
         k = f"{get_column_letter(c)}{r}"
         v = coerce(value)
         if v is None or v == "":
@@ -246,7 +255,7 @@ def sheets_set_many(ctx, path, cells, sheet=""):
         else:
             s["cells"][k] = v
     save_doc(ctx, p, d, f"set {len(cells)} cells in {path}")
-    return f"set {len(cells)} cells in {s['name']}"
+    return f"set {len(cells)} cells"
 
 
 @tool("sheets_set_cell", "sheets", 2, "Set one cell to a value or a formula (empty clears it).",
